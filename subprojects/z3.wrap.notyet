@@ -1,0 +1,4 @@
+[wrap-git]
+url=https://github.com/Z3Prover/z3
+revision=z3-4.9.1
+depth=1
