@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <z3.h>
 #include <z3_api.h>
 
 #define LOG_Z3_CALLS

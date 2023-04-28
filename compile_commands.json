@@ -1,0 +1,14 @@
+[
+  {
+    "directory": "/data/projects/rz-gadget/build",
+    "command": "cc -Ismt-libv2/librz-svd.so.p -Ismt-libv2 -I../smt-libv2 -I../smt-libv2/include -I/usr/include/librz -I/usr/include/librz/sdb -I/usr/include/capstone -I/usr/local/include/z3 -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -O2 -g -fPIC -MD -MQ smt-libv2/librz-svd.so.p/rz-smt.c.o -MF smt-libv2/librz-svd.so.p/rz-smt.c.o.d -o smt-libv2/librz-svd.so.p/rz-smt.c.o -c ../smt-libv2/rz-smt.c",
+    "file": "../smt-libv2/rz-smt.c",
+    "output": "smt-libv2/librz-svd.so.p/rz-smt.c.o"
+  },
+  {
+    "directory": "/data/projects/rz-gadget/build",
+    "command": "cc -Ismt-libv2/librz-svd.so.p -Ismt-libv2 -I../smt-libv2 -I../smt-libv2/include -I/usr/include/librz -I/usr/include/librz/sdb -I/usr/include/capstone -I/usr/local/include/z3 -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -O2 -g -fPIC -MD -MQ smt-libv2/librz-svd.so.p/il_to_z3.c.o -MF smt-libv2/librz-svd.so.p/il_to_z3.c.o.d -o smt-libv2/librz-svd.so.p/il_to_z3.c.o -c ../smt-libv2/il_to_z3.c",
+    "file": "../smt-libv2/il_to_z3.c",
+    "output": "smt-libv2/librz-svd.so.p/il_to_z3.c.o"
+  }
+]
