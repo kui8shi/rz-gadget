@@ -1,3 +1,0 @@
-[submodule "smt-libv2/subprojects/z3"]
-	path = subprojects/z3
-	url = https://github.com/Z3Prover/z3

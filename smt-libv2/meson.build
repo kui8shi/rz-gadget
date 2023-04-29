@@ -1,7 +1,7 @@
 inc_dir = include_directories('include')
 
 library('rz-svd',
-  ['rz-smt.c', 'il_to_z3.c'],
+  ['rz-smt.c', 'il_to_z3.c','il_symbolic_vm.c'],
   dependencies: [rz_core_dep, z3_dep],
   install: true,
   install_dir: plugins_dir,

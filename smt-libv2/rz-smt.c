@@ -1,5 +1,6 @@
 #include "rz_analysis.h"
 #include "rz_il/rz_il_opcodes.h"
+#include <rz-core.h>
 #include <rz-gadget.h>
 
 static const RzCmdDescArg cmd_rop_args[] = {
