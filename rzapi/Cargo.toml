@@ -1,0 +1,33 @@
+[package]
+name = "rzapi"
+version = "0.1.0"
+edition = "2021"
+authors = [ "pancake <pancake@nopcode.org>",
+"sushant94 <sushant.dinesh94@gmail.com>",
+"chinmaydd <chinmay1dd@gmail.com>",
+"ez2take <gbiifvrc517@gmail.com>",]
+
+description = "rz-pipe.rs api abstraction layer"
+
+# Repository
+#repository = "https://github.com/ez2take/rz-gadget"
+
+# License information
+license = "MIT OR Apache-2.0"
+
+[features]
+default = []
+
+[dependencies]
+libc = "*"
+clippy = { version = "*", optional = true }
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
+
+[dependencies.rzpipe]
+git = "https://github.com/rizinorg/rz-pipe"
+
+[[bin]]
+name = "api_example"
+path = "examples/api_example.rs"

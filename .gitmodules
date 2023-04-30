@@ -1,0 +1,3 @@
+[submodule "rzil-rs/librz_il-sys/rizin"]
+	path = librz_il-sys/rizin
+	url = git@github.com:rizinorg/rizin

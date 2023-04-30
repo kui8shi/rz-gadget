@@ -1,0 +1,9 @@
+[package]
+name = "rzil"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bindgen = "0.65.1"
+cty = "0.2.2"
+pkg-config = "0.3.26"
