@@ -5053,11 +5053,11 @@ extern "C" {
 extern "C" {
     pub static mut signgam: ::std::os::raw::c_int;
 }
-pub const FP_NAN: _bindgen_ty_2 = 0;
-pub const FP_INFINITE: _bindgen_ty_2 = 1;
-pub const FP_ZERO: _bindgen_ty_2 = 2;
-pub const FP_SUBNORMAL: _bindgen_ty_2 = 3;
-pub const FP_NORMAL: _bindgen_ty_2 = 4;
+//pub const FP_NAN: _bindgen_ty_2 = 0;
+//pub const FP_INFINITE: _bindgen_ty_2 = 1;
+//pub const FP_ZERO: _bindgen_ty_2 = 2;
+//pub const FP_SUBNORMAL: _bindgen_ty_2 = 3;
+//pub const FP_NORMAL: _bindgen_ty_2 = 4;
 pub type _bindgen_ty_2 = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]

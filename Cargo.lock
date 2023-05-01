@@ -1312,9 +1312,7 @@ dependencies = [
 name = "rzil"
 version = "0.1.0"
 dependencies = [
- "bindgen",
- "cty",
- "pkg-config",
+ "librz_il-sys",
 ]
 
 [[package]]
