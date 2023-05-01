@@ -1,154 +1,188 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
 use librz_il_sys::*;
-struct Pure {
-    op: rz_il_op_pure_t,
+use std::fmt;
+use std::rc::Rc;
+use std::cell::Cell;
+pub trait OpArgs<T> {
+    fn dummy() {}
 }
-enum PureArgs {
-    Ite(RzILOpArgsIte),
-    Var(RzILOpArgsVar),
-    Let(RzILOpArgsLet),
-    BoolAnd(RzILOpArgsBoolAnd),
-    BoolOr(RzILOpArgsBoolOr),
-    BoolXor(RzILOpArgsBoolXor),
-    BoolInv(RzILOpArgsBoolInv),
-    Bv(RzILOpArgsBv),
-    Msb(RzILOpArgsMsb),
-    Lsb(RzILOpArgsLsb),
-    IsZero(RzILOpArgsIsZero),
-    Eq_(RzILOpArgsEq),
-    Ule(RzILOpArgsUle),
-    Sle(RzILOpArgsSle),
-    Cast(RzILOpArgsCast),
-    Neg(RzILOpArgsNeg),
-    LogNot(RzILOpArgsLogNot),
-    Add(RzILOpArgsAdd),
-    Sub(RzILOpArgsSub),
-    Mul(RzILOpArgsMul),
-    Div(RzILOpArgsDiv),
-    Sdiv(RzILOpArgsSdiv),
-    Smod(RzILOpArgsSmod),
-    Mod(RzILOpArgsMod),
-    Logand(RzILOpArgsLogand),
-    Logor(RzILOpArgsLogor),
-    Logxor(RzILOpArgsLogxor),
-    ShiftLeft(RzILOpArgsShiftLeft),
-    ShiftRight(RzILOpArgsShiftRight),
-    Append(RzILOpArgsAppend),
-    Load(RzILOpArgsLoad),
-    LoadW(RzILOpArgsLoadW),
-    Float(RzILOpArgsFloat),
-    Fbits(RzILOpArgsFbits),
-    IsFinite(RzILOpArgsIsFinite),
-    IsNan(RzILOpArgsIsNan),
-    IsInf(RzILOpArgsIsInf),
-    IsFzero(RzILOpArgsIsFzero),
-    IsFneg(RzILOpArgsIsFneg),
-    IsFpos(RzILOpArgsIsFpos),
-    Fneg(RzILOpArgsFneg),
-    Fabs(RzILOpArgsFabs),
-    FCastint(RzILOpArgsFCastint),
-    FCastsint(RzILOpArgsFCastsint),
-    FCastfloat(RzILOpArgsFCastfloat),
-    FCastsfloat(RzILOpArgsFCastsfloat),
-    Fconvert(RzILOpArgsFconvert),
-    Frequal(RzILOpArgsFrequal),
-    Fsucc(RzILOpArgsFsucc),
-    Fpred(RzILOpArgsFpred),
-    Forder(RzILOpArgsForder),
-    Fround(RzILOpArgsFround),
-    Fsqrt(RzILOpArgsFsqrt),
-    Frsqrt(RzILOpArgsFrsqrt),
-    Fadd(RzILOpArgsFadd),
-    Fsub(RzILOpArgsFsub),
-    Fmul(RzILOpArgsFmul),
-    Fdiv(RzILOpArgsFdiv),
-    Fmod(RzILOpArgsFmod),
-    Fmad(RzILOpArgsFmad),
-    Fpow(RzILOpArgsFpow),
-    Fpown(RzILOpArgsFpown),
-    Frootn(RzILOpArgsFrootn),
-    Fcompound(RzILOpArgsFcompound),
-    Fhypot(RzILOpArgsFhypot),
-    Unkown,
-}
+impl OpArgs for RzILOpArgsEq {}
 
-impl Pure {
-    fn code(&self) -> RzILOpPureCode {
-        self.op.code
-    }
-    fn args(&self) -> PureArgs {
-        let union = self.op.op;
-        unsafe {
-            match self.op.code {
-                RzILOpPureCode_RZ_IL_OP_ITE => PureArgs::Ite(union.ite),
-                RzILOpPureCode_RZ_IL_OP_VAR => PureArgs::Var(union.var),
-                RzILOpPureCode_RZ_IL_OP_LET => PureArgs::Let(union.let_),
-                RzILOpPureCode_RZ_IL_OP_AND => PureArgs::BoolAnd(union.booland),
-                RzILOpPureCode_RZ_IL_OP_OR => PureArgs::BoolOr(union.boolor),
-                RzILOpPureCode_RZ_IL_OP_XOR => PureArgs::BoolXor(union.boolxor),
-                RzILOpPureCode_RZ_IL_OP_INV => PureArgs::BoolInv(union.boolinv),
-                RzILOpPureCode_RZ_IL_OP_BITV => PureArgs::Bv(union.bitv),
-                RzILOpPureCode_RZ_IL_OP_MSB => PureArgs::Msb(union.msb),
-                RzILOpPureCode_RZ_IL_OP_LSB => PureArgs::Lsb(union.lsb),
-                RzILOpPureCode_RZ_IL_OP_IS_ZERO => PureArgs::IsZero(union.is_zero),
-                RzILOpPureCode_RZ_IL_OP_EQ => PureArgs::Eq_(union.eq),
-                RzILOpPureCode_RZ_IL_OP_ULE => PureArgs::Ule(union.ule),
-                RzILOpPureCode_RZ_IL_OP_SLE => PureArgs::Sle(union.sle),
-                RzILOpPureCode_RZ_IL_OP_CAST => PureArgs::Cast(union.cast),
-                RzILOpPureCode_RZ_IL_OP_NEG => PureArgs::Neg(union.neg),
-                RzILOpPureCode_RZ_IL_OP_LOGNOT => PureArgs::LogNot(union.lognot),
-                RzILOpPureCode_RZ_IL_OP_ADD => PureArgs::Add(union.add),
-                RzILOpPureCode_RZ_IL_OP_SUB => PureArgs::Sub(union.sub),
-                RzILOpPureCode_RZ_IL_OP_MUL => PureArgs::Mul(union.mul),
-                RzILOpPureCode_RZ_IL_OP_DIV => PureArgs::Div(union.div),
-                RzILOpPureCode_RZ_IL_OP_SDIV => PureArgs::Sdiv(union.sdiv),
-                RzILOpPureCode_RZ_IL_OP_SMOD => PureArgs::Smod(union.smod),
-                RzILOpPureCode_RZ_IL_OP_MOD => PureArgs::Mod(union.mod_),
-                RzILOpPureCode_RZ_IL_OP_LOGAND => PureArgs::Logand(union.logand),
-                RzILOpPureCode_RZ_IL_OP_LOGOR => PureArgs::Logor(union.logor),
-                RzILOpPureCode_RZ_IL_OP_LOGXOR => PureArgs::Logxor(union.logxor),
-                RzILOpPureCode_RZ_IL_OP_SHIFTL => PureArgs::ShiftLeft(union.shiftl),
-                RzILOpPureCode_RZ_IL_OP_SHIFTR => PureArgs::ShiftRight(union.shiftr),
-                RzILOpPureCode_RZ_IL_OP_APPEND => PureArgs::Append(union.append),
-                RzILOpPureCode_RZ_IL_OP_LOAD => PureArgs::Load(union.load),
-                RzILOpPureCode_RZ_IL_OP_LOADW => PureArgs::LoadW(union.loadw),
-                RzILOpPureCode_RZ_IL_OP_FLOAT => PureArgs::Float(union.float_),
-                RzILOpPureCode_RZ_IL_OP_FBITS => PureArgs::Fbits(union.fbits),
-                RzILOpPureCode_RZ_IL_OP_IS_FINITE => PureArgs::IsFinite(union.is_finite),
-                RzILOpPureCode_RZ_IL_OP_IS_NAN => PureArgs::IsNan(union.is_nan),
-                RzILOpPureCode_RZ_IL_OP_IS_INF => PureArgs::IsInf(union.is_inf),
-                RzILOpPureCode_RZ_IL_OP_IS_FZERO => PureArgs::IsFzero(union.is_fzero),
-                RzILOpPureCode_RZ_IL_OP_IS_FNEG => PureArgs::IsFneg(union.is_fneg),
-                RzILOpPureCode_RZ_IL_OP_IS_FPOS => PureArgs::IsFpos(union.is_fpos),
-                RzILOpPureCode_RZ_IL_OP_FNEG => PureArgs::Fneg(union.fneg),
-                RzILOpPureCode_RZ_IL_OP_FCAST_SINT => PureArgs::FCastsint(union.fcast_sint),
-                RzILOpPureCode_RZ_IL_OP_FCAST_FLOAT => PureArgs::FCastfloat(union.fcast_float),
-                RzILOpPureCode_RZ_IL_OP_FCAST_SFLOAT => PureArgs::FCastsfloat(union.fcast_sfloat),
-                RzILOpPureCode_RZ_IL_OP_FCONVERT => PureArgs::Fconvert(union.fconvert),
-                RzILOpPureCode_RZ_IL_OP_FREQUAL => PureArgs::Frequal(union.frequal),
-                RzILOpPureCode_RZ_IL_OP_FSUCC => PureArgs::Fsucc(union.fsucc),
-                RzILOpPureCode_RZ_IL_OP_FPRED => PureArgs::Fpred(union.fpred),
-                RzILOpPureCode_RZ_IL_OP_FORDER => PureArgs::Forder(union.forder),
-                RzILOpPureCode_RZ_IL_OP_FROUND => PureArgs::Fround(union.fround),
-                RzILOpPureCode_RZ_IL_OP_FSQRT => PureArgs::Fsqrt(union.fsqrt),
-                RzILOpPureCode_RZ_IL_OP_FRSQRT => PureArgs::Frsqrt(union.frsqrt),
-                RzILOpPureCode_RZ_IL_OP_FADD => PureArgs::Fadd(union.fadd),
-                RzILOpPureCode_RZ_IL_OP_FSUB => PureArgs::Fsub(union.fsub),
-                RzILOpPureCode_RZ_IL_OP_FMUL => PureArgs::Fmul(union.fmul),
-                RzILOpPureCode_RZ_IL_OP_FDIV => PureArgs::Fdiv(union.fdiv),
-                RzILOpPureCode_RZ_IL_OP_FMOD => PureArgs::Fmod(union.fmod),
-                RzILOpPureCode_RZ_IL_OP_FMAD => PureArgs::Fmad(union.fmad),
-                RzILOpPureCode_RZ_IL_OP_FPOW => PureArgs::Fpow(union.fpow),
-                RzILOpPureCode_RZ_IL_OP_FPOWN => PureArgs::Fpown(union.fpown),
-                RzILOpPureCode_RZ_IL_OP_FROOTN => PureArgs::Frootn(union.frootn),
-                RzILOpPureCode_RZ_IL_OP_FCOMPOUND => PureArgs::Fcompound(union.fcompound),
-                RzILOpPureCode_RZ_IL_OP_FHYPOT => PureArgs::Fhypot(union.fhypot),
-                _ => PureArgs::Unkown,
+pub trait Op<T: OpArgs>: fmt::Debug {
+    fn get_code(&self) -> OpCode;
+    fn get_args(&self) -> T;
+    unsafe fn wrap(code: OpCode, args: T) -> Self
+    where
+        Self: Sized;
+}
+struct Pure {
+    code: OpCode,
+    args: rz_il_op_pure_t__bindgen_ty_1,
+}
+/*
+let op = rzil::op::Eq(bitv1, bitv2);
+let op = rzil::op::Add(bitv1, bitv2)
+let op = rzil::op::BoolAnd(bool1, bool2)
+op = rzil::op::BoolAnd::from(op);
+args = op.get_args(); // already typed
+args.x
+args.y
+*/
+macro_rules! abstruct {
+//    ($(#[$attr:meta])* $c_name:ident, $cap_name:ident) => {
+//        abs_type!($(#[$attr])* $c_name, $cap_name, PU);
+//    };
+    ($(#[$attr:meta])* $c_name:ident, $struct_name:ident, $free_fn:ident) => {
+        $(#[$attr])*
+        pub struct $struct_name<'a> {
+            sys: *mut librz_il_sys::$c_name,
+            rc: Rc<Cell<usize>>,
+        }
+        impl<'a> Clone for $struct_name<'a> {
+            fn clone(&self) -> Self {
+                self.rc.set(self.rc.get() + 1);
+                $struct_name {
+                    sys: self.sys,
+                    rc: self.rc.clone(),
+                }
             }
         }
-    }
-    fn c_args(&self) -> rz_il_op_pure_t__bindgen_ty_1 {
-        self.op.op
-    }
+        impl<'a> Drop for $struct_name<'a> {
+            fn drop(&mut self) {
+                let rc = self.rc.get();
+                if rc == 1 {
+                    unsafe {
+                        $free_fn(self.sys);
+                    }
+                } else {
+                    self.rc.set(rc - 1)
+                }
+            }
+        }
+    };
 }
+abstruct!(rz_il_op_pure_t, OpPure, rz_il_op_pure_free);
+macro_rules! impl_op {
+    ($(#[$attr:meta])* $op:ident ,$args:tt,$il_op:ident, $il_op_args:ident) => {
+        $(#[$attr])*
+        impl Op for $op {
+            unsafe fn wrap(il_op: $il_op) -> Self
+            where
+                Self: Sized,
+            {
+                assert!(!il_op.is_null());
+                Self {
+                    code: il_op.code,
+                    args: {
+                        debug!("new op: id = {}, pointer = {:p}", il_op.code, il_op);
+                        il_op.$args
+                    },
+                }
+            }
+
+            fn get_code(&self) -> OpCode {
+                self.code
+            }
+
+            fn get_args(&self) -> $il_op_args {
+                self.args
+            }
+        }
+    };
+}
+impl_op!(Pure, )
+pub enum OpCode {
+    // pure
+    Ite,
+    Var,
+    Let,
+    BoolAnd,
+    BoolOr,
+    BoolXor,
+    BoolInv,
+    Bv,
+    Msb,
+    Lsb,
+    IsZero,
+    Eq_,
+    Ule,
+    Sle,
+    Cast,
+    Neg,
+    LogNot,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Sdiv,
+    Smod,
+    Mod,
+    Logand,
+    Logor,
+    Logxor,
+    ShiftLeft,
+    ShiftRight,
+    Append,
+    Load,
+    LoadW,
+    Float,
+    Fbits,
+    IsFinite,
+    IsNan,
+    IsInf,
+    IsFzero,
+    IsFneg,
+    IsFpos,
+    Fneg,
+    Fabs,
+    FCastint,
+    FCastsint,
+    FCastfloat,
+    FCastsfloat,
+    Fconvert,
+    Frequal,
+    Fsucc,
+    Fpred,
+    Forder,
+    Fround,
+    Fsqrt,
+    Frsqrt,
+    Fadd,
+    Fsub,
+    Fmul,
+    Fdiv,
+    Fmod,
+    Fmad,
+    Fpow,
+    Fpown,
+    Frootn,
+    Fcompound,
+    Fhypot,
+}
+
+/*
+#[cfg_attr(rustfmt,rustfmt_skip)]
+
+enum Effect {
+    // effect
+    Set { v: String, is_local: bool, x: Rc<Pure> },
+    Jmp { dst: i64},//BitVector },
+    Goto { label: String },
+    Seq {x: Rc<Effect>, y: Rc<Effect>},
+    Blk {label: String, data_effect: Rc<Effect>, ctrl_effect: Rc<Effect> },
+    Repeat {condition: Bool, data_effect: Rc<Effect>},
+    Branch {condition: Bool, true_effect: Rc<Effect>, false_effect: Rc<Effect>},
+    Store {mem: MemIndex, key: BitVector, value: BitVector},
+    StoreW {},
+}
+struct MemIndex {
+    x: i64,
+}
+struct BitVector {
+    x: i64,
+}
+struct Bool {
+    x: i64,
+}
+*/
