@@ -4,8 +4,9 @@ use librz_il_sys::*;
 use std::fmt;
 use std::rc::Rc;
 use std::cell::Cell;
-pub trait OpArgs<T> {
-    fn dummy() {}
+
+pub trait Op{
+    
 }
 impl OpArgs for RzILOpArgsEq {}
 
