@@ -6,7 +6,3 @@ edition = "2021"
 [dependencies]
 #libc="*"
 librz_il-sys = {path = "../librz_il-sys"}
-
-[[bin]]
-name = "test_bindings"
-path = "src/test_bindings.rs"

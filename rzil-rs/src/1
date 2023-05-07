@@ -1,0 +1,151 @@
+warning: /data/projects/rz-gadget/rzapi/Cargo.toml: file `/data/projects/rz-gadget/rzapi/examples/api_example.rs` found to be present in multiple build targets:
+  * `bin` target `api_example`
+  * `example` target `api_example`
+warning: unused macro definition: `dbg_if_err`
+   --> rzil-rs/src/c_wrapper.rs:560:14
+    |
+560 | macro_rules! dbg_if_err {
+    |              ^^^^^^^^^^
+    |
+    = note: `#[warn(unused_macros)]` on by default
+
+warning: type alias `Dummy` is never used
+   --> rzil-rs/src/c_wrapper.rs:252:6
+    |
+252 | type Dummy = std::marker::PhantomData<()>;
+    |      ^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: function `create_op_true` is never used
+   --> rzil-rs/src/c_wrapper.rs:583:8
+    |
+583 |     fn create_op_true() {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `create_op_false` is never used
+   --> rzil-rs/src/c_wrapper.rs:588:8
+    |
+588 |     fn create_op_false() {
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `create_op_ite` is never used
+   --> rzil-rs/src/c_wrapper.rs:593:8
+    |
+593 |     fn create_op_ite() {
+    |        ^^^^^^^^^^^^^
+
+warning: `rzil` (lib) generated 2 warnings
+warning: `rzil` (lib test) generated 4 warnings (1 duplicate)
+    Finished test [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests src/lib.rs (/data/projects/rz-gadget/target/debug/deps/rzil-dd86c4d86911d67d)
+=================================================================
+==274622==ERROR: AddressSanitizer: heap-use-after-free on address 0x606000003021 at pc 0x55c7fdc42da1 bp 0x7f93f06fdec0 sp 0x7f93f06fd680
+READ of size 1 at 0x606000003021 thread T1
+    #0 0x55c7fdc42da0 in __interceptor_memcpy /rustc/llvm/src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:875:5
+    #1 0x55c7fdda18e2 in core::intrinsics::copy_nonoverlapping::h3f56625ce4a3d82b /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/intrinsics.rs:2672:9
+    #2 0x55c7fdda18e2 in alloc::vec::Vec$LT$T$C$A$GT$::append_elements::h6146feef72319eff /rustc/a77c552485a19245a266bc03c450676c666b605f/library/alloc/src/vec/mod.rs:1942:18
+    #3 0x55c7fdda18e2 in _$LT$alloc..vec..Vec$LT$T$C$A$GT$$u20$as$u20$alloc..vec..spec_extend..SpecExtend$LT$$RF$T$C$core..slice..iter..Iter$LT$T$GT$$GT$$GT$::spec_extend::h78d3b81950869212 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/alloc/src/vec/spec_extend.rs:55:23
+    #4 0x55c7fdda18e2 in alloc::vec::Vec$LT$T$C$A$GT$::extend_from_slice::h9ace740e44d556c9 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/alloc/src/vec/mod.rs:2386:9
+    #5 0x55c7fdda18e2 in std::io::impls::_$LT$impl$u20$std..io..Write$u20$for$u20$alloc..vec..Vec$LT$u8$C$A$GT$$GT$::write_all::h5e493bdb3b62ad43 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/io/impls.rs:417:14
+    #6 0x55c7fdda18e2 in _$LT$std..io..Write..write_fmt..Adapter$LT$T$GT$$u20$as$u20$core..fmt..Write$GT$::write_str::ha8f2905fd17978ff /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/io/mod.rs:1701:23
+    #7 0x55c7fddcb2c2 in core::fmt::Formatter::write_str::h8c8179dfebcb2943 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/fmt/mod.rs:1525:9
+    #8 0x55c7fddcb2c2 in _$LT$str$u20$as$u20$core..fmt..Debug$GT$::fmt::h5e14654e539b372e /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/fmt/mod.rs:2312:17
+    #9 0x55c7fdce364e in _$LT$alloc..string..String$u20$as$u20$core..fmt..Debug$GT$::fmt::hdc6bb0798bd39668 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/alloc/src/string.rs:2270:9
+    #10 0x55c7fdcddeb2 in _$LT$$RF$T$u20$as$u20$core..fmt..Debug$GT$::fmt::hef46d10cdaef43ee /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/fmt/mod.rs:2258:62
+    #11 0x55c7fddc9afe in core::fmt::rt::Argument::fmt::h9a4b2d89a60be8da /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/fmt/rt.rs:138:9
+    #12 0x55c7fddc9afe in core::fmt::run::hd5fe71799e0bb1f2 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/fmt/mod.rs:1142:11
+    #13 0x55c7fddc9afe in core::fmt::write::h66441248ae33813a /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/fmt/mod.rs:1110:26
+    #14 0x55c7fdda0891 in std::io::Write::write_fmt::h4041d6b8ff019b1f /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/io/mod.rs:1712:15
+    #15 0x55c7fdda0891 in std::io::stdio::print_to_buffer_if_capture_used::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::h4067dae0708c4da3 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/io/stdio.rs:1030:25
+    #16 0x55c7fdda0891 in core::option::Option$LT$T$GT$::map::h3f0d09f9c58b8584 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/option.rs:1075:29
+    #17 0x55c7fdda0891 in std::io::stdio::print_to_buffer_if_capture_used::_$u7b$$u7b$closure$u7d$$u7d$::hc95674e081a029d6 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/io/stdio.rs:1029:22
+    #18 0x55c7fdda0891 in std::thread::local::LocalKey$LT$T$GT$::try_with::ha9459ff006eed9c5 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/thread/local.rs:270:16
+    #19 0x55c7fdda0891 in std::io::stdio::print_to_buffer_if_capture_used::h5f72a6348d557b40 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/io/stdio.rs:1025:12
+    #20 0x55c7fdda0b63 in std::io::stdio::print_to::h5106c7ebc4f51b93 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/io/stdio.rs:1013:8
+    #21 0x55c7fdda0b63 in std::io::stdio::_eprint::h3b2e99b82ea8c367 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/io/stdio.rs:1106:5
+    #22 0x55c7fdce0b27 in rzil::c_wrapper::tests::stringify::he6cb4611a87c0278 /data/projects/rz-gadget/rzil-rs/src/c_wrapper.rs:606:9
+    #23 0x55c7fdcdff56 in rzil::c_wrapper::tests::stringify::_$u7b$$u7b$closure$u7d$$u7d$::h17a196f7e5d2897c /data/projects/rz-gadget/rzil-rs/src/c_wrapper.rs:601:20
+    #24 0x55c7fdcd804b in core::ops::function::FnOnce::call_once::h9102d5964f3fc7e4 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/ops/function.rs:250:5
+    #25 0x55c7fdd1f4ee in core::ops::function::FnOnce::call_once::h7e3f6a9c5eda56a3 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/ops/function.rs:250:5
+    #26 0x55c7fdd1f4ee in test::__rust_begin_short_backtrace::h2f9f494408e893b4 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/test/src/lib.rs:655:18
+    #27 0x55c7fdcebadb in test::run_test::_$u7b$$u7b$closure$u7d$$u7d$::h1f7521438a4d6ed6 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/test/src/lib.rs:646:30
+    #28 0x55c7fdcebadb in core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h9f499964ec0eb613 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/ops/function.rs:250:5
+    #29 0x55c7fdd1e3e5 in _$LT$alloc..boxed..Box$LT$F$C$A$GT$$u20$as$u20$core..ops..function..FnOnce$LT$Args$GT$$GT$::call_once::h3181eed472f7238d /rustc/a77c552485a19245a266bc03c450676c666b605f/library/alloc/src/boxed.rs:1985:9
+    #30 0x55c7fdd1e3e5 in _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::hf9af3424334add9a /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/panic/unwind_safe.rs:271:9
+    #31 0x55c7fdd1e3e5 in std::panicking::try::do_call::hb98b49c9efb46f12 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/panicking.rs:485:40
+    #32 0x55c7fdd1e3e5 in std::panicking::try::h2f56cb7ea8f58f8a /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/panicking.rs:449:19
+    #33 0x55c7fdd1e3e5 in std::panic::catch_unwind::hce1e878946724a83 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/panic.rs:140:14
+    #34 0x55c7fdd1e3e5 in test::run_test_in_process::hfbe5a6e34d63152f /rustc/a77c552485a19245a266bc03c450676c666b605f/library/test/src/lib.rs:678:27
+    #35 0x55c7fdd1e3e5 in test::run_test::run_test_inner::_$u7b$$u7b$closure$u7d$$u7d$::hbb3cd8e88ef7f5ba /rustc/a77c552485a19245a266bc03c450676c666b605f/library/test/src/lib.rs:572:39
+    #36 0x55c7fdce6187 in test::run_test::run_test_inner::_$u7b$$u7b$closure$u7d$$u7d$::h161a356b7447d7eb /rustc/a77c552485a19245a266bc03c450676c666b605f/library/test/src/lib.rs:599:37
+    #37 0x55c7fdce6187 in std::sys_common::backtrace::__rust_begin_short_backtrace::h8eb178cad186ced8 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/sys_common/backtrace.rs:134:18
+    #38 0x55c7fdceb74a in std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::h19b28b1a60168d65 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/thread/mod.rs:529:17
+    #39 0x55c7fdceb74a in _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::h825ecc4d33ff5f24 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/panic/unwind_safe.rs:271:9
+    #40 0x55c7fdceb74a in std::panicking::try::do_call::h5dbc0de175cad533 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/panicking.rs:485:40
+    #41 0x55c7fdceb74a in std::panicking::try::h26a278de9becf2a4 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/panicking.rs:449:19
+    #42 0x55c7fdceb74a in std::panic::catch_unwind::h3dc4831bcbdd57f2 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/panic.rs:140:14
+    #43 0x55c7fdceb74a in std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::h3fa1c748c67f21a6 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/thread/mod.rs:528:30
+    #44 0x55c7fdceb74a in core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h1eeedc5e261c8d0e /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/ops/function.rs:250:5
+    #45 0x55c7fddaa444 in _$LT$alloc..boxed..Box$LT$F$C$A$GT$$u20$as$u20$core..ops..function..FnOnce$LT$Args$GT$$GT$::call_once::hcf250329e90c3f77 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/alloc/src/boxed.rs:1985:9
+    #46 0x55c7fddaa444 in _$LT$alloc..boxed..Box$LT$F$C$A$GT$$u20$as$u20$core..ops..function..FnOnce$LT$Args$GT$$GT$::call_once::h3a648c216d9fc25d /rustc/a77c552485a19245a266bc03c450676c666b605f/library/alloc/src/boxed.rs:1985:9
+    #47 0x55c7fddaa444 in std::sys::unix::thread::Thread::new::thread_start::ha9800a047bb8dea3 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/sys/unix/thread.rs:108:17
+    #48 0x7f93f3df4bb4  (/usr/lib/libc.so.6+0x85bb4) (BuildId: 4a4bec3d95a1804443e852958fe59ed461135ce9)
+    #49 0x7f93f3e76d8f  (/usr/lib/libc.so.6+0x107d8f) (BuildId: 4a4bec3d95a1804443e852958fe59ed461135ce9)
+
+0x606000003021 is located 1 bytes inside of 64-byte region [0x606000003020,0x606000003060)
+freed by thread T1 here:
+    #0 0x55c7fdcb0b86 in __interceptor_free /rustc/llvm/src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55c7fdcda3e7 in _$LT$rzil..c_wrapper..StrBuf$u20$as$u20$core..ops..drop..Drop$GT$::drop::hb1536fea15dd4cd7 /data/projects/rz-gadget/rzil-rs/src/c_wrapper.rs:331:25
+    #2 0x55c7fdcd85b7 in core::ptr::drop_in_place$LT$rzil..c_wrapper..StrBuf$GT$::hd24bf3901ee1de13 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/ptr/mod.rs:491:1
+    #3 0x55c7fdcdce8e in rzil::c_wrapper::OpPure::stringify::ha43518ba2fc19f4e /data/projects/rz-gadget/rzil-rs/src/c_wrapper.rs:577:5
+    #4 0x55c7fdce02e9 in rzil::c_wrapper::tests::stringify::he6cb4611a87c0278 /data/projects/rz-gadget/rzil-rs/src/c_wrapper.rs:605:22
+    #5 0x55c7fdcdff56 in rzil::c_wrapper::tests::stringify::_$u7b$$u7b$closure$u7d$$u7d$::h17a196f7e5d2897c /data/projects/rz-gadget/rzil-rs/src/c_wrapper.rs:601:20
+    #6 0x55c7fdd1f4ee in core::ops::function::FnOnce::call_once::h7e3f6a9c5eda56a3 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/core/src/ops/function.rs:250:5
+    #7 0x55c7fdd1f4ee in test::__rust_begin_short_backtrace::h2f9f494408e893b4 /rustc/a77c552485a19245a266bc03c450676c666b605f/library/test/src/lib.rs:655:18
+
+previously allocated by thread T1 here:
+    #0 0x55c7fdcb0e98 in __interceptor_calloc /rustc/llvm/src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:77:3
+    #1 0x7f93f40fca1c in rz_strbuf_new (/usr/lib/librz_util.so.0.5+0x81a1c) (BuildId: af946216ae86d52a31201cfa10d2c5696961b345)
+
+Thread T1 created by T0 here:
+    #0 0x55c7fdc994ca in __interceptor_pthread_create /rustc/llvm/src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:208:3
+    #1 0x55c7fddaa2ae in std::sys::unix::thread::Thread::new::h8c78f2cc2fcc250c /rustc/a77c552485a19245a266bc03c450676c666b605f/library/std/src/sys/unix/thread.rs:87:19
+
+SUMMARY: AddressSanitizer: heap-use-after-free /rustc/llvm/src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:875:5 in __interceptor_memcpy
+Shadow bytes around the buggy address:
+  0x606000002d80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x606000002e00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x606000002e80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x606000002f00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x606000002f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x606000003000: fa fa fa fa[fd]fd fd fd fd fd fd fd fa fa fa fa
+  0x606000003080: fd fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa
+  0x606000003100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x606000003180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x606000003200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x606000003280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==274622==ABORTING
+error: test failed, to rerun pass `--lib`
+
+Caused by:
+  process didn't exit successfully: `/data/projects/rz-gadget/target/debug/deps/rzil-dd86c4d86911d67d` (exit status: 1)

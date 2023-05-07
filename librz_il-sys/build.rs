@@ -38,12 +38,14 @@ fn gen_bindings(
 }
 
 fn main() {
-    println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rustc-link-lib=rz_il");
-
     let library = pkg_config::Config::new()
         .probe("rz_il")
         .expect("pkg-config: rz_il not found");
+    println!("{:?}", library);
+
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rustc-link-lib=rz_il");
+
     let root = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let args = library
         .include_paths
@@ -57,11 +59,16 @@ fn main() {
         "//! Rust FFI to 'rz_il.h'",
         |b| {
             b.derive_default(true)
-                .derive_eq(true)
                 .derive_partialeq(true)
+                .derive_eq(true)
                 .default_enum_style(bindgen::EnumVariation::Rust {
                     non_exhaustive: false,
                 })
+                .blocklist_item("FP_NAN")
+                .blocklist_item("FP_INFINITE")
+                .blocklist_item("FP_ZERO")
+                .blocklist_item("FP_SUBNORMAL")
+                .blocklist_item("FP_NORMAL")
         },
     );
 }
