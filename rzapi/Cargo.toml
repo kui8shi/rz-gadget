@@ -27,7 +27,3 @@ serde_derive = "*"
 
 [dependencies.rzpipe]
 git = "https://github.com/rizinorg/rz-pipe"
-
-[[bin]]
-name = "api_example"
-path = "examples/api_example.rs"

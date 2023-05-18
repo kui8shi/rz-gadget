@@ -36,11 +36,11 @@ impl<T> ::std::fmt::Debug for __IncompleteArrayField<T> {
 }
 pub const _FILE_OFFSET_BITS: u32 = 64;
 pub const RZ_VERSION_MAJOR: u32 = 0;
-pub const RZ_VERSION_MINOR: u32 = 5;
-pub const RZ_VERSION_PATCH: u32 = 1;
-pub const RZ_VERSION_NUMBER: u32 = 5001;
-pub const RZ_VERSION: &[u8; 6usize] = b"0.5.1\0";
-pub const RZ_CHECKS_LEVEL: u32 = 2;
+pub const RZ_VERSION_MINOR: u32 = 6;
+pub const RZ_VERSION_PATCH: u32 = 0;
+pub const RZ_VERSION_NUMBER: u32 = 6000;
+pub const RZ_VERSION: &[u8; 6usize] = b"0.6.0\0";
+pub const RZ_CHECKS_LEVEL: u32 = 1;
 pub const DEBUGGER: u32 = 1;
 pub const HAVE_THREADS: u32 = 1;
 pub const HAVE_PTHREAD: u32 = 1;
@@ -48,7 +48,7 @@ pub const HAVE_LZMA: u32 = 1;
 pub const HAVE_ZLIB: u32 = 1;
 pub const HAVE_DECL_ADDR_NO_RANDOMIZE: u32 = 1;
 pub const HAVE_DECL_PROCCTL_ASLR_CTL: u32 = 0;
-pub const HAVE_ARC4RANDOM_UNIFORM: u32 = 1;
+pub const HAVE_ARC4RANDOM_UNIFORM: u32 = 0;
 pub const HAVE_EXPLICIT_BZERO: u32 = 1;
 pub const HAVE_EXPLICIT_MEMSET: u32 = 0;
 pub const HAVE_CLOCK_NANOSLEEP: u32 = 1;
@@ -66,11 +66,11 @@ pub const HAVE_OPENPTY: u32 = 1;
 pub const HAVE_FORKPTY: u32 = 1;
 pub const HAVE_LOGIN_TTY: u32 = 1;
 pub const HAVE_SHM_OPEN: u32 = 1;
-pub const HAVE_LIB_MAGIC: u32 = 1;
-pub const USE_LIB_MAGIC: u32 = 1;
+pub const HAVE_LIB_MAGIC: u32 = 0;
+pub const USE_LIB_MAGIC: u32 = 0;
 pub const HAVE_LIB_XXHASH: u32 = 1;
 pub const USE_LIB_XXHASH: u32 = 1;
-pub const HAVE_LIB_SSL: u32 = 1;
+pub const HAVE_LIB_SSL: u32 = 0;
 pub const HAVE_PTRACE: u32 = 1;
 pub const USE_PTRACE_WRAP: u32 = 1;
 pub const HAVE_FORK: u32 = 1;
@@ -88,6 +88,8 @@ pub const HAVE_BACKTRACE: u32 = 1;
 pub const HAVE___BUILTIN_BSWAP16: u32 = 1;
 pub const HAVE___BUILTIN_BSWAP32: u32 = 1;
 pub const HAVE___BUILTIN_BSWAP64: u32 = 1;
+pub const HAVE_POSIX_MEMALIGN: u32 = 1;
+pub const HAVE__ALIGNED_MALLOC: u32 = 0;
 pub const HAVE_HEADER_LINUX_ASHMEM_H: u32 = 0;
 pub const HAVE_HEADER_SYS_SHM_H: u32 = 1;
 pub const HAVE_HEADER_SYS_IPC_H: u32 = 1;
@@ -95,13 +97,13 @@ pub const HAVE_HEADER_SYS_MMAN_H: u32 = 1;
 pub const HAVE_HEADER_INTTYPES_H: u32 = 1;
 pub const RZ_IS_PORTABLE: u32 = 0;
 pub const RZ_BINDIR_DEPTH: u32 = 1;
-pub const RZ_PREFIX: &[u8; 5usize] = b"/usr\0";
+pub const RZ_PREFIX: &[u8; 11usize] = b"/usr/local\0";
 pub const RZ_BINDIR: &[u8; 4usize] = b"bin\0";
-pub const RZ_LIBDIR: &[u8; 4usize] = b"lib\0";
+pub const RZ_LIBDIR: &[u8; 21usize] = b"lib/x86_64-linux-gnu\0";
 pub const RZ_INCDIR: &[u8; 14usize] = b"include/librz\0";
 pub const RZ_DATDIR: &[u8; 6usize] = b"share\0";
 pub const RZ_WWWROOT: &[u8; 16usize] = b"share/rizin/www\0";
-pub const RZ_PLUGINS: &[u8; 18usize] = b"lib/rizin/plugins\0";
+pub const RZ_PLUGINS: &[u8; 35usize] = b"lib/x86_64-linux-gnu/rizin/plugins\0";
 pub const RZ_DATADIR: &[u8; 12usize] = b"share/rizin\0";
 pub const RZ_SDB: &[u8; 12usize] = b"share/rizin\0";
 pub const RZ_SIGDB: &[u8; 18usize] = b"share/rizin/sigdb\0";
@@ -129,10 +131,6 @@ pub const __USE_XOPEN2K: u32 = 1;
 pub const __USE_XOPEN2K8: u32 = 1;
 pub const _ATFILE_SOURCE: u32 = 1;
 pub const __USE_FILE_OFFSET64: u32 = 1;
-pub const __WORDSIZE: u32 = 64;
-pub const __WORDSIZE_TIME64_COMPAT32: u32 = 1;
-pub const __SYSCALL_WORDSIZE: u32 = 64;
-pub const __TIMESIZE: u32 = 64;
 pub const __USE_MISC: u32 = 1;
 pub const __USE_ATFILE: u32 = 1;
 pub const __USE_FORTIFY_LEVEL: u32 = 0;
@@ -140,16 +138,17 @@ pub const __GLIBC_USE_DEPRECATED_GETS: u32 = 0;
 pub const __GLIBC_USE_DEPRECATED_SCANF: u32 = 0;
 pub const _STDC_PREDEF_H: u32 = 1;
 pub const __STDC_IEC_559__: u32 = 1;
-pub const __STDC_IEC_60559_BFP__: u32 = 201404;
 pub const __STDC_IEC_559_COMPLEX__: u32 = 1;
-pub const __STDC_IEC_60559_COMPLEX__: u32 = 201404;
 pub const __STDC_ISO_10646__: u32 = 201706;
 pub const __GNU_LIBRARY__: u32 = 6;
 pub const __GLIBC__: u32 = 2;
-pub const __GLIBC_MINOR__: u32 = 37;
+pub const __GLIBC_MINOR__: u32 = 31;
 pub const _SYS_CDEFS_H: u32 = 1;
 pub const __glibc_c99_flexarr_available: u32 = 1;
-pub const __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI: u32 = 0;
+pub const __WORDSIZE: u32 = 64;
+pub const __WORDSIZE_TIME64_COMPAT32: u32 = 1;
+pub const __SYSCALL_WORDSIZE: u32 = 64;
+pub const __LONG_DOUBLE_USES_FLOAT128: u32 = 0;
 pub const __HAVE_GENERIC_SELECTION: u32 = 1;
 pub const _ERRNO_H: u32 = 1;
 pub const _BITS_ERRNO_H: u32 = 1;
@@ -292,17 +291,16 @@ pub const _STDINT_H: u32 = 1;
 pub const __GLIBC_USE_LIB_EXT2: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_BFP_EXT: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_BFP_EXT_C2X: u32 = 0;
-pub const __GLIBC_USE_IEC_60559_EXT: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_FUNCS_EXT: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_FUNCS_EXT_C2X: u32 = 0;
 pub const __GLIBC_USE_IEC_60559_TYPES_EXT: u32 = 0;
 pub const _BITS_TYPES_H: u32 = 1;
+pub const __TIMESIZE: u32 = 64;
 pub const _BITS_TYPESIZES_H: u32 = 1;
 pub const __OFF_T_MATCHES_OFF64_T: u32 = 1;
 pub const __INO_T_MATCHES_INO64_T: u32 = 1;
 pub const __RLIM_T_MATCHES_RLIM64_T: u32 = 1;
 pub const __STATFS_MATCHES_STATFS64: u32 = 1;
-pub const __KERNEL_OLD_TIMEVAL_MATCHES_TIMEVAL64: u32 = 1;
 pub const __FD_SETSIZE: u32 = 1024;
 pub const _BITS_TIME64_H: u32 = 1;
 pub const _BITS_WCHAR_H: u32 = 1;
@@ -550,6 +548,7 @@ pub const BYTE_ORDER: u32 = 1234;
 pub const _BITS_BYTESWAP_H: u32 = 1;
 pub const _BITS_UINTN_IDENTITY_H: u32 = 1;
 pub const _SYS_SELECT_H: u32 = 1;
+pub const __FD_ZERO_STOS: &[u8; 6usize] = b"stosq\0";
 pub const __sigset_t_defined: u32 = 1;
 pub const __timeval_defined: u32 = 1;
 pub const _STRUCT_TIMESPEC: u32 = 1;
@@ -688,9 +687,9 @@ pub const M_2_PI: f64 = 0.6366197723675814;
 pub const M_2_SQRTPI: f64 = 1.1283791670955126;
 pub const M_SQRT2: f64 = 1.4142135623730951;
 pub const M_SQRT1_2: f64 = 0.7071067811865476;
-pub const __bool_true_false_are_defined: u32 = 1;
 pub const true_: u32 = 1;
 pub const false_: u32 = 0;
+pub const __bool_true_false_are_defined: u32 = 1;
 pub const UT64_MAX: i32 = -1;
 pub const UT64_GT0: i64 = -9223372036854775808;
 pub const UT64_LT0: u64 = 9223372036854775807;
@@ -789,6 +788,7 @@ pub const WNOWAIT: u32 = 16777216;
 pub const __WNOTHREAD: u32 = 536870912;
 pub const __WALL: u32 = 1073741824;
 pub const __WCLONE: u32 = 2147483648;
+pub const __ENUM_IDTYPE_T: u32 = 1;
 pub const __W_CONTINUED: u32 = 65535;
 pub const __WCOREFLAG: u32 = 128;
 pub const __ldiv_t_defined: u32 = 1;
@@ -869,8 +869,16 @@ pub const POSIX_FADV_SEQUENTIAL: u32 = 2;
 pub const POSIX_FADV_WILLNEED: u32 = 3;
 pub const POSIX_FADV_DONTNEED: u32 = 4;
 pub const POSIX_FADV_NOREUSE: u32 = 5;
+pub const AT_FDCWD: i32 = -100;
+pub const AT_SYMLINK_NOFOLLOW: u32 = 256;
+pub const AT_REMOVEDIR: u32 = 512;
+pub const AT_SYMLINK_FOLLOW: u32 = 1024;
+pub const AT_EACCESS: u32 = 512;
 pub const _BITS_STAT_H: u32 = 1;
-pub const _BITS_STRUCT_STAT_H: u32 = 1;
+pub const _STAT_VER_KERNEL: u32 = 0;
+pub const _STAT_VER_LINUX: u32 = 1;
+pub const _MKNOD_VER_LINUX: u32 = 0;
+pub const _STAT_VER: u32 = 1;
 pub const __S_IFMT: u32 = 61440;
 pub const __S_IFDIR: u32 = 16384;
 pub const __S_IFCHR: u32 = 8192;
@@ -914,11 +922,6 @@ pub const R_OK: u32 = 4;
 pub const W_OK: u32 = 2;
 pub const X_OK: u32 = 1;
 pub const F_OK: u32 = 0;
-pub const AT_FDCWD: i32 = -100;
-pub const AT_SYMLINK_NOFOLLOW: u32 = 256;
-pub const AT_REMOVEDIR: u32 = 512;
-pub const AT_SYMLINK_FOLLOW: u32 = 1024;
-pub const AT_EACCESS: u32 = 512;
 pub const F_ULOCK: u32 = 0;
 pub const F_LOCK: u32 = 1;
 pub const F_TLOCK: u32 = 2;
@@ -936,6 +939,7 @@ pub const ACCESSPERMS: u32 = 511;
 pub const ALLPERMS: u32 = 4095;
 pub const DEFFILEMODE: u32 = 438;
 pub const S_BLKSIZE: u32 = 512;
+pub const _MKNOD_VER: u32 = 0;
 pub const _DIRENT_H: u32 = 1;
 pub const _DIRENT_MATCHES_DIRENT64: u32 = 1;
 pub const MAXNAMLEN: u32 = 255;
@@ -1104,6 +1108,7 @@ pub const RZ_REGEX_LARGE: u32 = 512;
 pub const RZ_REGEX_BACKR: u32 = 1024;
 pub const RZ_THREAD_POOL_ALL_CORES: u32 = 0;
 pub const RZ_THREAD_QUEUE_UNLIMITED: u32 = 0;
+pub const _BITS_SIGNUM_H: u32 = 1;
 pub const _BITS_SIGNUM_GENERIC_H: u32 = 1;
 pub const SIGINT: u32 = 2;
 pub const SIGILL: u32 = 4;
@@ -1115,34 +1120,33 @@ pub const SIGHUP: u32 = 1;
 pub const SIGQUIT: u32 = 3;
 pub const SIGTRAP: u32 = 5;
 pub const SIGKILL: u32 = 9;
+pub const SIGBUS: u32 = 10;
+pub const SIGSYS: u32 = 12;
 pub const SIGPIPE: u32 = 13;
 pub const SIGALRM: u32 = 14;
-pub const SIGIOT: u32 = 6;
-pub const _BITS_SIGNUM_ARCH_H: u32 = 1;
-pub const SIGSTKFLT: u32 = 16;
-pub const SIGPWR: u32 = 30;
-pub const SIGBUS: u32 = 7;
-pub const SIGSYS: u32 = 31;
-pub const SIGURG: u32 = 23;
-pub const SIGSTOP: u32 = 19;
-pub const SIGTSTP: u32 = 20;
-pub const SIGCONT: u32 = 18;
-pub const SIGCHLD: u32 = 17;
+pub const SIGURG: u32 = 16;
+pub const SIGSTOP: u32 = 17;
+pub const SIGTSTP: u32 = 18;
+pub const SIGCONT: u32 = 19;
+pub const SIGCHLD: u32 = 20;
 pub const SIGTTIN: u32 = 21;
 pub const SIGTTOU: u32 = 22;
-pub const SIGPOLL: u32 = 29;
-pub const SIGXFSZ: u32 = 25;
+pub const SIGPOLL: u32 = 23;
 pub const SIGXCPU: u32 = 24;
+pub const SIGXFSZ: u32 = 25;
 pub const SIGVTALRM: u32 = 26;
 pub const SIGPROF: u32 = 27;
-pub const SIGUSR1: u32 = 10;
-pub const SIGUSR2: u32 = 12;
+pub const SIGUSR1: u32 = 30;
+pub const SIGUSR2: u32 = 31;
 pub const SIGWINCH: u32 = 28;
-pub const SIGIO: u32 = 29;
-pub const SIGCLD: u32 = 17;
+pub const SIGIO: u32 = 23;
+pub const SIGIOT: u32 = 6;
+pub const SIGCLD: u32 = 20;
 pub const __SIGRTMIN: u32 = 32;
-pub const __SIGRTMAX: u32 = 64;
-pub const _NSIG: u32 = 65;
+pub const __SIGRTMAX: u32 = 32;
+pub const _NSIG: u32 = 33;
+pub const SIGSTKFLT: u32 = 16;
+pub const SIGPWR: u32 = 30;
 pub const __sig_atomic_t_defined: u32 = 1;
 pub const __siginfo_t_defined: u32 = 1;
 pub const __SI_MAX_SIZE: u32 = 128;
@@ -1154,7 +1158,7 @@ pub const __SI_ASYNCIO_AFTER_SIGIO: u32 = 1;
 pub const __sigevent_t_defined: u32 = 1;
 pub const __SIGEV_MAX_SIZE: u32 = 64;
 pub const _BITS_SIGEVENT_CONSTS_H: u32 = 1;
-pub const NSIG: u32 = 65;
+pub const NSIG: u32 = 33;
 pub const _BITS_SIGACTION_H: u32 = 1;
 pub const SA_NOCLDSTOP: u32 = 1;
 pub const SA_NOCLDWAIT: u32 = 2;
@@ -1183,20 +1187,16 @@ pub const SIGSTKSZ: u32 = 8192;
 pub const _BITS_SS_FLAGS_H: u32 = 1;
 pub const __sigstack_defined: u32 = 1;
 pub const _BITS_SIGTHREAD_H: u32 = 1;
-pub const OPENSSL_CONFIGURED_API: u32 = 30000;
-pub const OPENSSL_VERSION_MAJOR: u32 = 3;
-pub const OPENSSL_VERSION_MINOR: u32 = 0;
-pub const OPENSSL_VERSION_PATCH: u32 = 8;
-pub const OPENSSL_VERSION_PRE_RELEASE: &[u8; 1usize] = b"\0";
-pub const OPENSSL_VERSION_BUILD_METADATA: &[u8; 1usize] = b"\0";
-pub const OPENSSL_SHLIB_VERSION: u32 = 3;
-pub const OPENSSL_VERSION_STR: &[u8; 6usize] = b"3.0.8\0";
-pub const OPENSSL_FULL_VERSION_STR: &[u8; 6usize] = b"3.0.8\0";
-pub const OPENSSL_RELEASE_DATE: &[u8; 11usize] = b"7 Feb 2023\0";
-pub const OPENSSL_VERSION_TEXT: &[u8; 25usize] = b"OpenSSL 3.0.8 7 Feb 2023\0";
-pub const _OPENSSL_VERSION_PRE_RELEASE: u32 = 0;
-pub const OPENSSL_VERSION_NUMBER: u32 = 805306496;
-pub const OPENSSL_API_LEVEL: u32 = 30000;
+pub const HT_NULL_VALUE: u32 = 0;
+pub const RZ_RBTREE_MAX_HEIGHT: u32 = 62;
+pub const RZ_BIG_WORD_SIZE: u32 = 4;
+pub const RZ_BIG_ARRAY_SIZE: u32 = 128;
+pub const RZ_BIG_SPRINTF_FORMAT_STR: &[u8; 6usize] = b"%.08x\0";
+pub const RZ_BIG_FORMAT_STR_LEN: u32 = 9;
+pub const RZ_BIG_SSCANF_FORMAT_STR: &[u8; 4usize] = b"%8x\0";
+pub const RZ_BUF_SET: u32 = 0;
+pub const RZ_BUF_CUR: u32 = 1;
+pub const RZ_BUF_END: u32 = 2;
 pub const _TIME_H: u32 = 1;
 pub const _BITS_TIME_H: u32 = 1;
 pub const CLOCK_REALTIME: u32 = 0;
@@ -1214,1401 +1214,6 @@ pub const TIMER_ABSTIME: u32 = 1;
 pub const __struct_tm_defined: u32 = 1;
 pub const __itimerspec_defined: u32 = 1;
 pub const TIME_UTC: u32 = 1;
-pub const ASN1_F_A2D_ASN1_OBJECT: u32 = 0;
-pub const ASN1_F_A2I_ASN1_INTEGER: u32 = 0;
-pub const ASN1_F_A2I_ASN1_STRING: u32 = 0;
-pub const ASN1_F_APPEND_EXP: u32 = 0;
-pub const ASN1_F_ASN1_BIO_INIT: u32 = 0;
-pub const ASN1_F_ASN1_BIT_STRING_SET_BIT: u32 = 0;
-pub const ASN1_F_ASN1_CB: u32 = 0;
-pub const ASN1_F_ASN1_CHECK_TLEN: u32 = 0;
-pub const ASN1_F_ASN1_COLLECT: u32 = 0;
-pub const ASN1_F_ASN1_D2I_EX_PRIMITIVE: u32 = 0;
-pub const ASN1_F_ASN1_D2I_FP: u32 = 0;
-pub const ASN1_F_ASN1_D2I_READ_BIO: u32 = 0;
-pub const ASN1_F_ASN1_DIGEST: u32 = 0;
-pub const ASN1_F_ASN1_DO_ADB: u32 = 0;
-pub const ASN1_F_ASN1_DO_LOCK: u32 = 0;
-pub const ASN1_F_ASN1_DUP: u32 = 0;
-pub const ASN1_F_ASN1_ENC_SAVE: u32 = 0;
-pub const ASN1_F_ASN1_EX_C2I: u32 = 0;
-pub const ASN1_F_ASN1_FIND_END: u32 = 0;
-pub const ASN1_F_ASN1_GENERALIZEDTIME_ADJ: u32 = 0;
-pub const ASN1_F_ASN1_GENERATE_V3: u32 = 0;
-pub const ASN1_F_ASN1_GET_INT64: u32 = 0;
-pub const ASN1_F_ASN1_GET_OBJECT: u32 = 0;
-pub const ASN1_F_ASN1_GET_UINT64: u32 = 0;
-pub const ASN1_F_ASN1_I2D_BIO: u32 = 0;
-pub const ASN1_F_ASN1_I2D_FP: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_D2I_FP: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_DUP: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_EMBED_D2I: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_EMBED_NEW: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_FLAGS_I2D: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_I2D_BIO: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_I2D_FP: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_PACK: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_SIGN: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_SIGN_CTX: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_UNPACK: u32 = 0;
-pub const ASN1_F_ASN1_ITEM_VERIFY: u32 = 0;
-pub const ASN1_F_ASN1_MBSTRING_NCOPY: u32 = 0;
-pub const ASN1_F_ASN1_OBJECT_NEW: u32 = 0;
-pub const ASN1_F_ASN1_OUTPUT_DATA: u32 = 0;
-pub const ASN1_F_ASN1_PCTX_NEW: u32 = 0;
-pub const ASN1_F_ASN1_PRIMITIVE_NEW: u32 = 0;
-pub const ASN1_F_ASN1_SCTX_NEW: u32 = 0;
-pub const ASN1_F_ASN1_SIGN: u32 = 0;
-pub const ASN1_F_ASN1_STR2TYPE: u32 = 0;
-pub const ASN1_F_ASN1_STRING_GET_INT64: u32 = 0;
-pub const ASN1_F_ASN1_STRING_GET_UINT64: u32 = 0;
-pub const ASN1_F_ASN1_STRING_SET: u32 = 0;
-pub const ASN1_F_ASN1_STRING_TABLE_ADD: u32 = 0;
-pub const ASN1_F_ASN1_STRING_TO_BN: u32 = 0;
-pub const ASN1_F_ASN1_STRING_TYPE_NEW: u32 = 0;
-pub const ASN1_F_ASN1_TEMPLATE_EX_D2I: u32 = 0;
-pub const ASN1_F_ASN1_TEMPLATE_NEW: u32 = 0;
-pub const ASN1_F_ASN1_TEMPLATE_NOEXP_D2I: u32 = 0;
-pub const ASN1_F_ASN1_TIME_ADJ: u32 = 0;
-pub const ASN1_F_ASN1_TYPE_GET_INT_OCTETSTRING: u32 = 0;
-pub const ASN1_F_ASN1_TYPE_GET_OCTETSTRING: u32 = 0;
-pub const ASN1_F_ASN1_UTCTIME_ADJ: u32 = 0;
-pub const ASN1_F_ASN1_VERIFY: u32 = 0;
-pub const ASN1_F_B64_READ_ASN1: u32 = 0;
-pub const ASN1_F_B64_WRITE_ASN1: u32 = 0;
-pub const ASN1_F_BIO_NEW_NDEF: u32 = 0;
-pub const ASN1_F_BITSTR_CB: u32 = 0;
-pub const ASN1_F_BN_TO_ASN1_STRING: u32 = 0;
-pub const ASN1_F_C2I_ASN1_BIT_STRING: u32 = 0;
-pub const ASN1_F_C2I_ASN1_INTEGER: u32 = 0;
-pub const ASN1_F_C2I_ASN1_OBJECT: u32 = 0;
-pub const ASN1_F_C2I_IBUF: u32 = 0;
-pub const ASN1_F_C2I_UINT64_INT: u32 = 0;
-pub const ASN1_F_COLLECT_DATA: u32 = 0;
-pub const ASN1_F_D2I_ASN1_OBJECT: u32 = 0;
-pub const ASN1_F_D2I_ASN1_UINTEGER: u32 = 0;
-pub const ASN1_F_D2I_AUTOPRIVATEKEY: u32 = 0;
-pub const ASN1_F_D2I_PRIVATEKEY: u32 = 0;
-pub const ASN1_F_D2I_PUBLICKEY: u32 = 0;
-pub const ASN1_F_DO_BUF: u32 = 0;
-pub const ASN1_F_DO_CREATE: u32 = 0;
-pub const ASN1_F_DO_DUMP: u32 = 0;
-pub const ASN1_F_DO_TCREATE: u32 = 0;
-pub const ASN1_F_I2A_ASN1_OBJECT: u32 = 0;
-pub const ASN1_F_I2D_ASN1_BIO_STREAM: u32 = 0;
-pub const ASN1_F_I2D_ASN1_OBJECT: u32 = 0;
-pub const ASN1_F_I2D_DSA_PUBKEY: u32 = 0;
-pub const ASN1_F_I2D_EC_PUBKEY: u32 = 0;
-pub const ASN1_F_I2D_PRIVATEKEY: u32 = 0;
-pub const ASN1_F_I2D_PUBLICKEY: u32 = 0;
-pub const ASN1_F_I2D_RSA_PUBKEY: u32 = 0;
-pub const ASN1_F_LONG_C2I: u32 = 0;
-pub const ASN1_F_NDEF_PREFIX: u32 = 0;
-pub const ASN1_F_NDEF_SUFFIX: u32 = 0;
-pub const ASN1_F_OID_MODULE_INIT: u32 = 0;
-pub const ASN1_F_PARSE_TAGGING: u32 = 0;
-pub const ASN1_F_PKCS5_PBE2_SET_IV: u32 = 0;
-pub const ASN1_F_PKCS5_PBE2_SET_SCRYPT: u32 = 0;
-pub const ASN1_F_PKCS5_PBE_SET: u32 = 0;
-pub const ASN1_F_PKCS5_PBE_SET0_ALGOR: u32 = 0;
-pub const ASN1_F_PKCS5_PBKDF2_SET: u32 = 0;
-pub const ASN1_F_PKCS5_SCRYPT_SET: u32 = 0;
-pub const ASN1_F_SMIME_READ_ASN1: u32 = 0;
-pub const ASN1_F_SMIME_TEXT: u32 = 0;
-pub const ASN1_F_STABLE_GET: u32 = 0;
-pub const ASN1_F_STBL_MODULE_INIT: u32 = 0;
-pub const ASN1_F_UINT32_C2I: u32 = 0;
-pub const ASN1_F_UINT32_NEW: u32 = 0;
-pub const ASN1_F_UINT64_C2I: u32 = 0;
-pub const ASN1_F_UINT64_NEW: u32 = 0;
-pub const ASN1_F_X509_CRL_ADD0_REVOKED: u32 = 0;
-pub const ASN1_F_X509_INFO_NEW: u32 = 0;
-pub const ASN1_F_X509_NAME_ENCODE: u32 = 0;
-pub const ASN1_F_X509_NAME_EX_D2I: u32 = 0;
-pub const ASN1_F_X509_NAME_EX_NEW: u32 = 0;
-pub const ASN1_F_X509_PKEY_NEW: u32 = 0;
-pub const ASYNC_F_ASYNC_CTX_NEW: u32 = 0;
-pub const ASYNC_F_ASYNC_INIT_THREAD: u32 = 0;
-pub const ASYNC_F_ASYNC_JOB_NEW: u32 = 0;
-pub const ASYNC_F_ASYNC_PAUSE_JOB: u32 = 0;
-pub const ASYNC_F_ASYNC_START_FUNC: u32 = 0;
-pub const ASYNC_F_ASYNC_START_JOB: u32 = 0;
-pub const ASYNC_F_ASYNC_WAIT_CTX_SET_WAIT_FD: u32 = 0;
-pub const BIO_F_ACPT_STATE: u32 = 0;
-pub const BIO_F_ADDRINFO_WRAP: u32 = 0;
-pub const BIO_F_ADDR_STRINGS: u32 = 0;
-pub const BIO_F_BIO_ACCEPT: u32 = 0;
-pub const BIO_F_BIO_ACCEPT_EX: u32 = 0;
-pub const BIO_F_BIO_ACCEPT_NEW: u32 = 0;
-pub const BIO_F_BIO_ADDR_NEW: u32 = 0;
-pub const BIO_F_BIO_BIND: u32 = 0;
-pub const BIO_F_BIO_CALLBACK_CTRL: u32 = 0;
-pub const BIO_F_BIO_CONNECT: u32 = 0;
-pub const BIO_F_BIO_CONNECT_NEW: u32 = 0;
-pub const BIO_F_BIO_CTRL: u32 = 0;
-pub const BIO_F_BIO_GETS: u32 = 0;
-pub const BIO_F_BIO_GET_HOST_IP: u32 = 0;
-pub const BIO_F_BIO_GET_NEW_INDEX: u32 = 0;
-pub const BIO_F_BIO_GET_PORT: u32 = 0;
-pub const BIO_F_BIO_LISTEN: u32 = 0;
-pub const BIO_F_BIO_LOOKUP: u32 = 0;
-pub const BIO_F_BIO_LOOKUP_EX: u32 = 0;
-pub const BIO_F_BIO_MAKE_PAIR: u32 = 0;
-pub const BIO_F_BIO_METH_NEW: u32 = 0;
-pub const BIO_F_BIO_NEW: u32 = 0;
-pub const BIO_F_BIO_NEW_DGRAM_SCTP: u32 = 0;
-pub const BIO_F_BIO_NEW_FILE: u32 = 0;
-pub const BIO_F_BIO_NEW_MEM_BUF: u32 = 0;
-pub const BIO_F_BIO_NREAD: u32 = 0;
-pub const BIO_F_BIO_NREAD0: u32 = 0;
-pub const BIO_F_BIO_NWRITE: u32 = 0;
-pub const BIO_F_BIO_NWRITE0: u32 = 0;
-pub const BIO_F_BIO_PARSE_HOSTSERV: u32 = 0;
-pub const BIO_F_BIO_PUTS: u32 = 0;
-pub const BIO_F_BIO_READ: u32 = 0;
-pub const BIO_F_BIO_READ_EX: u32 = 0;
-pub const BIO_F_BIO_READ_INTERN: u32 = 0;
-pub const BIO_F_BIO_SOCKET: u32 = 0;
-pub const BIO_F_BIO_SOCKET_NBIO: u32 = 0;
-pub const BIO_F_BIO_SOCK_INFO: u32 = 0;
-pub const BIO_F_BIO_SOCK_INIT: u32 = 0;
-pub const BIO_F_BIO_WRITE: u32 = 0;
-pub const BIO_F_BIO_WRITE_EX: u32 = 0;
-pub const BIO_F_BIO_WRITE_INTERN: u32 = 0;
-pub const BIO_F_BUFFER_CTRL: u32 = 0;
-pub const BIO_F_CONN_CTRL: u32 = 0;
-pub const BIO_F_CONN_STATE: u32 = 0;
-pub const BIO_F_DGRAM_SCTP_NEW: u32 = 0;
-pub const BIO_F_DGRAM_SCTP_READ: u32 = 0;
-pub const BIO_F_DGRAM_SCTP_WRITE: u32 = 0;
-pub const BIO_F_DOAPR_OUTCH: u32 = 0;
-pub const BIO_F_FILE_CTRL: u32 = 0;
-pub const BIO_F_FILE_READ: u32 = 0;
-pub const BIO_F_LINEBUFFER_CTRL: u32 = 0;
-pub const BIO_F_LINEBUFFER_NEW: u32 = 0;
-pub const BIO_F_MEM_WRITE: u32 = 0;
-pub const BIO_F_NBIOF_NEW: u32 = 0;
-pub const BIO_F_SLG_WRITE: u32 = 0;
-pub const BIO_F_SSL_NEW: u32 = 0;
-pub const BN_F_BNRAND: u32 = 0;
-pub const BN_F_BNRAND_RANGE: u32 = 0;
-pub const BN_F_BN_BLINDING_CONVERT_EX: u32 = 0;
-pub const BN_F_BN_BLINDING_CREATE_PARAM: u32 = 0;
-pub const BN_F_BN_BLINDING_INVERT_EX: u32 = 0;
-pub const BN_F_BN_BLINDING_NEW: u32 = 0;
-pub const BN_F_BN_BLINDING_UPDATE: u32 = 0;
-pub const BN_F_BN_BN2DEC: u32 = 0;
-pub const BN_F_BN_BN2HEX: u32 = 0;
-pub const BN_F_BN_COMPUTE_WNAF: u32 = 0;
-pub const BN_F_BN_CTX_GET: u32 = 0;
-pub const BN_F_BN_CTX_NEW: u32 = 0;
-pub const BN_F_BN_CTX_START: u32 = 0;
-pub const BN_F_BN_DIV: u32 = 0;
-pub const BN_F_BN_DIV_RECP: u32 = 0;
-pub const BN_F_BN_EXP: u32 = 0;
-pub const BN_F_BN_EXPAND_INTERNAL: u32 = 0;
-pub const BN_F_BN_GENCB_NEW: u32 = 0;
-pub const BN_F_BN_GENERATE_DSA_NONCE: u32 = 0;
-pub const BN_F_BN_GENERATE_PRIME_EX: u32 = 0;
-pub const BN_F_BN_GF2M_MOD: u32 = 0;
-pub const BN_F_BN_GF2M_MOD_EXP: u32 = 0;
-pub const BN_F_BN_GF2M_MOD_MUL: u32 = 0;
-pub const BN_F_BN_GF2M_MOD_SOLVE_QUAD: u32 = 0;
-pub const BN_F_BN_GF2M_MOD_SOLVE_QUAD_ARR: u32 = 0;
-pub const BN_F_BN_GF2M_MOD_SQR: u32 = 0;
-pub const BN_F_BN_GF2M_MOD_SQRT: u32 = 0;
-pub const BN_F_BN_LSHIFT: u32 = 0;
-pub const BN_F_BN_MOD_EXP2_MONT: u32 = 0;
-pub const BN_F_BN_MOD_EXP_MONT: u32 = 0;
-pub const BN_F_BN_MOD_EXP_MONT_CONSTTIME: u32 = 0;
-pub const BN_F_BN_MOD_EXP_MONT_WORD: u32 = 0;
-pub const BN_F_BN_MOD_EXP_RECP: u32 = 0;
-pub const BN_F_BN_MOD_EXP_SIMPLE: u32 = 0;
-pub const BN_F_BN_MOD_INVERSE: u32 = 0;
-pub const BN_F_BN_MOD_INVERSE_NO_BRANCH: u32 = 0;
-pub const BN_F_BN_MOD_LSHIFT_QUICK: u32 = 0;
-pub const BN_F_BN_MOD_SQRT: u32 = 0;
-pub const BN_F_BN_MONT_CTX_NEW: u32 = 0;
-pub const BN_F_BN_MPI2BN: u32 = 0;
-pub const BN_F_BN_NEW: u32 = 0;
-pub const BN_F_BN_POOL_GET: u32 = 0;
-pub const BN_F_BN_RAND: u32 = 0;
-pub const BN_F_BN_RAND_RANGE: u32 = 0;
-pub const BN_F_BN_RECP_CTX_NEW: u32 = 0;
-pub const BN_F_BN_RSHIFT: u32 = 0;
-pub const BN_F_BN_SET_WORDS: u32 = 0;
-pub const BN_F_BN_STACK_PUSH: u32 = 0;
-pub const BN_F_BN_USUB: u32 = 0;
-pub const BUF_F_BUF_MEM_GROW: u32 = 0;
-pub const BUF_F_BUF_MEM_GROW_CLEAN: u32 = 0;
-pub const BUF_F_BUF_MEM_NEW: u32 = 0;
-pub const CMS_F_CHECK_CONTENT: u32 = 0;
-pub const CMS_F_CMS_ADD0_CERT: u32 = 0;
-pub const CMS_F_CMS_ADD0_RECIPIENT_KEY: u32 = 0;
-pub const CMS_F_CMS_ADD0_RECIPIENT_PASSWORD: u32 = 0;
-pub const CMS_F_CMS_ADD1_RECEIPTREQUEST: u32 = 0;
-pub const CMS_F_CMS_ADD1_RECIPIENT_CERT: u32 = 0;
-pub const CMS_F_CMS_ADD1_SIGNER: u32 = 0;
-pub const CMS_F_CMS_ADD1_SIGNINGTIME: u32 = 0;
-pub const CMS_F_CMS_COMPRESS: u32 = 0;
-pub const CMS_F_CMS_COMPRESSEDDATA_CREATE: u32 = 0;
-pub const CMS_F_CMS_COMPRESSEDDATA_INIT_BIO: u32 = 0;
-pub const CMS_F_CMS_COPY_CONTENT: u32 = 0;
-pub const CMS_F_CMS_COPY_MESSAGEDIGEST: u32 = 0;
-pub const CMS_F_CMS_DATA: u32 = 0;
-pub const CMS_F_CMS_DATAFINAL: u32 = 0;
-pub const CMS_F_CMS_DATAINIT: u32 = 0;
-pub const CMS_F_CMS_DECRYPT: u32 = 0;
-pub const CMS_F_CMS_DECRYPT_SET1_KEY: u32 = 0;
-pub const CMS_F_CMS_DECRYPT_SET1_PASSWORD: u32 = 0;
-pub const CMS_F_CMS_DECRYPT_SET1_PKEY: u32 = 0;
-pub const CMS_F_CMS_DIGESTALGORITHM_FIND_CTX: u32 = 0;
-pub const CMS_F_CMS_DIGESTALGORITHM_INIT_BIO: u32 = 0;
-pub const CMS_F_CMS_DIGESTEDDATA_DO_FINAL: u32 = 0;
-pub const CMS_F_CMS_DIGEST_VERIFY: u32 = 0;
-pub const CMS_F_CMS_ENCODE_RECEIPT: u32 = 0;
-pub const CMS_F_CMS_ENCRYPT: u32 = 0;
-pub const CMS_F_CMS_ENCRYPTEDCONTENT_INIT: u32 = 0;
-pub const CMS_F_CMS_ENCRYPTEDCONTENT_INIT_BIO: u32 = 0;
-pub const CMS_F_CMS_ENCRYPTEDDATA_DECRYPT: u32 = 0;
-pub const CMS_F_CMS_ENCRYPTEDDATA_ENCRYPT: u32 = 0;
-pub const CMS_F_CMS_ENCRYPTEDDATA_SET1_KEY: u32 = 0;
-pub const CMS_F_CMS_ENVELOPEDDATA_CREATE: u32 = 0;
-pub const CMS_F_CMS_ENVELOPEDDATA_INIT_BIO: u32 = 0;
-pub const CMS_F_CMS_ENVELOPED_DATA_INIT: u32 = 0;
-pub const CMS_F_CMS_ENV_ASN1_CTRL: u32 = 0;
-pub const CMS_F_CMS_FINAL: u32 = 0;
-pub const CMS_F_CMS_GET0_CERTIFICATE_CHOICES: u32 = 0;
-pub const CMS_F_CMS_GET0_CONTENT: u32 = 0;
-pub const CMS_F_CMS_GET0_ECONTENT_TYPE: u32 = 0;
-pub const CMS_F_CMS_GET0_ENVELOPED: u32 = 0;
-pub const CMS_F_CMS_GET0_REVOCATION_CHOICES: u32 = 0;
-pub const CMS_F_CMS_GET0_SIGNED: u32 = 0;
-pub const CMS_F_CMS_MSGSIGDIGEST_ADD1: u32 = 0;
-pub const CMS_F_CMS_RECEIPTREQUEST_CREATE0: u32 = 0;
-pub const CMS_F_CMS_RECEIPT_VERIFY: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_DECRYPT: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_ENCRYPT: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KARI_ENCRYPT: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KARI_GET0_ALG: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KARI_GET0_ORIG_ID: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KARI_GET0_REKS: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KARI_ORIG_ID_CMP: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KEKRI_DECRYPT: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KEKRI_ENCRYPT: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KEKRI_GET0_ID: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KEKRI_ID_CMP: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KTRI_CERT_CMP: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KTRI_DECRYPT: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KTRI_ENCRYPT: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KTRI_GET0_ALGS: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_KTRI_GET0_SIGNER_ID: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_PWRI_CRYPT: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_SET0_KEY: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_SET0_PASSWORD: u32 = 0;
-pub const CMS_F_CMS_RECIPIENTINFO_SET0_PKEY: u32 = 0;
-pub const CMS_F_CMS_SD_ASN1_CTRL: u32 = 0;
-pub const CMS_F_CMS_SET1_IAS: u32 = 0;
-pub const CMS_F_CMS_SET1_KEYID: u32 = 0;
-pub const CMS_F_CMS_SET1_SIGNERIDENTIFIER: u32 = 0;
-pub const CMS_F_CMS_SET_DETACHED: u32 = 0;
-pub const CMS_F_CMS_SIGN: u32 = 0;
-pub const CMS_F_CMS_SIGNED_DATA_INIT: u32 = 0;
-pub const CMS_F_CMS_SIGNERINFO_CONTENT_SIGN: u32 = 0;
-pub const CMS_F_CMS_SIGNERINFO_SIGN: u32 = 0;
-pub const CMS_F_CMS_SIGNERINFO_VERIFY: u32 = 0;
-pub const CMS_F_CMS_SIGNERINFO_VERIFY_CERT: u32 = 0;
-pub const CMS_F_CMS_SIGNERINFO_VERIFY_CONTENT: u32 = 0;
-pub const CMS_F_CMS_SIGN_RECEIPT: u32 = 0;
-pub const CMS_F_CMS_SI_CHECK_ATTRIBUTES: u32 = 0;
-pub const CMS_F_CMS_STREAM: u32 = 0;
-pub const CMS_F_CMS_UNCOMPRESS: u32 = 0;
-pub const CMS_F_CMS_VERIFY: u32 = 0;
-pub const CMS_F_KEK_UNWRAP_KEY: u32 = 0;
-pub const COMP_F_BIO_ZLIB_FLUSH: u32 = 0;
-pub const COMP_F_BIO_ZLIB_NEW: u32 = 0;
-pub const COMP_F_BIO_ZLIB_READ: u32 = 0;
-pub const COMP_F_BIO_ZLIB_WRITE: u32 = 0;
-pub const COMP_F_COMP_CTX_NEW: u32 = 0;
-pub const CONF_F_CONF_DUMP_FP: u32 = 0;
-pub const CONF_F_CONF_LOAD: u32 = 0;
-pub const CONF_F_CONF_LOAD_FP: u32 = 0;
-pub const CONF_F_CONF_PARSE_LIST: u32 = 0;
-pub const CONF_F_DEF_LOAD: u32 = 0;
-pub const CONF_F_DEF_LOAD_BIO: u32 = 0;
-pub const CONF_F_GET_NEXT_FILE: u32 = 0;
-pub const CONF_F_MODULE_ADD: u32 = 0;
-pub const CONF_F_MODULE_INIT: u32 = 0;
-pub const CONF_F_MODULE_LOAD_DSO: u32 = 0;
-pub const CONF_F_MODULE_RUN: u32 = 0;
-pub const CONF_F_NCONF_DUMP_BIO: u32 = 0;
-pub const CONF_F_NCONF_DUMP_FP: u32 = 0;
-pub const CONF_F_NCONF_GET_NUMBER_E: u32 = 0;
-pub const CONF_F_NCONF_GET_SECTION: u32 = 0;
-pub const CONF_F_NCONF_GET_STRING: u32 = 0;
-pub const CONF_F_NCONF_LOAD: u32 = 0;
-pub const CONF_F_NCONF_LOAD_BIO: u32 = 0;
-pub const CONF_F_NCONF_LOAD_FP: u32 = 0;
-pub const CONF_F_NCONF_NEW: u32 = 0;
-pub const CONF_F_PROCESS_INCLUDE: u32 = 0;
-pub const CONF_F_SSL_MODULE_INIT: u32 = 0;
-pub const CONF_F_STR_COPY: u32 = 0;
-pub const CRYPTO_F_CMAC_CTX_NEW: u32 = 0;
-pub const CRYPTO_F_CRYPTO_DUP_EX_DATA: u32 = 0;
-pub const CRYPTO_F_CRYPTO_FREE_EX_DATA: u32 = 0;
-pub const CRYPTO_F_CRYPTO_GET_EX_NEW_INDEX: u32 = 0;
-pub const CRYPTO_F_CRYPTO_MEMDUP: u32 = 0;
-pub const CRYPTO_F_CRYPTO_NEW_EX_DATA: u32 = 0;
-pub const CRYPTO_F_CRYPTO_OCB128_COPY_CTX: u32 = 0;
-pub const CRYPTO_F_CRYPTO_OCB128_INIT: u32 = 0;
-pub const CRYPTO_F_CRYPTO_SET_EX_DATA: u32 = 0;
-pub const CRYPTO_F_GET_AND_LOCK: u32 = 0;
-pub const CRYPTO_F_OPENSSL_ATEXIT: u32 = 0;
-pub const CRYPTO_F_OPENSSL_BUF2HEXSTR: u32 = 0;
-pub const CRYPTO_F_OPENSSL_FOPEN: u32 = 0;
-pub const CRYPTO_F_OPENSSL_HEXSTR2BUF: u32 = 0;
-pub const CRYPTO_F_OPENSSL_INIT_CRYPTO: u32 = 0;
-pub const CRYPTO_F_OPENSSL_LH_NEW: u32 = 0;
-pub const CRYPTO_F_OPENSSL_SK_DEEP_COPY: u32 = 0;
-pub const CRYPTO_F_OPENSSL_SK_DUP: u32 = 0;
-pub const CRYPTO_F_PKEY_HMAC_INIT: u32 = 0;
-pub const CRYPTO_F_PKEY_POLY1305_INIT: u32 = 0;
-pub const CRYPTO_F_PKEY_SIPHASH_INIT: u32 = 0;
-pub const CRYPTO_F_SK_RESERVE: u32 = 0;
-pub const CT_F_CTLOG_NEW: u32 = 0;
-pub const CT_F_CTLOG_NEW_FROM_BASE64: u32 = 0;
-pub const CT_F_CTLOG_NEW_FROM_CONF: u32 = 0;
-pub const CT_F_CTLOG_STORE_LOAD_CTX_NEW: u32 = 0;
-pub const CT_F_CTLOG_STORE_LOAD_FILE: u32 = 0;
-pub const CT_F_CTLOG_STORE_LOAD_LOG: u32 = 0;
-pub const CT_F_CTLOG_STORE_NEW: u32 = 0;
-pub const CT_F_CT_BASE64_DECODE: u32 = 0;
-pub const CT_F_CT_POLICY_EVAL_CTX_NEW: u32 = 0;
-pub const CT_F_CT_V1_LOG_ID_FROM_PKEY: u32 = 0;
-pub const CT_F_I2O_SCT: u32 = 0;
-pub const CT_F_I2O_SCT_LIST: u32 = 0;
-pub const CT_F_I2O_SCT_SIGNATURE: u32 = 0;
-pub const CT_F_O2I_SCT: u32 = 0;
-pub const CT_F_O2I_SCT_LIST: u32 = 0;
-pub const CT_F_O2I_SCT_SIGNATURE: u32 = 0;
-pub const CT_F_SCT_CTX_NEW: u32 = 0;
-pub const CT_F_SCT_CTX_VERIFY: u32 = 0;
-pub const CT_F_SCT_NEW: u32 = 0;
-pub const CT_F_SCT_NEW_FROM_BASE64: u32 = 0;
-pub const CT_F_SCT_SET0_LOG_ID: u32 = 0;
-pub const CT_F_SCT_SET1_EXTENSIONS: u32 = 0;
-pub const CT_F_SCT_SET1_LOG_ID: u32 = 0;
-pub const CT_F_SCT_SET1_SIGNATURE: u32 = 0;
-pub const CT_F_SCT_SET_LOG_ENTRY_TYPE: u32 = 0;
-pub const CT_F_SCT_SET_SIGNATURE_NID: u32 = 0;
-pub const CT_F_SCT_SET_VERSION: u32 = 0;
-pub const DH_F_COMPUTE_KEY: u32 = 0;
-pub const DH_F_DHPARAMS_PRINT_FP: u32 = 0;
-pub const DH_F_DH_BUILTIN_GENPARAMS: u32 = 0;
-pub const DH_F_DH_CHECK_EX: u32 = 0;
-pub const DH_F_DH_CHECK_PARAMS_EX: u32 = 0;
-pub const DH_F_DH_CHECK_PUB_KEY_EX: u32 = 0;
-pub const DH_F_DH_CMS_DECRYPT: u32 = 0;
-pub const DH_F_DH_CMS_SET_PEERKEY: u32 = 0;
-pub const DH_F_DH_CMS_SET_SHARED_INFO: u32 = 0;
-pub const DH_F_DH_METH_DUP: u32 = 0;
-pub const DH_F_DH_METH_NEW: u32 = 0;
-pub const DH_F_DH_METH_SET1_NAME: u32 = 0;
-pub const DH_F_DH_NEW_BY_NID: u32 = 0;
-pub const DH_F_DH_NEW_METHOD: u32 = 0;
-pub const DH_F_DH_PARAM_DECODE: u32 = 0;
-pub const DH_F_DH_PKEY_PUBLIC_CHECK: u32 = 0;
-pub const DH_F_DH_PRIV_DECODE: u32 = 0;
-pub const DH_F_DH_PRIV_ENCODE: u32 = 0;
-pub const DH_F_DH_PUB_DECODE: u32 = 0;
-pub const DH_F_DH_PUB_ENCODE: u32 = 0;
-pub const DH_F_DO_DH_PRINT: u32 = 0;
-pub const DH_F_GENERATE_KEY: u32 = 0;
-pub const DH_F_PKEY_DH_CTRL_STR: u32 = 0;
-pub const DH_F_PKEY_DH_DERIVE: u32 = 0;
-pub const DH_F_PKEY_DH_INIT: u32 = 0;
-pub const DH_F_PKEY_DH_KEYGEN: u32 = 0;
-pub const DSA_F_DSAPARAMS_PRINT: u32 = 0;
-pub const DSA_F_DSAPARAMS_PRINT_FP: u32 = 0;
-pub const DSA_F_DSA_BUILTIN_PARAMGEN: u32 = 0;
-pub const DSA_F_DSA_BUILTIN_PARAMGEN2: u32 = 0;
-pub const DSA_F_DSA_DO_SIGN: u32 = 0;
-pub const DSA_F_DSA_DO_VERIFY: u32 = 0;
-pub const DSA_F_DSA_METH_DUP: u32 = 0;
-pub const DSA_F_DSA_METH_NEW: u32 = 0;
-pub const DSA_F_DSA_METH_SET1_NAME: u32 = 0;
-pub const DSA_F_DSA_NEW_METHOD: u32 = 0;
-pub const DSA_F_DSA_PARAM_DECODE: u32 = 0;
-pub const DSA_F_DSA_PRINT_FP: u32 = 0;
-pub const DSA_F_DSA_PRIV_DECODE: u32 = 0;
-pub const DSA_F_DSA_PRIV_ENCODE: u32 = 0;
-pub const DSA_F_DSA_PUB_DECODE: u32 = 0;
-pub const DSA_F_DSA_PUB_ENCODE: u32 = 0;
-pub const DSA_F_DSA_SIGN: u32 = 0;
-pub const DSA_F_DSA_SIGN_SETUP: u32 = 0;
-pub const DSA_F_DSA_SIG_NEW: u32 = 0;
-pub const DSA_F_OLD_DSA_PRIV_DECODE: u32 = 0;
-pub const DSA_F_PKEY_DSA_CTRL: u32 = 0;
-pub const DSA_F_PKEY_DSA_CTRL_STR: u32 = 0;
-pub const DSA_F_PKEY_DSA_KEYGEN: u32 = 0;
-pub const EC_F_BN_TO_FELEM: u32 = 0;
-pub const EC_F_D2I_ECPARAMETERS: u32 = 0;
-pub const EC_F_D2I_ECPKPARAMETERS: u32 = 0;
-pub const EC_F_D2I_ECPRIVATEKEY: u32 = 0;
-pub const EC_F_DO_EC_KEY_PRINT: u32 = 0;
-pub const EC_F_ECDH_CMS_DECRYPT: u32 = 0;
-pub const EC_F_ECDH_CMS_SET_SHARED_INFO: u32 = 0;
-pub const EC_F_ECDH_COMPUTE_KEY: u32 = 0;
-pub const EC_F_ECDH_SIMPLE_COMPUTE_KEY: u32 = 0;
-pub const EC_F_ECDSA_DO_SIGN_EX: u32 = 0;
-pub const EC_F_ECDSA_DO_VERIFY: u32 = 0;
-pub const EC_F_ECDSA_SIGN_EX: u32 = 0;
-pub const EC_F_ECDSA_SIGN_SETUP: u32 = 0;
-pub const EC_F_ECDSA_SIG_NEW: u32 = 0;
-pub const EC_F_ECDSA_VERIFY: u32 = 0;
-pub const EC_F_ECD_ITEM_VERIFY: u32 = 0;
-pub const EC_F_ECKEY_PARAM2TYPE: u32 = 0;
-pub const EC_F_ECKEY_PARAM_DECODE: u32 = 0;
-pub const EC_F_ECKEY_PRIV_DECODE: u32 = 0;
-pub const EC_F_ECKEY_PRIV_ENCODE: u32 = 0;
-pub const EC_F_ECKEY_PUB_DECODE: u32 = 0;
-pub const EC_F_ECKEY_PUB_ENCODE: u32 = 0;
-pub const EC_F_ECKEY_TYPE2PARAM: u32 = 0;
-pub const EC_F_ECPARAMETERS_PRINT: u32 = 0;
-pub const EC_F_ECPARAMETERS_PRINT_FP: u32 = 0;
-pub const EC_F_ECPKPARAMETERS_PRINT: u32 = 0;
-pub const EC_F_ECPKPARAMETERS_PRINT_FP: u32 = 0;
-pub const EC_F_ECP_NISTZ256_GET_AFFINE: u32 = 0;
-pub const EC_F_ECP_NISTZ256_INV_MOD_ORD: u32 = 0;
-pub const EC_F_ECP_NISTZ256_MULT_PRECOMPUTE: u32 = 0;
-pub const EC_F_ECP_NISTZ256_POINTS_MUL: u32 = 0;
-pub const EC_F_ECP_NISTZ256_PRE_COMP_NEW: u32 = 0;
-pub const EC_F_ECP_NISTZ256_WINDOWED_MUL: u32 = 0;
-pub const EC_F_ECX_KEY_OP: u32 = 0;
-pub const EC_F_ECX_PRIV_ENCODE: u32 = 0;
-pub const EC_F_ECX_PUB_ENCODE: u32 = 0;
-pub const EC_F_EC_ASN1_GROUP2CURVE: u32 = 0;
-pub const EC_F_EC_ASN1_GROUP2FIELDID: u32 = 0;
-pub const EC_F_EC_GF2M_MONTGOMERY_POINT_MULTIPLY: u32 = 0;
-pub const EC_F_EC_GF2M_SIMPLE_FIELD_INV: u32 = 0;
-pub const EC_F_EC_GF2M_SIMPLE_GROUP_CHECK_DISCRIMINANT: u32 = 0;
-pub const EC_F_EC_GF2M_SIMPLE_GROUP_SET_CURVE: u32 = 0;
-pub const EC_F_EC_GF2M_SIMPLE_LADDER_POST: u32 = 0;
-pub const EC_F_EC_GF2M_SIMPLE_LADDER_PRE: u32 = 0;
-pub const EC_F_EC_GF2M_SIMPLE_OCT2POINT: u32 = 0;
-pub const EC_F_EC_GF2M_SIMPLE_POINT2OCT: u32 = 0;
-pub const EC_F_EC_GF2M_SIMPLE_POINTS_MUL: u32 = 0;
-pub const EC_F_EC_GF2M_SIMPLE_POINT_GET_AFFINE_COORDINATES: u32 = 0;
-pub const EC_F_EC_GF2M_SIMPLE_POINT_SET_AFFINE_COORDINATES: u32 = 0;
-pub const EC_F_EC_GF2M_SIMPLE_SET_COMPRESSED_COORDINATES: u32 = 0;
-pub const EC_F_EC_GFP_MONT_FIELD_DECODE: u32 = 0;
-pub const EC_F_EC_GFP_MONT_FIELD_ENCODE: u32 = 0;
-pub const EC_F_EC_GFP_MONT_FIELD_INV: u32 = 0;
-pub const EC_F_EC_GFP_MONT_FIELD_MUL: u32 = 0;
-pub const EC_F_EC_GFP_MONT_FIELD_SET_TO_ONE: u32 = 0;
-pub const EC_F_EC_GFP_MONT_FIELD_SQR: u32 = 0;
-pub const EC_F_EC_GFP_MONT_GROUP_SET_CURVE: u32 = 0;
-pub const EC_F_EC_GFP_NISTP224_GROUP_SET_CURVE: u32 = 0;
-pub const EC_F_EC_GFP_NISTP224_POINTS_MUL: u32 = 0;
-pub const EC_F_EC_GFP_NISTP224_POINT_GET_AFFINE_COORDINATES: u32 = 0;
-pub const EC_F_EC_GFP_NISTP256_GROUP_SET_CURVE: u32 = 0;
-pub const EC_F_EC_GFP_NISTP256_POINTS_MUL: u32 = 0;
-pub const EC_F_EC_GFP_NISTP256_POINT_GET_AFFINE_COORDINATES: u32 = 0;
-pub const EC_F_EC_GFP_NISTP521_GROUP_SET_CURVE: u32 = 0;
-pub const EC_F_EC_GFP_NISTP521_POINTS_MUL: u32 = 0;
-pub const EC_F_EC_GFP_NISTP521_POINT_GET_AFFINE_COORDINATES: u32 = 0;
-pub const EC_F_EC_GFP_NIST_FIELD_MUL: u32 = 0;
-pub const EC_F_EC_GFP_NIST_FIELD_SQR: u32 = 0;
-pub const EC_F_EC_GFP_NIST_GROUP_SET_CURVE: u32 = 0;
-pub const EC_F_EC_GFP_SIMPLE_BLIND_COORDINATES: u32 = 0;
-pub const EC_F_EC_GFP_SIMPLE_FIELD_INV: u32 = 0;
-pub const EC_F_EC_GFP_SIMPLE_GROUP_CHECK_DISCRIMINANT: u32 = 0;
-pub const EC_F_EC_GFP_SIMPLE_GROUP_SET_CURVE: u32 = 0;
-pub const EC_F_EC_GFP_SIMPLE_MAKE_AFFINE: u32 = 0;
-pub const EC_F_EC_GFP_SIMPLE_OCT2POINT: u32 = 0;
-pub const EC_F_EC_GFP_SIMPLE_POINT2OCT: u32 = 0;
-pub const EC_F_EC_GFP_SIMPLE_POINTS_MAKE_AFFINE: u32 = 0;
-pub const EC_F_EC_GFP_SIMPLE_POINT_GET_AFFINE_COORDINATES: u32 = 0;
-pub const EC_F_EC_GFP_SIMPLE_POINT_SET_AFFINE_COORDINATES: u32 = 0;
-pub const EC_F_EC_GFP_SIMPLE_SET_COMPRESSED_COORDINATES: u32 = 0;
-pub const EC_F_EC_GROUP_CHECK: u32 = 0;
-pub const EC_F_EC_GROUP_CHECK_DISCRIMINANT: u32 = 0;
-pub const EC_F_EC_GROUP_COPY: u32 = 0;
-pub const EC_F_EC_GROUP_GET_CURVE: u32 = 0;
-pub const EC_F_EC_GROUP_GET_CURVE_GF2M: u32 = 0;
-pub const EC_F_EC_GROUP_GET_CURVE_GFP: u32 = 0;
-pub const EC_F_EC_GROUP_GET_DEGREE: u32 = 0;
-pub const EC_F_EC_GROUP_GET_ECPARAMETERS: u32 = 0;
-pub const EC_F_EC_GROUP_GET_ECPKPARAMETERS: u32 = 0;
-pub const EC_F_EC_GROUP_GET_PENTANOMIAL_BASIS: u32 = 0;
-pub const EC_F_EC_GROUP_GET_TRINOMIAL_BASIS: u32 = 0;
-pub const EC_F_EC_GROUP_NEW: u32 = 0;
-pub const EC_F_EC_GROUP_NEW_BY_CURVE_NAME: u32 = 0;
-pub const EC_F_EC_GROUP_NEW_FROM_DATA: u32 = 0;
-pub const EC_F_EC_GROUP_NEW_FROM_ECPARAMETERS: u32 = 0;
-pub const EC_F_EC_GROUP_NEW_FROM_ECPKPARAMETERS: u32 = 0;
-pub const EC_F_EC_GROUP_SET_CURVE: u32 = 0;
-pub const EC_F_EC_GROUP_SET_CURVE_GF2M: u32 = 0;
-pub const EC_F_EC_GROUP_SET_CURVE_GFP: u32 = 0;
-pub const EC_F_EC_GROUP_SET_GENERATOR: u32 = 0;
-pub const EC_F_EC_GROUP_SET_SEED: u32 = 0;
-pub const EC_F_EC_KEY_CHECK_KEY: u32 = 0;
-pub const EC_F_EC_KEY_COPY: u32 = 0;
-pub const EC_F_EC_KEY_GENERATE_KEY: u32 = 0;
-pub const EC_F_EC_KEY_NEW: u32 = 0;
-pub const EC_F_EC_KEY_NEW_METHOD: u32 = 0;
-pub const EC_F_EC_KEY_OCT2PRIV: u32 = 0;
-pub const EC_F_EC_KEY_PRINT: u32 = 0;
-pub const EC_F_EC_KEY_PRINT_FP: u32 = 0;
-pub const EC_F_EC_KEY_PRIV2BUF: u32 = 0;
-pub const EC_F_EC_KEY_PRIV2OCT: u32 = 0;
-pub const EC_F_EC_KEY_SET_PUBLIC_KEY_AFFINE_COORDINATES: u32 = 0;
-pub const EC_F_EC_KEY_SIMPLE_CHECK_KEY: u32 = 0;
-pub const EC_F_EC_KEY_SIMPLE_OCT2PRIV: u32 = 0;
-pub const EC_F_EC_KEY_SIMPLE_PRIV2OCT: u32 = 0;
-pub const EC_F_EC_PKEY_CHECK: u32 = 0;
-pub const EC_F_EC_PKEY_PARAM_CHECK: u32 = 0;
-pub const EC_F_EC_POINTS_MAKE_AFFINE: u32 = 0;
-pub const EC_F_EC_POINTS_MUL: u32 = 0;
-pub const EC_F_EC_POINT_ADD: u32 = 0;
-pub const EC_F_EC_POINT_BN2POINT: u32 = 0;
-pub const EC_F_EC_POINT_CMP: u32 = 0;
-pub const EC_F_EC_POINT_COPY: u32 = 0;
-pub const EC_F_EC_POINT_DBL: u32 = 0;
-pub const EC_F_EC_POINT_GET_AFFINE_COORDINATES: u32 = 0;
-pub const EC_F_EC_POINT_GET_AFFINE_COORDINATES_GF2M: u32 = 0;
-pub const EC_F_EC_POINT_GET_AFFINE_COORDINATES_GFP: u32 = 0;
-pub const EC_F_EC_POINT_GET_JPROJECTIVE_COORDINATES_GFP: u32 = 0;
-pub const EC_F_EC_POINT_INVERT: u32 = 0;
-pub const EC_F_EC_POINT_IS_AT_INFINITY: u32 = 0;
-pub const EC_F_EC_POINT_IS_ON_CURVE: u32 = 0;
-pub const EC_F_EC_POINT_MAKE_AFFINE: u32 = 0;
-pub const EC_F_EC_POINT_NEW: u32 = 0;
-pub const EC_F_EC_POINT_OCT2POINT: u32 = 0;
-pub const EC_F_EC_POINT_POINT2BUF: u32 = 0;
-pub const EC_F_EC_POINT_POINT2OCT: u32 = 0;
-pub const EC_F_EC_POINT_SET_AFFINE_COORDINATES: u32 = 0;
-pub const EC_F_EC_POINT_SET_AFFINE_COORDINATES_GF2M: u32 = 0;
-pub const EC_F_EC_POINT_SET_AFFINE_COORDINATES_GFP: u32 = 0;
-pub const EC_F_EC_POINT_SET_COMPRESSED_COORDINATES: u32 = 0;
-pub const EC_F_EC_POINT_SET_COMPRESSED_COORDINATES_GF2M: u32 = 0;
-pub const EC_F_EC_POINT_SET_COMPRESSED_COORDINATES_GFP: u32 = 0;
-pub const EC_F_EC_POINT_SET_JPROJECTIVE_COORDINATES_GFP: u32 = 0;
-pub const EC_F_EC_POINT_SET_TO_INFINITY: u32 = 0;
-pub const EC_F_EC_PRE_COMP_NEW: u32 = 0;
-pub const EC_F_EC_SCALAR_MUL_LADDER: u32 = 0;
-pub const EC_F_EC_WNAF_MUL: u32 = 0;
-pub const EC_F_EC_WNAF_PRECOMPUTE_MULT: u32 = 0;
-pub const EC_F_I2D_ECPARAMETERS: u32 = 0;
-pub const EC_F_I2D_ECPKPARAMETERS: u32 = 0;
-pub const EC_F_I2D_ECPRIVATEKEY: u32 = 0;
-pub const EC_F_I2O_ECPUBLICKEY: u32 = 0;
-pub const EC_F_NISTP224_PRE_COMP_NEW: u32 = 0;
-pub const EC_F_NISTP256_PRE_COMP_NEW: u32 = 0;
-pub const EC_F_NISTP521_PRE_COMP_NEW: u32 = 0;
-pub const EC_F_O2I_ECPUBLICKEY: u32 = 0;
-pub const EC_F_OLD_EC_PRIV_DECODE: u32 = 0;
-pub const EC_F_OSSL_ECDH_COMPUTE_KEY: u32 = 0;
-pub const EC_F_OSSL_ECDSA_SIGN_SIG: u32 = 0;
-pub const EC_F_OSSL_ECDSA_VERIFY_SIG: u32 = 0;
-pub const EC_F_PKEY_ECD_CTRL: u32 = 0;
-pub const EC_F_PKEY_ECD_DIGESTSIGN: u32 = 0;
-pub const EC_F_PKEY_ECD_DIGESTSIGN25519: u32 = 0;
-pub const EC_F_PKEY_ECD_DIGESTSIGN448: u32 = 0;
-pub const EC_F_PKEY_ECX_DERIVE: u32 = 0;
-pub const EC_F_PKEY_EC_CTRL: u32 = 0;
-pub const EC_F_PKEY_EC_CTRL_STR: u32 = 0;
-pub const EC_F_PKEY_EC_DERIVE: u32 = 0;
-pub const EC_F_PKEY_EC_INIT: u32 = 0;
-pub const EC_F_PKEY_EC_KDF_DERIVE: u32 = 0;
-pub const EC_F_PKEY_EC_KEYGEN: u32 = 0;
-pub const EC_F_PKEY_EC_PARAMGEN: u32 = 0;
-pub const EC_F_PKEY_EC_SIGN: u32 = 0;
-pub const EC_F_VALIDATE_ECX_DERIVE: u32 = 0;
-pub const ENGINE_F_DIGEST_UPDATE: u32 = 0;
-pub const ENGINE_F_DYNAMIC_CTRL: u32 = 0;
-pub const ENGINE_F_DYNAMIC_GET_DATA_CTX: u32 = 0;
-pub const ENGINE_F_DYNAMIC_LOAD: u32 = 0;
-pub const ENGINE_F_DYNAMIC_SET_DATA_CTX: u32 = 0;
-pub const ENGINE_F_ENGINE_ADD: u32 = 0;
-pub const ENGINE_F_ENGINE_BY_ID: u32 = 0;
-pub const ENGINE_F_ENGINE_CMD_IS_EXECUTABLE: u32 = 0;
-pub const ENGINE_F_ENGINE_CTRL: u32 = 0;
-pub const ENGINE_F_ENGINE_CTRL_CMD: u32 = 0;
-pub const ENGINE_F_ENGINE_CTRL_CMD_STRING: u32 = 0;
-pub const ENGINE_F_ENGINE_FINISH: u32 = 0;
-pub const ENGINE_F_ENGINE_GET_CIPHER: u32 = 0;
-pub const ENGINE_F_ENGINE_GET_DIGEST: u32 = 0;
-pub const ENGINE_F_ENGINE_GET_FIRST: u32 = 0;
-pub const ENGINE_F_ENGINE_GET_LAST: u32 = 0;
-pub const ENGINE_F_ENGINE_GET_NEXT: u32 = 0;
-pub const ENGINE_F_ENGINE_GET_PKEY_ASN1_METH: u32 = 0;
-pub const ENGINE_F_ENGINE_GET_PKEY_METH: u32 = 0;
-pub const ENGINE_F_ENGINE_GET_PREV: u32 = 0;
-pub const ENGINE_F_ENGINE_INIT: u32 = 0;
-pub const ENGINE_F_ENGINE_LIST_ADD: u32 = 0;
-pub const ENGINE_F_ENGINE_LIST_REMOVE: u32 = 0;
-pub const ENGINE_F_ENGINE_LOAD_PRIVATE_KEY: u32 = 0;
-pub const ENGINE_F_ENGINE_LOAD_PUBLIC_KEY: u32 = 0;
-pub const ENGINE_F_ENGINE_LOAD_SSL_CLIENT_CERT: u32 = 0;
-pub const ENGINE_F_ENGINE_NEW: u32 = 0;
-pub const ENGINE_F_ENGINE_PKEY_ASN1_FIND_STR: u32 = 0;
-pub const ENGINE_F_ENGINE_REMOVE: u32 = 0;
-pub const ENGINE_F_ENGINE_SET_DEFAULT_STRING: u32 = 0;
-pub const ENGINE_F_ENGINE_SET_ID: u32 = 0;
-pub const ENGINE_F_ENGINE_SET_NAME: u32 = 0;
-pub const ENGINE_F_ENGINE_TABLE_REGISTER: u32 = 0;
-pub const ENGINE_F_ENGINE_UNLOCKED_FINISH: u32 = 0;
-pub const ENGINE_F_ENGINE_UP_REF: u32 = 0;
-pub const ENGINE_F_INT_CLEANUP_ITEM: u32 = 0;
-pub const ENGINE_F_INT_CTRL_HELPER: u32 = 0;
-pub const ENGINE_F_INT_ENGINE_CONFIGURE: u32 = 0;
-pub const ENGINE_F_INT_ENGINE_MODULE_INIT: u32 = 0;
-pub const ENGINE_F_OSSL_HMAC_INIT: u32 = 0;
-pub const EVP_F_AESNI_INIT_KEY: u32 = 0;
-pub const EVP_F_AESNI_XTS_INIT_KEY: u32 = 0;
-pub const EVP_F_AES_GCM_CTRL: u32 = 0;
-pub const EVP_F_AES_INIT_KEY: u32 = 0;
-pub const EVP_F_AES_OCB_CIPHER: u32 = 0;
-pub const EVP_F_AES_T4_INIT_KEY: u32 = 0;
-pub const EVP_F_AES_T4_XTS_INIT_KEY: u32 = 0;
-pub const EVP_F_AES_WRAP_CIPHER: u32 = 0;
-pub const EVP_F_AES_XTS_INIT_KEY: u32 = 0;
-pub const EVP_F_ALG_MODULE_INIT: u32 = 0;
-pub const EVP_F_ARIA_CCM_INIT_KEY: u32 = 0;
-pub const EVP_F_ARIA_GCM_CTRL: u32 = 0;
-pub const EVP_F_ARIA_GCM_INIT_KEY: u32 = 0;
-pub const EVP_F_ARIA_INIT_KEY: u32 = 0;
-pub const EVP_F_B64_NEW: u32 = 0;
-pub const EVP_F_CAMELLIA_INIT_KEY: u32 = 0;
-pub const EVP_F_CHACHA20_POLY1305_CTRL: u32 = 0;
-pub const EVP_F_CMLL_T4_INIT_KEY: u32 = 0;
-pub const EVP_F_DES_EDE3_WRAP_CIPHER: u32 = 0;
-pub const EVP_F_DO_SIGVER_INIT: u32 = 0;
-pub const EVP_F_ENC_NEW: u32 = 0;
-pub const EVP_F_EVP_CIPHERINIT_EX: u32 = 0;
-pub const EVP_F_EVP_CIPHER_ASN1_TO_PARAM: u32 = 0;
-pub const EVP_F_EVP_CIPHER_CTX_COPY: u32 = 0;
-pub const EVP_F_EVP_CIPHER_CTX_CTRL: u32 = 0;
-pub const EVP_F_EVP_CIPHER_CTX_SET_KEY_LENGTH: u32 = 0;
-pub const EVP_F_EVP_CIPHER_PARAM_TO_ASN1: u32 = 0;
-pub const EVP_F_EVP_DECRYPTFINAL_EX: u32 = 0;
-pub const EVP_F_EVP_DECRYPTUPDATE: u32 = 0;
-pub const EVP_F_EVP_DIGESTFINALXOF: u32 = 0;
-pub const EVP_F_EVP_DIGESTINIT_EX: u32 = 0;
-pub const EVP_F_EVP_ENCRYPTDECRYPTUPDATE: u32 = 0;
-pub const EVP_F_EVP_ENCRYPTFINAL_EX: u32 = 0;
-pub const EVP_F_EVP_ENCRYPTUPDATE: u32 = 0;
-pub const EVP_F_EVP_MD_CTX_COPY_EX: u32 = 0;
-pub const EVP_F_EVP_MD_SIZE: u32 = 0;
-pub const EVP_F_EVP_OPENINIT: u32 = 0;
-pub const EVP_F_EVP_PBE_ALG_ADD: u32 = 0;
-pub const EVP_F_EVP_PBE_ALG_ADD_TYPE: u32 = 0;
-pub const EVP_F_EVP_PBE_CIPHERINIT: u32 = 0;
-pub const EVP_F_EVP_PBE_SCRYPT: u32 = 0;
-pub const EVP_F_EVP_PKCS82PKEY: u32 = 0;
-pub const EVP_F_EVP_PKEY2PKCS8: u32 = 0;
-pub const EVP_F_EVP_PKEY_ASN1_ADD0: u32 = 0;
-pub const EVP_F_EVP_PKEY_CHECK: u32 = 0;
-pub const EVP_F_EVP_PKEY_COPY_PARAMETERS: u32 = 0;
-pub const EVP_F_EVP_PKEY_CTX_CTRL: u32 = 0;
-pub const EVP_F_EVP_PKEY_CTX_CTRL_STR: u32 = 0;
-pub const EVP_F_EVP_PKEY_CTX_DUP: u32 = 0;
-pub const EVP_F_EVP_PKEY_CTX_MD: u32 = 0;
-pub const EVP_F_EVP_PKEY_DECRYPT: u32 = 0;
-pub const EVP_F_EVP_PKEY_DECRYPT_INIT: u32 = 0;
-pub const EVP_F_EVP_PKEY_DECRYPT_OLD: u32 = 0;
-pub const EVP_F_EVP_PKEY_DERIVE: u32 = 0;
-pub const EVP_F_EVP_PKEY_DERIVE_INIT: u32 = 0;
-pub const EVP_F_EVP_PKEY_DERIVE_SET_PEER: u32 = 0;
-pub const EVP_F_EVP_PKEY_ENCRYPT: u32 = 0;
-pub const EVP_F_EVP_PKEY_ENCRYPT_INIT: u32 = 0;
-pub const EVP_F_EVP_PKEY_ENCRYPT_OLD: u32 = 0;
-pub const EVP_F_EVP_PKEY_GET0_DH: u32 = 0;
-pub const EVP_F_EVP_PKEY_GET0_DSA: u32 = 0;
-pub const EVP_F_EVP_PKEY_GET0_EC_KEY: u32 = 0;
-pub const EVP_F_EVP_PKEY_GET0_HMAC: u32 = 0;
-pub const EVP_F_EVP_PKEY_GET0_POLY1305: u32 = 0;
-pub const EVP_F_EVP_PKEY_GET0_RSA: u32 = 0;
-pub const EVP_F_EVP_PKEY_GET0_SIPHASH: u32 = 0;
-pub const EVP_F_EVP_PKEY_GET_RAW_PRIVATE_KEY: u32 = 0;
-pub const EVP_F_EVP_PKEY_GET_RAW_PUBLIC_KEY: u32 = 0;
-pub const EVP_F_EVP_PKEY_KEYGEN: u32 = 0;
-pub const EVP_F_EVP_PKEY_KEYGEN_INIT: u32 = 0;
-pub const EVP_F_EVP_PKEY_METH_ADD0: u32 = 0;
-pub const EVP_F_EVP_PKEY_METH_NEW: u32 = 0;
-pub const EVP_F_EVP_PKEY_NEW: u32 = 0;
-pub const EVP_F_EVP_PKEY_NEW_CMAC_KEY: u32 = 0;
-pub const EVP_F_EVP_PKEY_NEW_RAW_PRIVATE_KEY: u32 = 0;
-pub const EVP_F_EVP_PKEY_NEW_RAW_PUBLIC_KEY: u32 = 0;
-pub const EVP_F_EVP_PKEY_PARAMGEN: u32 = 0;
-pub const EVP_F_EVP_PKEY_PARAMGEN_INIT: u32 = 0;
-pub const EVP_F_EVP_PKEY_PARAM_CHECK: u32 = 0;
-pub const EVP_F_EVP_PKEY_PUBLIC_CHECK: u32 = 0;
-pub const EVP_F_EVP_PKEY_SET1_ENGINE: u32 = 0;
-pub const EVP_F_EVP_PKEY_SET_ALIAS_TYPE: u32 = 0;
-pub const EVP_F_EVP_PKEY_SIGN: u32 = 0;
-pub const EVP_F_EVP_PKEY_SIGN_INIT: u32 = 0;
-pub const EVP_F_EVP_PKEY_VERIFY: u32 = 0;
-pub const EVP_F_EVP_PKEY_VERIFY_INIT: u32 = 0;
-pub const EVP_F_EVP_PKEY_VERIFY_RECOVER: u32 = 0;
-pub const EVP_F_EVP_PKEY_VERIFY_RECOVER_INIT: u32 = 0;
-pub const EVP_F_EVP_SIGNFINAL: u32 = 0;
-pub const EVP_F_EVP_VERIFYFINAL: u32 = 0;
-pub const EVP_F_INT_CTX_NEW: u32 = 0;
-pub const EVP_F_OK_NEW: u32 = 0;
-pub const EVP_F_PKCS5_PBE_KEYIVGEN: u32 = 0;
-pub const EVP_F_PKCS5_V2_PBE_KEYIVGEN: u32 = 0;
-pub const EVP_F_PKCS5_V2_PBKDF2_KEYIVGEN: u32 = 0;
-pub const EVP_F_PKCS5_V2_SCRYPT_KEYIVGEN: u32 = 0;
-pub const EVP_F_PKEY_SET_TYPE: u32 = 0;
-pub const EVP_F_RC2_MAGIC_TO_METH: u32 = 0;
-pub const EVP_F_RC5_CTRL: u32 = 0;
-pub const EVP_F_R_32_12_16_INIT_KEY: u32 = 0;
-pub const EVP_F_S390X_AES_GCM_CTRL: u32 = 0;
-pub const EVP_F_UPDATE: u32 = 0;
-pub const KDF_F_PKEY_HKDF_CTRL_STR: u32 = 0;
-pub const KDF_F_PKEY_HKDF_DERIVE: u32 = 0;
-pub const KDF_F_PKEY_HKDF_INIT: u32 = 0;
-pub const KDF_F_PKEY_SCRYPT_CTRL_STR: u32 = 0;
-pub const KDF_F_PKEY_SCRYPT_CTRL_UINT64: u32 = 0;
-pub const KDF_F_PKEY_SCRYPT_DERIVE: u32 = 0;
-pub const KDF_F_PKEY_SCRYPT_INIT: u32 = 0;
-pub const KDF_F_PKEY_SCRYPT_SET_MEMBUF: u32 = 0;
-pub const KDF_F_PKEY_TLS1_PRF_CTRL_STR: u32 = 0;
-pub const KDF_F_PKEY_TLS1_PRF_DERIVE: u32 = 0;
-pub const KDF_F_PKEY_TLS1_PRF_INIT: u32 = 0;
-pub const KDF_F_TLS1_PRF_ALG: u32 = 0;
-pub const KDF_R_INVALID_DIGEST: u32 = 0;
-pub const KDF_R_MISSING_ITERATION_COUNT: u32 = 0;
-pub const KDF_R_MISSING_KEY: u32 = 0;
-pub const KDF_R_MISSING_MESSAGE_DIGEST: u32 = 0;
-pub const KDF_R_MISSING_PARAMETER: u32 = 0;
-pub const KDF_R_MISSING_PASS: u32 = 0;
-pub const KDF_R_MISSING_SALT: u32 = 0;
-pub const KDF_R_MISSING_SECRET: u32 = 0;
-pub const KDF_R_MISSING_SEED: u32 = 0;
-pub const KDF_R_UNKNOWN_PARAMETER_TYPE: u32 = 0;
-pub const KDF_R_VALUE_ERROR: u32 = 0;
-pub const KDF_R_VALUE_MISSING: u32 = 0;
-pub const OBJ_F_OBJ_ADD_OBJECT: u32 = 0;
-pub const OBJ_F_OBJ_ADD_SIGID: u32 = 0;
-pub const OBJ_F_OBJ_CREATE: u32 = 0;
-pub const OBJ_F_OBJ_DUP: u32 = 0;
-pub const OBJ_F_OBJ_NAME_NEW_INDEX: u32 = 0;
-pub const OBJ_F_OBJ_NID2LN: u32 = 0;
-pub const OBJ_F_OBJ_NID2OBJ: u32 = 0;
-pub const OBJ_F_OBJ_NID2SN: u32 = 0;
-pub const OBJ_F_OBJ_TXT2OBJ: u32 = 0;
-pub const OCSP_F_D2I_OCSP_NONCE: u32 = 0;
-pub const OCSP_F_OCSP_BASIC_ADD1_STATUS: u32 = 0;
-pub const OCSP_F_OCSP_BASIC_SIGN: u32 = 0;
-pub const OCSP_F_OCSP_BASIC_SIGN_CTX: u32 = 0;
-pub const OCSP_F_OCSP_BASIC_VERIFY: u32 = 0;
-pub const OCSP_F_OCSP_CERT_ID_NEW: u32 = 0;
-pub const OCSP_F_OCSP_CHECK_DELEGATED: u32 = 0;
-pub const OCSP_F_OCSP_CHECK_IDS: u32 = 0;
-pub const OCSP_F_OCSP_CHECK_ISSUER: u32 = 0;
-pub const OCSP_F_OCSP_CHECK_VALIDITY: u32 = 0;
-pub const OCSP_F_OCSP_MATCH_ISSUERID: u32 = 0;
-pub const OCSP_F_OCSP_PARSE_URL: u32 = 0;
-pub const OCSP_F_OCSP_REQUEST_SIGN: u32 = 0;
-pub const OCSP_F_OCSP_REQUEST_VERIFY: u32 = 0;
-pub const OCSP_F_OCSP_RESPONSE_GET1_BASIC: u32 = 0;
-pub const OCSP_F_PARSE_HTTP_LINE1: u32 = 0;
-pub const PEM_F_B2I_DSS: u32 = 0;
-pub const PEM_F_B2I_PVK_BIO: u32 = 0;
-pub const PEM_F_B2I_RSA: u32 = 0;
-pub const PEM_F_CHECK_BITLEN_DSA: u32 = 0;
-pub const PEM_F_CHECK_BITLEN_RSA: u32 = 0;
-pub const PEM_F_D2I_PKCS8PRIVATEKEY_BIO: u32 = 0;
-pub const PEM_F_D2I_PKCS8PRIVATEKEY_FP: u32 = 0;
-pub const PEM_F_DO_B2I: u32 = 0;
-pub const PEM_F_DO_B2I_BIO: u32 = 0;
-pub const PEM_F_DO_BLOB_HEADER: u32 = 0;
-pub const PEM_F_DO_I2B: u32 = 0;
-pub const PEM_F_DO_PK8PKEY: u32 = 0;
-pub const PEM_F_DO_PK8PKEY_FP: u32 = 0;
-pub const PEM_F_DO_PVK_BODY: u32 = 0;
-pub const PEM_F_DO_PVK_HEADER: u32 = 0;
-pub const PEM_F_GET_HEADER_AND_DATA: u32 = 0;
-pub const PEM_F_GET_NAME: u32 = 0;
-pub const PEM_F_I2B_PVK: u32 = 0;
-pub const PEM_F_I2B_PVK_BIO: u32 = 0;
-pub const PEM_F_LOAD_IV: u32 = 0;
-pub const PEM_F_PEM_ASN1_READ: u32 = 0;
-pub const PEM_F_PEM_ASN1_READ_BIO: u32 = 0;
-pub const PEM_F_PEM_ASN1_WRITE: u32 = 0;
-pub const PEM_F_PEM_ASN1_WRITE_BIO: u32 = 0;
-pub const PEM_F_PEM_DEF_CALLBACK: u32 = 0;
-pub const PEM_F_PEM_DO_HEADER: u32 = 0;
-pub const PEM_F_PEM_GET_EVP_CIPHER_INFO: u32 = 0;
-pub const PEM_F_PEM_READ: u32 = 0;
-pub const PEM_F_PEM_READ_BIO: u32 = 0;
-pub const PEM_F_PEM_READ_BIO_DHPARAMS: u32 = 0;
-pub const PEM_F_PEM_READ_BIO_EX: u32 = 0;
-pub const PEM_F_PEM_READ_BIO_PARAMETERS: u32 = 0;
-pub const PEM_F_PEM_READ_BIO_PRIVATEKEY: u32 = 0;
-pub const PEM_F_PEM_READ_DHPARAMS: u32 = 0;
-pub const PEM_F_PEM_READ_PRIVATEKEY: u32 = 0;
-pub const PEM_F_PEM_SIGNFINAL: u32 = 0;
-pub const PEM_F_PEM_WRITE: u32 = 0;
-pub const PEM_F_PEM_WRITE_BIO: u32 = 0;
-pub const PEM_F_PEM_WRITE_BIO_PRIVATEKEY_TRADITIONAL: u32 = 0;
-pub const PEM_F_PEM_WRITE_PRIVATEKEY: u32 = 0;
-pub const PEM_F_PEM_X509_INFO_READ: u32 = 0;
-pub const PEM_F_PEM_X509_INFO_READ_BIO: u32 = 0;
-pub const PEM_F_PEM_X509_INFO_WRITE_BIO: u32 = 0;
-pub const PKCS12_F_OPENSSL_ASC2UNI: u32 = 0;
-pub const PKCS12_F_OPENSSL_UNI2ASC: u32 = 0;
-pub const PKCS12_F_OPENSSL_UNI2UTF8: u32 = 0;
-pub const PKCS12_F_OPENSSL_UTF82UNI: u32 = 0;
-pub const PKCS12_F_PKCS12_CREATE: u32 = 0;
-pub const PKCS12_F_PKCS12_GEN_MAC: u32 = 0;
-pub const PKCS12_F_PKCS12_INIT: u32 = 0;
-pub const PKCS12_F_PKCS12_ITEM_DECRYPT_D2I: u32 = 0;
-pub const PKCS12_F_PKCS12_ITEM_I2D_ENCRYPT: u32 = 0;
-pub const PKCS12_F_PKCS12_ITEM_PACK_SAFEBAG: u32 = 0;
-pub const PKCS12_F_PKCS12_KEY_GEN_ASC: u32 = 0;
-pub const PKCS12_F_PKCS12_KEY_GEN_UNI: u32 = 0;
-pub const PKCS12_F_PKCS12_KEY_GEN_UTF8: u32 = 0;
-pub const PKCS12_F_PKCS12_NEWPASS: u32 = 0;
-pub const PKCS12_F_PKCS12_PACK_P7DATA: u32 = 0;
-pub const PKCS12_F_PKCS12_PACK_P7ENCDATA: u32 = 0;
-pub const PKCS12_F_PKCS12_PARSE: u32 = 0;
-pub const PKCS12_F_PKCS12_PBE_CRYPT: u32 = 0;
-pub const PKCS12_F_PKCS12_PBE_KEYIVGEN: u32 = 0;
-pub const PKCS12_F_PKCS12_SAFEBAG_CREATE0_P8INF: u32 = 0;
-pub const PKCS12_F_PKCS12_SAFEBAG_CREATE0_PKCS8: u32 = 0;
-pub const PKCS12_F_PKCS12_SAFEBAG_CREATE_PKCS8_ENCRYPT: u32 = 0;
-pub const PKCS12_F_PKCS12_SETUP_MAC: u32 = 0;
-pub const PKCS12_F_PKCS12_SET_MAC: u32 = 0;
-pub const PKCS12_F_PKCS12_UNPACK_AUTHSAFES: u32 = 0;
-pub const PKCS12_F_PKCS12_UNPACK_P7DATA: u32 = 0;
-pub const PKCS12_F_PKCS12_VERIFY_MAC: u32 = 0;
-pub const PKCS12_F_PKCS8_ENCRYPT: u32 = 0;
-pub const PKCS12_F_PKCS8_SET0_PBE: u32 = 0;
-pub const PKCS7_F_DO_PKCS7_SIGNED_ATTRIB: u32 = 0;
-pub const PKCS7_F_PKCS7_ADD0_ATTRIB_SIGNING_TIME: u32 = 0;
-pub const PKCS7_F_PKCS7_ADD_ATTRIB_SMIMECAP: u32 = 0;
-pub const PKCS7_F_PKCS7_ADD_CERTIFICATE: u32 = 0;
-pub const PKCS7_F_PKCS7_ADD_CRL: u32 = 0;
-pub const PKCS7_F_PKCS7_ADD_RECIPIENT_INFO: u32 = 0;
-pub const PKCS7_F_PKCS7_ADD_SIGNATURE: u32 = 0;
-pub const PKCS7_F_PKCS7_ADD_SIGNER: u32 = 0;
-pub const PKCS7_F_PKCS7_BIO_ADD_DIGEST: u32 = 0;
-pub const PKCS7_F_PKCS7_COPY_EXISTING_DIGEST: u32 = 0;
-pub const PKCS7_F_PKCS7_CTRL: u32 = 0;
-pub const PKCS7_F_PKCS7_DATADECODE: u32 = 0;
-pub const PKCS7_F_PKCS7_DATAFINAL: u32 = 0;
-pub const PKCS7_F_PKCS7_DATAINIT: u32 = 0;
-pub const PKCS7_F_PKCS7_DATAVERIFY: u32 = 0;
-pub const PKCS7_F_PKCS7_DECRYPT: u32 = 0;
-pub const PKCS7_F_PKCS7_DECRYPT_RINFO: u32 = 0;
-pub const PKCS7_F_PKCS7_ENCODE_RINFO: u32 = 0;
-pub const PKCS7_F_PKCS7_ENCRYPT: u32 = 0;
-pub const PKCS7_F_PKCS7_FINAL: u32 = 0;
-pub const PKCS7_F_PKCS7_FIND_DIGEST: u32 = 0;
-pub const PKCS7_F_PKCS7_GET0_SIGNERS: u32 = 0;
-pub const PKCS7_F_PKCS7_RECIP_INFO_SET: u32 = 0;
-pub const PKCS7_F_PKCS7_SET_CIPHER: u32 = 0;
-pub const PKCS7_F_PKCS7_SET_CONTENT: u32 = 0;
-pub const PKCS7_F_PKCS7_SET_DIGEST: u32 = 0;
-pub const PKCS7_F_PKCS7_SET_TYPE: u32 = 0;
-pub const PKCS7_F_PKCS7_SIGN: u32 = 0;
-pub const PKCS7_F_PKCS7_SIGNATUREVERIFY: u32 = 0;
-pub const PKCS7_F_PKCS7_SIGNER_INFO_SET: u32 = 0;
-pub const PKCS7_F_PKCS7_SIGNER_INFO_SIGN: u32 = 0;
-pub const PKCS7_F_PKCS7_SIGN_ADD_SIGNER: u32 = 0;
-pub const PKCS7_F_PKCS7_SIMPLE_SMIMECAP: u32 = 0;
-pub const PKCS7_F_PKCS7_VERIFY: u32 = 0;
-pub const RAND_F_DATA_COLLECT_METHOD: u32 = 0;
-pub const RAND_F_DRBG_BYTES: u32 = 0;
-pub const RAND_F_DRBG_GET_ENTROPY: u32 = 0;
-pub const RAND_F_DRBG_SETUP: u32 = 0;
-pub const RAND_F_GET_ENTROPY: u32 = 0;
-pub const RAND_F_RAND_BYTES: u32 = 0;
-pub const RAND_F_RAND_DRBG_ENABLE_LOCKING: u32 = 0;
-pub const RAND_F_RAND_DRBG_GENERATE: u32 = 0;
-pub const RAND_F_RAND_DRBG_GET_ENTROPY: u32 = 0;
-pub const RAND_F_RAND_DRBG_GET_NONCE: u32 = 0;
-pub const RAND_F_RAND_DRBG_INSTANTIATE: u32 = 0;
-pub const RAND_F_RAND_DRBG_NEW: u32 = 0;
-pub const RAND_F_RAND_DRBG_RESEED: u32 = 0;
-pub const RAND_F_RAND_DRBG_RESTART: u32 = 0;
-pub const RAND_F_RAND_DRBG_SET: u32 = 0;
-pub const RAND_F_RAND_DRBG_SET_DEFAULTS: u32 = 0;
-pub const RAND_F_RAND_DRBG_UNINSTANTIATE: u32 = 0;
-pub const RAND_F_RAND_LOAD_FILE: u32 = 0;
-pub const RAND_F_RAND_POOL_ACQUIRE_ENTROPY: u32 = 0;
-pub const RAND_F_RAND_POOL_ADD: u32 = 0;
-pub const RAND_F_RAND_POOL_ADD_BEGIN: u32 = 0;
-pub const RAND_F_RAND_POOL_ADD_END: u32 = 0;
-pub const RAND_F_RAND_POOL_ATTACH: u32 = 0;
-pub const RAND_F_RAND_POOL_BYTES_NEEDED: u32 = 0;
-pub const RAND_F_RAND_POOL_GROW: u32 = 0;
-pub const RAND_F_RAND_POOL_NEW: u32 = 0;
-pub const RAND_F_RAND_PSEUDO_BYTES: u32 = 0;
-pub const RAND_F_RAND_WRITE_FILE: u32 = 0;
-pub const RSA_F_CHECK_PADDING_MD: u32 = 0;
-pub const RSA_F_ENCODE_PKCS1: u32 = 0;
-pub const RSA_F_INT_RSA_VERIFY: u32 = 0;
-pub const RSA_F_OLD_RSA_PRIV_DECODE: u32 = 0;
-pub const RSA_F_PKEY_PSS_INIT: u32 = 0;
-pub const RSA_F_PKEY_RSA_CTRL: u32 = 0;
-pub const RSA_F_PKEY_RSA_CTRL_STR: u32 = 0;
-pub const RSA_F_PKEY_RSA_SIGN: u32 = 0;
-pub const RSA_F_PKEY_RSA_VERIFY: u32 = 0;
-pub const RSA_F_PKEY_RSA_VERIFYRECOVER: u32 = 0;
-pub const RSA_F_RSA_ALGOR_TO_MD: u32 = 0;
-pub const RSA_F_RSA_BUILTIN_KEYGEN: u32 = 0;
-pub const RSA_F_RSA_CHECK_KEY: u32 = 0;
-pub const RSA_F_RSA_CHECK_KEY_EX: u32 = 0;
-pub const RSA_F_RSA_CMS_DECRYPT: u32 = 0;
-pub const RSA_F_RSA_CMS_VERIFY: u32 = 0;
-pub const RSA_F_RSA_ITEM_VERIFY: u32 = 0;
-pub const RSA_F_RSA_METH_DUP: u32 = 0;
-pub const RSA_F_RSA_METH_NEW: u32 = 0;
-pub const RSA_F_RSA_METH_SET1_NAME: u32 = 0;
-pub const RSA_F_RSA_MGF1_TO_MD: u32 = 0;
-pub const RSA_F_RSA_MULTIP_INFO_NEW: u32 = 0;
-pub const RSA_F_RSA_NEW_METHOD: u32 = 0;
-pub const RSA_F_RSA_NULL: u32 = 0;
-pub const RSA_F_RSA_NULL_PRIVATE_DECRYPT: u32 = 0;
-pub const RSA_F_RSA_NULL_PRIVATE_ENCRYPT: u32 = 0;
-pub const RSA_F_RSA_NULL_PUBLIC_DECRYPT: u32 = 0;
-pub const RSA_F_RSA_NULL_PUBLIC_ENCRYPT: u32 = 0;
-pub const RSA_F_RSA_OSSL_PRIVATE_DECRYPT: u32 = 0;
-pub const RSA_F_RSA_OSSL_PRIVATE_ENCRYPT: u32 = 0;
-pub const RSA_F_RSA_OSSL_PUBLIC_DECRYPT: u32 = 0;
-pub const RSA_F_RSA_OSSL_PUBLIC_ENCRYPT: u32 = 0;
-pub const RSA_F_RSA_PADDING_ADD_NONE: u32 = 0;
-pub const RSA_F_RSA_PADDING_ADD_PKCS1_OAEP: u32 = 0;
-pub const RSA_F_RSA_PADDING_ADD_PKCS1_OAEP_MGF1: u32 = 0;
-pub const RSA_F_RSA_PADDING_ADD_PKCS1_PSS: u32 = 0;
-pub const RSA_F_RSA_PADDING_ADD_PKCS1_PSS_MGF1: u32 = 0;
-pub const RSA_F_RSA_PADDING_ADD_PKCS1_TYPE_1: u32 = 0;
-pub const RSA_F_RSA_PADDING_ADD_PKCS1_TYPE_2: u32 = 0;
-pub const RSA_F_RSA_PADDING_ADD_SSLV23: u32 = 0;
-pub const RSA_F_RSA_PADDING_ADD_X931: u32 = 0;
-pub const RSA_F_RSA_PADDING_CHECK_NONE: u32 = 0;
-pub const RSA_F_RSA_PADDING_CHECK_PKCS1_OAEP: u32 = 0;
-pub const RSA_F_RSA_PADDING_CHECK_PKCS1_OAEP_MGF1: u32 = 0;
-pub const RSA_F_RSA_PADDING_CHECK_PKCS1_TYPE_1: u32 = 0;
-pub const RSA_F_RSA_PADDING_CHECK_PKCS1_TYPE_2: u32 = 0;
-pub const RSA_F_RSA_PADDING_CHECK_SSLV23: u32 = 0;
-pub const RSA_F_RSA_PADDING_CHECK_X931: u32 = 0;
-pub const RSA_F_RSA_PARAM_DECODE: u32 = 0;
-pub const RSA_F_RSA_PRINT: u32 = 0;
-pub const RSA_F_RSA_PRINT_FP: u32 = 0;
-pub const RSA_F_RSA_PRIV_DECODE: u32 = 0;
-pub const RSA_F_RSA_PRIV_ENCODE: u32 = 0;
-pub const RSA_F_RSA_PSS_GET_PARAM: u32 = 0;
-pub const RSA_F_RSA_PSS_TO_CTX: u32 = 0;
-pub const RSA_F_RSA_PUB_DECODE: u32 = 0;
-pub const RSA_F_RSA_SETUP_BLINDING: u32 = 0;
-pub const RSA_F_RSA_SIGN: u32 = 0;
-pub const RSA_F_RSA_SIGN_ASN1_OCTET_STRING: u32 = 0;
-pub const RSA_F_RSA_VERIFY: u32 = 0;
-pub const RSA_F_RSA_VERIFY_ASN1_OCTET_STRING: u32 = 0;
-pub const RSA_F_RSA_VERIFY_PKCS1_PSS_MGF1: u32 = 0;
-pub const RSA_F_SETUP_TBUF: u32 = 0;
-pub const OSSL_STORE_F_FILE_CTRL: u32 = 0;
-pub const OSSL_STORE_F_FILE_FIND: u32 = 0;
-pub const OSSL_STORE_F_FILE_GET_PASS: u32 = 0;
-pub const OSSL_STORE_F_FILE_LOAD: u32 = 0;
-pub const OSSL_STORE_F_FILE_LOAD_TRY_DECODE: u32 = 0;
-pub const OSSL_STORE_F_FILE_NAME_TO_URI: u32 = 0;
-pub const OSSL_STORE_F_FILE_OPEN: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_ATTACH_PEM_BIO: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_EXPECT: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_FILE_ATTACH_PEM_BIO_INT: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_FIND: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_GET0_LOADER_INT: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_GET1_CERT: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_GET1_CRL: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_GET1_NAME: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_GET1_NAME_DESCRIPTION: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_GET1_PARAMS: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_GET1_PKEY: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_NEW_CERT: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_NEW_CRL: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_NEW_EMBEDDED: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_NEW_NAME: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_NEW_PARAMS: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_NEW_PKEY: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INFO_SET0_NAME_DESCRIPTION: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_INIT_ONCE: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_LOADER_NEW: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_OPEN: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_OPEN_INT: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_REGISTER_LOADER_INT: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_SEARCH_BY_ALIAS: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_SEARCH_BY_ISSUER_SERIAL: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_SEARCH_BY_KEY_FINGERPRINT: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_SEARCH_BY_NAME: u32 = 0;
-pub const OSSL_STORE_F_OSSL_STORE_UNREGISTER_LOADER_INT: u32 = 0;
-pub const OSSL_STORE_F_TRY_DECODE_PARAMS: u32 = 0;
-pub const OSSL_STORE_F_TRY_DECODE_PKCS12: u32 = 0;
-pub const OSSL_STORE_F_TRY_DECODE_PKCS8ENCRYPTED: u32 = 0;
-pub const TS_F_DEF_SERIAL_CB: u32 = 0;
-pub const TS_F_DEF_TIME_CB: u32 = 0;
-pub const TS_F_ESS_ADD_SIGNING_CERT: u32 = 0;
-pub const TS_F_ESS_ADD_SIGNING_CERT_V2: u32 = 0;
-pub const TS_F_ESS_CERT_ID_NEW_INIT: u32 = 0;
-pub const TS_F_ESS_CERT_ID_V2_NEW_INIT: u32 = 0;
-pub const TS_F_ESS_SIGNING_CERT_NEW_INIT: u32 = 0;
-pub const TS_F_ESS_SIGNING_CERT_V2_NEW_INIT: u32 = 0;
-pub const TS_F_INT_TS_RESP_VERIFY_TOKEN: u32 = 0;
-pub const TS_F_PKCS7_TO_TS_TST_INFO: u32 = 0;
-pub const TS_F_TS_ACCURACY_SET_MICROS: u32 = 0;
-pub const TS_F_TS_ACCURACY_SET_MILLIS: u32 = 0;
-pub const TS_F_TS_ACCURACY_SET_SECONDS: u32 = 0;
-pub const TS_F_TS_CHECK_IMPRINTS: u32 = 0;
-pub const TS_F_TS_CHECK_NONCES: u32 = 0;
-pub const TS_F_TS_CHECK_POLICY: u32 = 0;
-pub const TS_F_TS_CHECK_SIGNING_CERTS: u32 = 0;
-pub const TS_F_TS_CHECK_STATUS_INFO: u32 = 0;
-pub const TS_F_TS_COMPUTE_IMPRINT: u32 = 0;
-pub const TS_F_TS_CONF_INVALID: u32 = 0;
-pub const TS_F_TS_CONF_LOAD_CERT: u32 = 0;
-pub const TS_F_TS_CONF_LOAD_CERTS: u32 = 0;
-pub const TS_F_TS_CONF_LOAD_KEY: u32 = 0;
-pub const TS_F_TS_CONF_LOOKUP_FAIL: u32 = 0;
-pub const TS_F_TS_CONF_SET_DEFAULT_ENGINE: u32 = 0;
-pub const TS_F_TS_GET_STATUS_TEXT: u32 = 0;
-pub const TS_F_TS_MSG_IMPRINT_SET_ALGO: u32 = 0;
-pub const TS_F_TS_REQ_SET_MSG_IMPRINT: u32 = 0;
-pub const TS_F_TS_REQ_SET_NONCE: u32 = 0;
-pub const TS_F_TS_REQ_SET_POLICY_ID: u32 = 0;
-pub const TS_F_TS_RESP_CREATE_RESPONSE: u32 = 0;
-pub const TS_F_TS_RESP_CREATE_TST_INFO: u32 = 0;
-pub const TS_F_TS_RESP_CTX_ADD_FAILURE_INFO: u32 = 0;
-pub const TS_F_TS_RESP_CTX_ADD_MD: u32 = 0;
-pub const TS_F_TS_RESP_CTX_ADD_POLICY: u32 = 0;
-pub const TS_F_TS_RESP_CTX_NEW: u32 = 0;
-pub const TS_F_TS_RESP_CTX_SET_ACCURACY: u32 = 0;
-pub const TS_F_TS_RESP_CTX_SET_CERTS: u32 = 0;
-pub const TS_F_TS_RESP_CTX_SET_DEF_POLICY: u32 = 0;
-pub const TS_F_TS_RESP_CTX_SET_SIGNER_CERT: u32 = 0;
-pub const TS_F_TS_RESP_CTX_SET_STATUS_INFO: u32 = 0;
-pub const TS_F_TS_RESP_GET_POLICY: u32 = 0;
-pub const TS_F_TS_RESP_SET_GENTIME_WITH_PRECISION: u32 = 0;
-pub const TS_F_TS_RESP_SET_STATUS_INFO: u32 = 0;
-pub const TS_F_TS_RESP_SET_TST_INFO: u32 = 0;
-pub const TS_F_TS_RESP_SIGN: u32 = 0;
-pub const TS_F_TS_RESP_VERIFY_SIGNATURE: u32 = 0;
-pub const TS_F_TS_TST_INFO_SET_ACCURACY: u32 = 0;
-pub const TS_F_TS_TST_INFO_SET_MSG_IMPRINT: u32 = 0;
-pub const TS_F_TS_TST_INFO_SET_NONCE: u32 = 0;
-pub const TS_F_TS_TST_INFO_SET_POLICY_ID: u32 = 0;
-pub const TS_F_TS_TST_INFO_SET_SERIAL: u32 = 0;
-pub const TS_F_TS_TST_INFO_SET_TIME: u32 = 0;
-pub const TS_F_TS_TST_INFO_SET_TSA: u32 = 0;
-pub const TS_F_TS_VERIFY: u32 = 0;
-pub const TS_F_TS_VERIFY_CERT: u32 = 0;
-pub const TS_F_TS_VERIFY_CTX_NEW: u32 = 0;
-pub const UI_F_CLOSE_CONSOLE: u32 = 0;
-pub const UI_F_ECHO_CONSOLE: u32 = 0;
-pub const UI_F_GENERAL_ALLOCATE_BOOLEAN: u32 = 0;
-pub const UI_F_GENERAL_ALLOCATE_PROMPT: u32 = 0;
-pub const UI_F_NOECHO_CONSOLE: u32 = 0;
-pub const UI_F_OPEN_CONSOLE: u32 = 0;
-pub const UI_F_UI_CONSTRUCT_PROMPT: u32 = 0;
-pub const UI_F_UI_CREATE_METHOD: u32 = 0;
-pub const UI_F_UI_CTRL: u32 = 0;
-pub const UI_F_UI_DUP_ERROR_STRING: u32 = 0;
-pub const UI_F_UI_DUP_INFO_STRING: u32 = 0;
-pub const UI_F_UI_DUP_INPUT_BOOLEAN: u32 = 0;
-pub const UI_F_UI_DUP_INPUT_STRING: u32 = 0;
-pub const UI_F_UI_DUP_USER_DATA: u32 = 0;
-pub const UI_F_UI_DUP_VERIFY_STRING: u32 = 0;
-pub const UI_F_UI_GET0_RESULT: u32 = 0;
-pub const UI_F_UI_GET_RESULT_LENGTH: u32 = 0;
-pub const UI_F_UI_NEW_METHOD: u32 = 0;
-pub const UI_F_UI_PROCESS: u32 = 0;
-pub const UI_F_UI_SET_RESULT: u32 = 0;
-pub const UI_F_UI_SET_RESULT_EX: u32 = 0;
-pub const X509_F_ADD_CERT_DIR: u32 = 0;
-pub const X509_F_BUILD_CHAIN: u32 = 0;
-pub const X509_F_BY_FILE_CTRL: u32 = 0;
-pub const X509_F_CHECK_NAME_CONSTRAINTS: u32 = 0;
-pub const X509_F_CHECK_POLICY: u32 = 0;
-pub const X509_F_DANE_I2D: u32 = 0;
-pub const X509_F_DIR_CTRL: u32 = 0;
-pub const X509_F_GET_CERT_BY_SUBJECT: u32 = 0;
-pub const X509_F_I2D_X509_AUX: u32 = 0;
-pub const X509_F_LOOKUP_CERTS_SK: u32 = 0;
-pub const X509_F_NETSCAPE_SPKI_B64_DECODE: u32 = 0;
-pub const X509_F_NETSCAPE_SPKI_B64_ENCODE: u32 = 0;
-pub const X509_F_NEW_DIR: u32 = 0;
-pub const X509_F_X509AT_ADD1_ATTR: u32 = 0;
-pub const X509_F_X509V3_ADD_EXT: u32 = 0;
-pub const X509_F_X509_ATTRIBUTE_CREATE_BY_NID: u32 = 0;
-pub const X509_F_X509_ATTRIBUTE_CREATE_BY_OBJ: u32 = 0;
-pub const X509_F_X509_ATTRIBUTE_CREATE_BY_TXT: u32 = 0;
-pub const X509_F_X509_ATTRIBUTE_GET0_DATA: u32 = 0;
-pub const X509_F_X509_ATTRIBUTE_SET1_DATA: u32 = 0;
-pub const X509_F_X509_CHECK_PRIVATE_KEY: u32 = 0;
-pub const X509_F_X509_CRL_DIFF: u32 = 0;
-pub const X509_F_X509_CRL_METHOD_NEW: u32 = 0;
-pub const X509_F_X509_CRL_PRINT_FP: u32 = 0;
-pub const X509_F_X509_EXTENSION_CREATE_BY_NID: u32 = 0;
-pub const X509_F_X509_EXTENSION_CREATE_BY_OBJ: u32 = 0;
-pub const X509_F_X509_GET_PUBKEY_PARAMETERS: u32 = 0;
-pub const X509_F_X509_LOAD_CERT_CRL_FILE: u32 = 0;
-pub const X509_F_X509_LOAD_CERT_FILE: u32 = 0;
-pub const X509_F_X509_LOAD_CRL_FILE: u32 = 0;
-pub const X509_F_X509_LOOKUP_METH_NEW: u32 = 0;
-pub const X509_F_X509_LOOKUP_NEW: u32 = 0;
-pub const X509_F_X509_NAME_ADD_ENTRY: u32 = 0;
-pub const X509_F_X509_NAME_CANON: u32 = 0;
-pub const X509_F_X509_NAME_ENTRY_CREATE_BY_NID: u32 = 0;
-pub const X509_F_X509_NAME_ENTRY_CREATE_BY_TXT: u32 = 0;
-pub const X509_F_X509_NAME_ENTRY_SET_OBJECT: u32 = 0;
-pub const X509_F_X509_NAME_ONELINE: u32 = 0;
-pub const X509_F_X509_NAME_PRINT: u32 = 0;
-pub const X509_F_X509_OBJECT_NEW: u32 = 0;
-pub const X509_F_X509_PRINT_EX_FP: u32 = 0;
-pub const X509_F_X509_PUBKEY_DECODE: u32 = 0;
-pub const X509_F_X509_PUBKEY_GET: u32 = 0;
-pub const X509_F_X509_PUBKEY_GET0: u32 = 0;
-pub const X509_F_X509_PUBKEY_SET: u32 = 0;
-pub const X509_F_X509_REQ_CHECK_PRIVATE_KEY: u32 = 0;
-pub const X509_F_X509_REQ_PRINT_EX: u32 = 0;
-pub const X509_F_X509_REQ_PRINT_FP: u32 = 0;
-pub const X509_F_X509_REQ_TO_X509: u32 = 0;
-pub const X509_F_X509_STORE_ADD_CERT: u32 = 0;
-pub const X509_F_X509_STORE_ADD_CRL: u32 = 0;
-pub const X509_F_X509_STORE_ADD_LOOKUP: u32 = 0;
-pub const X509_F_X509_STORE_CTX_GET1_ISSUER: u32 = 0;
-pub const X509_F_X509_STORE_CTX_INIT: u32 = 0;
-pub const X509_F_X509_STORE_CTX_NEW: u32 = 0;
-pub const X509_F_X509_STORE_CTX_PURPOSE_INHERIT: u32 = 0;
-pub const X509_F_X509_STORE_NEW: u32 = 0;
-pub const X509_F_X509_TO_X509_REQ: u32 = 0;
-pub const X509_F_X509_TRUST_ADD: u32 = 0;
-pub const X509_F_X509_TRUST_SET: u32 = 0;
-pub const X509_F_X509_VERIFY_CERT: u32 = 0;
-pub const X509_F_X509_VERIFY_PARAM_NEW: u32 = 0;
-pub const X509V3_F_A2I_GENERAL_NAME: u32 = 0;
-pub const X509V3_F_ADDR_VALIDATE_PATH_INTERNAL: u32 = 0;
-pub const X509V3_F_ASIDENTIFIERCHOICE_CANONIZE: u32 = 0;
-pub const X509V3_F_ASIDENTIFIERCHOICE_IS_CANONICAL: u32 = 0;
-pub const X509V3_F_BIGNUM_TO_STRING: u32 = 0;
-pub const X509V3_F_COPY_EMAIL: u32 = 0;
-pub const X509V3_F_COPY_ISSUER: u32 = 0;
-pub const X509V3_F_DO_DIRNAME: u32 = 0;
-pub const X509V3_F_DO_EXT_I2D: u32 = 0;
-pub const X509V3_F_DO_EXT_NCONF: u32 = 0;
-pub const X509V3_F_GNAMES_FROM_SECTNAME: u32 = 0;
-pub const X509V3_F_I2S_ASN1_ENUMERATED: u32 = 0;
-pub const X509V3_F_I2S_ASN1_IA5STRING: u32 = 0;
-pub const X509V3_F_I2S_ASN1_INTEGER: u32 = 0;
-pub const X509V3_F_I2V_AUTHORITY_INFO_ACCESS: u32 = 0;
-pub const X509V3_F_LEVEL_ADD_NODE: u32 = 0;
-pub const X509V3_F_NOTICE_SECTION: u32 = 0;
-pub const X509V3_F_NREF_NOS: u32 = 0;
-pub const X509V3_F_POLICY_CACHE_CREATE: u32 = 0;
-pub const X509V3_F_POLICY_CACHE_NEW: u32 = 0;
-pub const X509V3_F_POLICY_DATA_NEW: u32 = 0;
-pub const X509V3_F_POLICY_SECTION: u32 = 0;
-pub const X509V3_F_PROCESS_PCI_VALUE: u32 = 0;
-pub const X509V3_F_R2I_CERTPOL: u32 = 0;
-pub const X509V3_F_R2I_PCI: u32 = 0;
-pub const X509V3_F_S2I_ASN1_IA5STRING: u32 = 0;
-pub const X509V3_F_S2I_ASN1_INTEGER: u32 = 0;
-pub const X509V3_F_S2I_ASN1_OCTET_STRING: u32 = 0;
-pub const X509V3_F_S2I_SKEY_ID: u32 = 0;
-pub const X509V3_F_SET_DIST_POINT_NAME: u32 = 0;
-pub const X509V3_F_SXNET_ADD_ID_ASC: u32 = 0;
-pub const X509V3_F_SXNET_ADD_ID_INTEGER: u32 = 0;
-pub const X509V3_F_SXNET_ADD_ID_ULONG: u32 = 0;
-pub const X509V3_F_SXNET_GET_ID_ASC: u32 = 0;
-pub const X509V3_F_SXNET_GET_ID_ULONG: u32 = 0;
-pub const X509V3_F_TREE_INIT: u32 = 0;
-pub const X509V3_F_V2I_ASIDENTIFIERS: u32 = 0;
-pub const X509V3_F_V2I_ASN1_BIT_STRING: u32 = 0;
-pub const X509V3_F_V2I_AUTHORITY_INFO_ACCESS: u32 = 0;
-pub const X509V3_F_V2I_AUTHORITY_KEYID: u32 = 0;
-pub const X509V3_F_V2I_BASIC_CONSTRAINTS: u32 = 0;
-pub const X509V3_F_V2I_CRLD: u32 = 0;
-pub const X509V3_F_V2I_EXTENDED_KEY_USAGE: u32 = 0;
-pub const X509V3_F_V2I_GENERAL_NAMES: u32 = 0;
-pub const X509V3_F_V2I_GENERAL_NAME_EX: u32 = 0;
-pub const X509V3_F_V2I_IDP: u32 = 0;
-pub const X509V3_F_V2I_IPADDRBLOCKS: u32 = 0;
-pub const X509V3_F_V2I_ISSUER_ALT: u32 = 0;
-pub const X509V3_F_V2I_NAME_CONSTRAINTS: u32 = 0;
-pub const X509V3_F_V2I_POLICY_CONSTRAINTS: u32 = 0;
-pub const X509V3_F_V2I_POLICY_MAPPINGS: u32 = 0;
-pub const X509V3_F_V2I_SUBJECT_ALT: u32 = 0;
-pub const X509V3_F_V2I_TLS_FEATURE: u32 = 0;
-pub const X509V3_F_V3_GENERIC_EXTENSION: u32 = 0;
-pub const X509V3_F_X509V3_ADD1_I2D: u32 = 0;
-pub const X509V3_F_X509V3_ADD_VALUE: u32 = 0;
-pub const X509V3_F_X509V3_EXT_ADD: u32 = 0;
-pub const X509V3_F_X509V3_EXT_ADD_ALIAS: u32 = 0;
-pub const X509V3_F_X509V3_EXT_I2D: u32 = 0;
-pub const X509V3_F_X509V3_EXT_NCONF: u32 = 0;
-pub const X509V3_F_X509V3_GET_SECTION: u32 = 0;
-pub const X509V3_F_X509V3_GET_STRING: u32 = 0;
-pub const X509V3_F_X509V3_GET_VALUE_BOOL: u32 = 0;
-pub const X509V3_F_X509V3_PARSE_LIST: u32 = 0;
-pub const X509V3_F_X509_PURPOSE_ADD: u32 = 0;
-pub const X509V3_F_X509_PURPOSE_SET: u32 = 0;
-pub const CRYPTO_R_BAD_ALGORITHM_NAME: u32 = 117;
-pub const CRYPTO_R_CONFLICTING_NAMES: u32 = 118;
-pub const CRYPTO_R_HEX_STRING_TOO_SHORT: u32 = 121;
-pub const CRYPTO_R_ILLEGAL_HEX_DIGIT: u32 = 102;
-pub const CRYPTO_R_INSUFFICIENT_DATA_SPACE: u32 = 106;
-pub const CRYPTO_R_INSUFFICIENT_PARAM_SIZE: u32 = 107;
-pub const CRYPTO_R_INSUFFICIENT_SECURE_DATA_SPACE: u32 = 108;
-pub const CRYPTO_R_INVALID_NEGATIVE_VALUE: u32 = 122;
-pub const CRYPTO_R_INVALID_NULL_ARGUMENT: u32 = 109;
-pub const CRYPTO_R_INVALID_OSSL_PARAM_TYPE: u32 = 110;
-pub const CRYPTO_R_ODD_NUMBER_OF_DIGITS: u32 = 103;
-pub const CRYPTO_R_PROVIDER_ALREADY_EXISTS: u32 = 104;
-pub const CRYPTO_R_PROVIDER_SECTION_ERROR: u32 = 105;
-pub const CRYPTO_R_RANDOM_SECTION_ERROR: u32 = 119;
-pub const CRYPTO_R_SECURE_MALLOC_FAILURE: u32 = 111;
-pub const CRYPTO_R_STRING_TOO_LONG: u32 = 112;
-pub const CRYPTO_R_TOO_MANY_BYTES: u32 = 113;
-pub const CRYPTO_R_TOO_MANY_RECORDS: u32 = 114;
-pub const CRYPTO_R_TOO_SMALL_BUFFER: u32 = 116;
-pub const CRYPTO_R_UNKNOWN_NAME_IN_RANDOM_SECTION: u32 = 120;
-pub const CRYPTO_R_ZERO_LENGTH_NUMBER: u32 = 115;
-pub const OSSL_PARAM_INTEGER: u32 = 1;
-pub const OSSL_PARAM_UNSIGNED_INTEGER: u32 = 2;
-pub const OSSL_PARAM_REAL: u32 = 3;
-pub const OSSL_PARAM_UTF8_STRING: u32 = 4;
-pub const OSSL_PARAM_OCTET_STRING: u32 = 5;
-pub const OSSL_PARAM_UTF8_PTR: u32 = 6;
-pub const OSSL_PARAM_OCTET_PTR: u32 = 7;
-pub const SSLEAY_VERSION_NUMBER: u32 = 805306496;
-pub const OPENSSL_VERSION: u32 = 0;
-pub const OPENSSL_CFLAGS: u32 = 1;
-pub const OPENSSL_BUILT_ON: u32 = 2;
-pub const OPENSSL_PLATFORM: u32 = 3;
-pub const OPENSSL_DIR: u32 = 4;
-pub const OPENSSL_ENGINES_DIR: u32 = 5;
-pub const OPENSSL_VERSION_STRING: u32 = 6;
-pub const OPENSSL_FULL_VERSION_STRING: u32 = 7;
-pub const OPENSSL_MODULES_DIR: u32 = 8;
-pub const OPENSSL_CPU_INFO: u32 = 9;
-pub const OPENSSL_INFO_CONFIG_DIR: u32 = 1001;
-pub const OPENSSL_INFO_ENGINES_DIR: u32 = 1002;
-pub const OPENSSL_INFO_MODULES_DIR: u32 = 1003;
-pub const OPENSSL_INFO_DSO_EXTENSION: u32 = 1004;
-pub const OPENSSL_INFO_DIR_FILENAME_SEPARATOR: u32 = 1005;
-pub const OPENSSL_INFO_LIST_SEPARATOR: u32 = 1006;
-pub const OPENSSL_INFO_SEED_SOURCE: u32 = 1007;
-pub const OPENSSL_INFO_CPU_SETTINGS: u32 = 1008;
-pub const CRYPTO_EX_INDEX_SSL: u32 = 0;
-pub const CRYPTO_EX_INDEX_SSL_CTX: u32 = 1;
-pub const CRYPTO_EX_INDEX_SSL_SESSION: u32 = 2;
-pub const CRYPTO_EX_INDEX_X509: u32 = 3;
-pub const CRYPTO_EX_INDEX_X509_STORE: u32 = 4;
-pub const CRYPTO_EX_INDEX_X509_STORE_CTX: u32 = 5;
-pub const CRYPTO_EX_INDEX_DH: u32 = 6;
-pub const CRYPTO_EX_INDEX_DSA: u32 = 7;
-pub const CRYPTO_EX_INDEX_EC_KEY: u32 = 8;
-pub const CRYPTO_EX_INDEX_RSA: u32 = 9;
-pub const CRYPTO_EX_INDEX_ENGINE: u32 = 10;
-pub const CRYPTO_EX_INDEX_UI: u32 = 11;
-pub const CRYPTO_EX_INDEX_BIO: u32 = 12;
-pub const CRYPTO_EX_INDEX_APP: u32 = 13;
-pub const CRYPTO_EX_INDEX_UI_METHOD: u32 = 14;
-pub const CRYPTO_EX_INDEX_RAND_DRBG: u32 = 15;
-pub const CRYPTO_EX_INDEX_DRBG: u32 = 15;
-pub const CRYPTO_EX_INDEX_OSSL_LIB_CTX: u32 = 16;
-pub const CRYPTO_EX_INDEX_EVP_PKEY: u32 = 17;
-pub const CRYPTO_EX_INDEX__COUNT: u32 = 18;
-pub const CRYPTO_LOCK: u32 = 1;
-pub const CRYPTO_UNLOCK: u32 = 2;
-pub const CRYPTO_READ: u32 = 4;
-pub const CRYPTO_WRITE: u32 = 8;
-pub const OPENSSL_INIT_NO_LOAD_CRYPTO_STRINGS: u32 = 1;
-pub const OPENSSL_INIT_LOAD_CRYPTO_STRINGS: u32 = 2;
-pub const OPENSSL_INIT_ADD_ALL_CIPHERS: u32 = 4;
-pub const OPENSSL_INIT_ADD_ALL_DIGESTS: u32 = 8;
-pub const OPENSSL_INIT_NO_ADD_ALL_CIPHERS: u32 = 16;
-pub const OPENSSL_INIT_NO_ADD_ALL_DIGESTS: u32 = 32;
-pub const OPENSSL_INIT_LOAD_CONFIG: u32 = 64;
-pub const OPENSSL_INIT_NO_LOAD_CONFIG: u32 = 128;
-pub const OPENSSL_INIT_ASYNC: u32 = 256;
-pub const OPENSSL_INIT_ENGINE_RDRAND: u32 = 512;
-pub const OPENSSL_INIT_ENGINE_DYNAMIC: u32 = 1024;
-pub const OPENSSL_INIT_ENGINE_OPENSSL: u32 = 2048;
-pub const OPENSSL_INIT_ENGINE_CRYPTODEV: u32 = 4096;
-pub const OPENSSL_INIT_ENGINE_CAPI: u32 = 8192;
-pub const OPENSSL_INIT_ENGINE_PADLOCK: u32 = 16384;
-pub const OPENSSL_INIT_ENGINE_AFALG: u32 = 32768;
-pub const OPENSSL_INIT_ATFORK: u32 = 131072;
-pub const OPENSSL_INIT_NO_ATEXIT: u32 = 524288;
-pub const OPENSSL_INIT_ENGINE_ALL_BUILTIN: u32 = 30208;
-pub const _PTHREAD_H: u32 = 1;
-pub const _SCHED_H: u32 = 1;
-pub const _BITS_SCHED_H: u32 = 1;
-pub const SCHED_OTHER: u32 = 0;
-pub const SCHED_FIFO: u32 = 1;
-pub const SCHED_RR: u32 = 2;
-pub const _BITS_TYPES_STRUCT_SCHED_PARAM: u32 = 1;
-pub const _BITS_CPU_SET_H: u32 = 1;
-pub const __CPU_SETSIZE: u32 = 1024;
-pub const _BITS_SETJMP_H: u32 = 1;
-pub const __jmp_buf_tag_defined: u32 = 1;
-pub const PTHREAD_ONCE_INIT: u32 = 0;
-pub const PTHREAD_BARRIER_SERIAL_THREAD: i32 = -1;
-pub const CRYPTO_ONCE_STATIC_INIT: u32 = 0;
-pub const BN_R_ARG2_LT_ARG3: u32 = 100;
-pub const BN_R_BAD_RECIPROCAL: u32 = 101;
-pub const BN_R_BIGNUM_TOO_LONG: u32 = 114;
-pub const BN_R_BITS_TOO_SMALL: u32 = 118;
-pub const BN_R_CALLED_WITH_EVEN_MODULUS: u32 = 102;
-pub const BN_R_DIV_BY_ZERO: u32 = 103;
-pub const BN_R_ENCODING_ERROR: u32 = 104;
-pub const BN_R_EXPAND_ON_STATIC_BIGNUM_DATA: u32 = 105;
-pub const BN_R_INPUT_NOT_REDUCED: u32 = 110;
-pub const BN_R_INVALID_LENGTH: u32 = 106;
-pub const BN_R_INVALID_RANGE: u32 = 115;
-pub const BN_R_INVALID_SHIFT: u32 = 119;
-pub const BN_R_NOT_A_SQUARE: u32 = 111;
-pub const BN_R_NOT_INITIALIZED: u32 = 107;
-pub const BN_R_NO_INVERSE: u32 = 108;
-pub const BN_R_NO_PRIME_CANDIDATE: u32 = 121;
-pub const BN_R_NO_SOLUTION: u32 = 116;
-pub const BN_R_NO_SUITABLE_DIGEST: u32 = 120;
-pub const BN_R_PRIVATE_KEY_TOO_LARGE: u32 = 117;
-pub const BN_R_P_IS_NOT_PRIME: u32 = 112;
-pub const BN_R_TOO_MANY_ITERATIONS: u32 = 113;
-pub const BN_R_TOO_MANY_TEMPORARY_VARIABLES: u32 = 109;
-pub const BN_BYTES: u32 = 8;
-pub const BN_BITS2: u32 = 64;
-pub const BN_BITS: u32 = 128;
-pub const BN_FLG_MALLOCED: u32 = 1;
-pub const BN_FLG_STATIC_DATA: u32 = 2;
-pub const BN_FLG_CONSTTIME: u32 = 4;
-pub const BN_FLG_SECURE: u32 = 8;
-pub const BN_FLG_EXP_CONSTTIME: u32 = 4;
-pub const BN_FLG_FREE: u32 = 32768;
-pub const BN_RAND_TOP_ANY: i32 = -1;
-pub const BN_RAND_TOP_ONE: u32 = 0;
-pub const BN_RAND_TOP_TWO: u32 = 1;
-pub const BN_RAND_BOTTOM_ANY: u32 = 0;
-pub const BN_RAND_BOTTOM_ODD: u32 = 1;
-pub const BN_prime_checks: u32 = 0;
-pub const BN_BLINDING_NO_UPDATE: u32 = 1;
-pub const BN_BLINDING_NO_RECREATE: u32 = 2;
-pub const HT_NULL_VALUE: u32 = 0;
-pub const _R_UTIL_ALLOC_H_: u32 = 1;
-pub const RZ_MALLOC_WRAPPER: u32 = 0;
-pub const RZ_MALLOC_GLOBAL: u32 = 0;
-pub const RZ_RBTREE_MAX_HEIGHT: u32 = 62;
-pub const RZ_BUF_SET: u32 = 0;
-pub const RZ_BUF_CUR: u32 = 1;
-pub const RZ_BUF_END: u32 = 2;
-pub const BITWORD_BITS_SHIFT: u32 = 6;
 pub const RZ_NSEC_PER_SEC: u32 = 1000000000;
 pub const RZ_NSEC_PER_MSEC: u32 = 1000000;
 pub const RZ_USEC_PER_SEC: u32 = 1000000;
@@ -2812,7 +1417,6 @@ pub const PARENB: u32 = 256;
 pub const PARODD: u32 = 512;
 pub const HUPCL: u32 = 1024;
 pub const CLOCAL: u32 = 2048;
-pub const ADDRB: u32 = 536870912;
 pub const ISIG: u32 = 1;
 pub const ICANON: u32 = 2;
 pub const XCASE: u32 = 4;
@@ -3080,8 +1684,7 @@ pub const PF_KCM: u32 = 41;
 pub const PF_QIPCRTR: u32 = 42;
 pub const PF_SMC: u32 = 43;
 pub const PF_XDP: u32 = 44;
-pub const PF_MCTP: u32 = 45;
-pub const PF_MAX: u32 = 46;
+pub const PF_MAX: u32 = 45;
 pub const AF_UNSPEC: u32 = 0;
 pub const AF_LOCAL: u32 = 1;
 pub const AF_UNIX: u32 = 1;
@@ -3130,8 +1733,7 @@ pub const AF_KCM: u32 = 41;
 pub const AF_QIPCRTR: u32 = 42;
 pub const AF_SMC: u32 = 43;
 pub const AF_XDP: u32 = 44;
-pub const AF_MCTP: u32 = 45;
-pub const AF_MAX: u32 = 46;
+pub const AF_MAX: u32 = 45;
 pub const SOL_RAW: u32 = 255;
 pub const SOL_DECNET: u32 = 261;
 pub const SOL_X25: u32 = 262;
@@ -3156,9 +1758,6 @@ pub const SOL_NFC: u32 = 280;
 pub const SOL_KCM: u32 = 281;
 pub const SOL_TLS: u32 = 282;
 pub const SOL_XDP: u32 = 283;
-pub const SOL_MPTCP: u32 = 284;
-pub const SOL_MCTP: u32 = 285;
-pub const SOL_SMC: u32 = 286;
 pub const SOMAXCONN: u32 = 4096;
 pub const _BITS_SOCKADDR_H: u32 = 1;
 pub const _SS_SIZE: u32 = 128;
@@ -3243,13 +1842,6 @@ pub const SO_TIMESTAMPING_NEW: u32 = 65;
 pub const SO_RCVTIMEO_NEW: u32 = 66;
 pub const SO_SNDTIMEO_NEW: u32 = 67;
 pub const SO_DETACH_REUSEPORT_BPF: u32 = 68;
-pub const SO_PREFER_BUSY_POLL: u32 = 69;
-pub const SO_BUSY_POLL_BUDGET: u32 = 70;
-pub const SO_NETNS_COOKIE: u32 = 71;
-pub const SO_BUF_LOCK: u32 = 72;
-pub const SO_RESERVE_MEM: u32 = 73;
-pub const SO_TXREHASH: u32 = 74;
-pub const SO_RCVMARK: u32 = 75;
 pub const SO_TIMESTAMP: u32 = 29;
 pub const SO_TIMESTAMPNS: u32 = 35;
 pub const SO_TIMESTAMPING: u32 = 37;
@@ -3412,6 +2004,7 @@ pub const ARROW_LEFT: u32 = 9;
 pub const SELF_LOOP: u32 = 10;
 pub const RZ_LINE_BUFSIZE: u32 = 4096;
 pub const RZ_LINE_HISTSIZE: u32 = 256;
+pub const RZ_LINE_UNDOSIZE: u32 = 512;
 pub const RZ_EDGES_X_INC: u32 = 4;
 pub const RZ_SELWIDGET_MAXH: u32 = 15;
 pub const RZ_SELWIDGET_MAXW: u32 = 30;
@@ -3613,7 +2206,6 @@ pub type __id_t = ::std::os::raw::c_uint;
 pub type __time_t = ::std::os::raw::c_long;
 pub type __useconds_t = ::std::os::raw::c_uint;
 pub type __suseconds_t = ::std::os::raw::c_long;
-pub type __suseconds64_t = ::std::os::raw::c_long;
 pub type __daddr_t = ::std::os::raw::c_int;
 pub type __key_t = ::std::os::raw::c_int;
 pub type __clockid_t = ::std::os::raw::c_int;
@@ -4168,102 +2760,6 @@ pub type blkcnt_t = __blkcnt64_t;
 pub type fsblkcnt_t = __fsblkcnt64_t;
 pub type fsfilcnt_t = __fsfilcnt64_t;
 #[repr(C)]
-#[derive(Copy, Clone)]
-pub union __atomic_wide_counter {
-    pub __value64: ::std::os::raw::c_ulonglong,
-    pub __value32: __atomic_wide_counter__bindgen_ty_1,
-}
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct __atomic_wide_counter__bindgen_ty_1 {
-    pub __low: ::std::os::raw::c_uint,
-    pub __high: ::std::os::raw::c_uint,
-}
-#[test]
-fn bindgen_test_layout___atomic_wide_counter__bindgen_ty_1() {
-    const UNINIT: ::std::mem::MaybeUninit<__atomic_wide_counter__bindgen_ty_1> =
-        ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<__atomic_wide_counter__bindgen_ty_1>(),
-        8usize,
-        concat!("Size of: ", stringify!(__atomic_wide_counter__bindgen_ty_1))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<__atomic_wide_counter__bindgen_ty_1>(),
-        4usize,
-        concat!(
-            "Alignment of ",
-            stringify!(__atomic_wide_counter__bindgen_ty_1)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__low) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__atomic_wide_counter__bindgen_ty_1),
-            "::",
-            stringify!(__low)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__high) as usize - ptr as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__atomic_wide_counter__bindgen_ty_1),
-            "::",
-            stringify!(__high)
-        )
-    );
-}
-#[test]
-fn bindgen_test_layout___atomic_wide_counter() {
-    const UNINIT: ::std::mem::MaybeUninit<__atomic_wide_counter> =
-        ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<__atomic_wide_counter>(),
-        8usize,
-        concat!("Size of: ", stringify!(__atomic_wide_counter))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<__atomic_wide_counter>(),
-        8usize,
-        concat!("Alignment of ", stringify!(__atomic_wide_counter))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__value64) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__atomic_wide_counter),
-            "::",
-            stringify!(__value64)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__value32) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__atomic_wide_counter),
-            "::",
-            stringify!(__value32)
-        )
-    );
-}
-impl Default for __atomic_wide_counter {
-    fn default() -> Self {
-        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
-        unsafe {
-            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
-            s.assume_init()
-        }
-    }
-}
-#[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct __pthread_internal_list {
     pub __prev: *mut __pthread_internal_list,
@@ -4627,13 +3123,211 @@ fn bindgen_test_layout___pthread_rwlock_arch_t() {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct __pthread_cond_s {
-    pub __wseq: __atomic_wide_counter,
-    pub __g1_start: __atomic_wide_counter,
+    pub __bindgen_anon_1: __pthread_cond_s__bindgen_ty_1,
+    pub __bindgen_anon_2: __pthread_cond_s__bindgen_ty_2,
     pub __g_refs: [::std::os::raw::c_uint; 2usize],
     pub __g_size: [::std::os::raw::c_uint; 2usize],
     pub __g1_orig_size: ::std::os::raw::c_uint,
     pub __wrefs: ::std::os::raw::c_uint,
     pub __g_signals: [::std::os::raw::c_uint; 2usize],
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union __pthread_cond_s__bindgen_ty_1 {
+    pub __wseq: ::std::os::raw::c_ulonglong,
+    pub __wseq32: __pthread_cond_s__bindgen_ty_1__bindgen_ty_1,
+}
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
+pub struct __pthread_cond_s__bindgen_ty_1__bindgen_ty_1 {
+    pub __low: ::std::os::raw::c_uint,
+    pub __high: ::std::os::raw::c_uint,
+}
+#[test]
+fn bindgen_test_layout___pthread_cond_s__bindgen_ty_1__bindgen_ty_1() {
+    const UNINIT: ::std::mem::MaybeUninit<__pthread_cond_s__bindgen_ty_1__bindgen_ty_1> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<__pthread_cond_s__bindgen_ty_1__bindgen_ty_1>(),
+        8usize,
+        concat!(
+            "Size of: ",
+            stringify!(__pthread_cond_s__bindgen_ty_1__bindgen_ty_1)
+        )
+    );
+    assert_eq!(
+        ::std::mem::align_of::<__pthread_cond_s__bindgen_ty_1__bindgen_ty_1>(),
+        4usize,
+        concat!(
+            "Alignment of ",
+            stringify!(__pthread_cond_s__bindgen_ty_1__bindgen_ty_1)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).__low) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__pthread_cond_s__bindgen_ty_1__bindgen_ty_1),
+            "::",
+            stringify!(__low)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).__high) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__pthread_cond_s__bindgen_ty_1__bindgen_ty_1),
+            "::",
+            stringify!(__high)
+        )
+    );
+}
+#[test]
+fn bindgen_test_layout___pthread_cond_s__bindgen_ty_1() {
+    const UNINIT: ::std::mem::MaybeUninit<__pthread_cond_s__bindgen_ty_1> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<__pthread_cond_s__bindgen_ty_1>(),
+        8usize,
+        concat!("Size of: ", stringify!(__pthread_cond_s__bindgen_ty_1))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<__pthread_cond_s__bindgen_ty_1>(),
+        8usize,
+        concat!("Alignment of ", stringify!(__pthread_cond_s__bindgen_ty_1))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).__wseq) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__pthread_cond_s__bindgen_ty_1),
+            "::",
+            stringify!(__wseq)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).__wseq32) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__pthread_cond_s__bindgen_ty_1),
+            "::",
+            stringify!(__wseq32)
+        )
+    );
+}
+impl Default for __pthread_cond_s__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union __pthread_cond_s__bindgen_ty_2 {
+    pub __g1_start: ::std::os::raw::c_ulonglong,
+    pub __g1_start32: __pthread_cond_s__bindgen_ty_2__bindgen_ty_1,
+}
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
+pub struct __pthread_cond_s__bindgen_ty_2__bindgen_ty_1 {
+    pub __low: ::std::os::raw::c_uint,
+    pub __high: ::std::os::raw::c_uint,
+}
+#[test]
+fn bindgen_test_layout___pthread_cond_s__bindgen_ty_2__bindgen_ty_1() {
+    const UNINIT: ::std::mem::MaybeUninit<__pthread_cond_s__bindgen_ty_2__bindgen_ty_1> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<__pthread_cond_s__bindgen_ty_2__bindgen_ty_1>(),
+        8usize,
+        concat!(
+            "Size of: ",
+            stringify!(__pthread_cond_s__bindgen_ty_2__bindgen_ty_1)
+        )
+    );
+    assert_eq!(
+        ::std::mem::align_of::<__pthread_cond_s__bindgen_ty_2__bindgen_ty_1>(),
+        4usize,
+        concat!(
+            "Alignment of ",
+            stringify!(__pthread_cond_s__bindgen_ty_2__bindgen_ty_1)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).__low) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__pthread_cond_s__bindgen_ty_2__bindgen_ty_1),
+            "::",
+            stringify!(__low)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).__high) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__pthread_cond_s__bindgen_ty_2__bindgen_ty_1),
+            "::",
+            stringify!(__high)
+        )
+    );
+}
+#[test]
+fn bindgen_test_layout___pthread_cond_s__bindgen_ty_2() {
+    const UNINIT: ::std::mem::MaybeUninit<__pthread_cond_s__bindgen_ty_2> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<__pthread_cond_s__bindgen_ty_2>(),
+        8usize,
+        concat!("Size of: ", stringify!(__pthread_cond_s__bindgen_ty_2))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<__pthread_cond_s__bindgen_ty_2>(),
+        8usize,
+        concat!("Alignment of ", stringify!(__pthread_cond_s__bindgen_ty_2))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).__g1_start) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__pthread_cond_s__bindgen_ty_2),
+            "::",
+            stringify!(__g1_start)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).__g1_start32) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__pthread_cond_s__bindgen_ty_2),
+            "::",
+            stringify!(__g1_start32)
+        )
+    );
+}
+impl Default for __pthread_cond_s__bindgen_ty_2 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
 }
 #[test]
 fn bindgen_test_layout___pthread_cond_s() {
@@ -4648,26 +3342,6 @@ fn bindgen_test_layout___pthread_cond_s() {
         ::std::mem::align_of::<__pthread_cond_s>(),
         8usize,
         concat!("Alignment of ", stringify!(__pthread_cond_s))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__wseq) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__pthread_cond_s),
-            "::",
-            stringify!(__wseq)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__g1_start) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__pthread_cond_s),
-            "::",
-            stringify!(__g1_start)
-        )
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).__g_refs) as usize - ptr as usize },
@@ -4728,38 +3402,6 @@ impl Default for __pthread_cond_s {
             s.assume_init()
         }
     }
-}
-pub type __tss_t = ::std::os::raw::c_uint;
-pub type __thrd_t = ::std::os::raw::c_ulong;
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct __once_flag {
-    pub __data: ::std::os::raw::c_int,
-}
-#[test]
-fn bindgen_test_layout___once_flag() {
-    const UNINIT: ::std::mem::MaybeUninit<__once_flag> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<__once_flag>(),
-        4usize,
-        concat!("Size of: ", stringify!(__once_flag))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<__once_flag>(),
-        4usize,
-        concat!("Alignment of ", stringify!(__once_flag))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__data) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__once_flag),
-            "::",
-            stringify!(__data)
-        )
-    );
 }
 pub type pthread_t = ::std::os::raw::c_ulong;
 #[repr(C)]
@@ -7406,14 +6048,11 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn fclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
     #[link_name = "\u{1}tmpfile64"]
     pub fn tmpfile() -> *mut FILE;
 }
 extern "C" {
-    pub fn tmpnam(arg1: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn tmpnam(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn tmpnam_r(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
@@ -7423,6 +6062,9 @@ extern "C" {
         __dir: *const ::std::os::raw::c_char,
         __pfx: *const ::std::os::raw::c_char,
     ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn fclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn fflush(__stream: *mut FILE) -> ::std::os::raw::c_int;
@@ -7795,19 +6437,25 @@ extern "C" {
     pub fn perror(__s: *const ::std::os::raw::c_char);
 }
 extern "C" {
+    pub static mut sys_nerr: ::std::os::raw::c_int;
+}
+extern "C" {
+    pub static sys_errlist: [*const ::std::os::raw::c_char; 0usize];
+}
+extern "C" {
     pub fn fileno(__stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn fileno_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn pclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
-}
-extern "C" {
     pub fn popen(
         __command: *const ::std::os::raw::c_char,
         __modes: *const ::std::os::raw::c_char,
     ) -> *mut FILE;
+}
+extern "C" {
+    pub fn pclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn ctermid(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
@@ -7861,13 +6509,6 @@ extern "C" {
         __s1: *const ::std::os::raw::c_void,
         __s2: *const ::std::os::raw::c_void,
         __n: ::std::os::raw::c_ulong,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __memcmpeq(
-        __s1: *const ::std::os::raw::c_void,
-        __s2: *const ::std::os::raw::c_void,
-        __n: usize,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
@@ -8135,6 +6776,13 @@ extern "C" {
         __src: *const ::std::os::raw::c_char,
         __n: ::std::os::raw::c_ulong,
     ) -> *mut ::std::os::raw::c_char;
+}
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum idtype_t {
+    P_ALL = 0,
+    P_PID = 1,
+    P_PGID = 2,
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
@@ -8649,15 +7297,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn arc4random() -> __uint32_t;
-}
-extern "C" {
-    pub fn arc4random_buf(__buf: *mut ::std::os::raw::c_void, __size: usize);
-}
-extern "C" {
-    pub fn arc4random_uniform(__upper_bound: __uint32_t) -> __uint32_t;
-}
-extern "C" {
     pub fn malloc(__size: ::std::os::raw::c_ulong) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
@@ -8673,14 +7312,14 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    pub fn free(__ptr: *mut ::std::os::raw::c_void);
-}
-extern "C" {
     pub fn reallocarray(
         __ptr: *mut ::std::os::raw::c_void,
         __nmemb: usize,
         __size: usize,
     ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn free(__ptr: *mut ::std::os::raw::c_void);
 }
 extern "C" {
     pub fn alloca(__size: ::std::os::raw::c_ulong) -> *mut ::std::os::raw::c_void;
@@ -9345,6 +7984,57 @@ extern "C" {
     pub fn futimens(__fd: ::std::os::raw::c_int, __times: *const timespec)
         -> ::std::os::raw::c_int;
 }
+extern "C" {
+    #[link_name = "\u{1}__fxstat64"]
+    pub fn __fxstat(
+        __ver: ::std::os::raw::c_int,
+        __fildes: ::std::os::raw::c_int,
+        __stat_buf: *mut stat,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[link_name = "\u{1}__xstat64"]
+    pub fn __xstat(
+        __ver: ::std::os::raw::c_int,
+        __filename: *const ::std::os::raw::c_char,
+        __stat_buf: *mut stat,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[link_name = "\u{1}__lxstat64"]
+    pub fn __lxstat(
+        __ver: ::std::os::raw::c_int,
+        __filename: *const ::std::os::raw::c_char,
+        __stat_buf: *mut stat,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[link_name = "\u{1}__fxstatat64"]
+    pub fn __fxstatat(
+        __ver: ::std::os::raw::c_int,
+        __fildes: ::std::os::raw::c_int,
+        __filename: *const ::std::os::raw::c_char,
+        __stat_buf: *mut stat,
+        __flag: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn __xmknod(
+        __ver: ::std::os::raw::c_int,
+        __path: *const ::std::os::raw::c_char,
+        __mode: __mode_t,
+        __dev: *mut __dev_t,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn __xmknodat(
+        __ver: ::std::os::raw::c_int,
+        __fd: ::std::os::raw::c_int,
+        __path: *const ::std::os::raw::c_char,
+        __mode: __mode_t,
+        __dev: *mut __dev_t,
+    ) -> ::std::os::raw::c_int;
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct dirent {
@@ -9457,13 +8147,13 @@ pub struct __dirstream {
 }
 pub type DIR = __dirstream;
 extern "C" {
-    pub fn closedir(__dirp: *mut DIR) -> ::std::os::raw::c_int;
-}
-extern "C" {
     pub fn opendir(__name: *const ::std::os::raw::c_char) -> *mut DIR;
 }
 extern "C" {
     pub fn fdopendir(__fd: ::std::os::raw::c_int) -> *mut DIR;
+}
+extern "C" {
+    pub fn closedir(__dirp: *mut DIR) -> ::std::os::raw::c_int;
 }
 extern "C" {
     #[link_name = "\u{1}readdir64"]
@@ -9544,9 +8234,6 @@ extern "C" {
 }
 extern "C" {
     pub fn close(__fd: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn closefrom(__lowfd: ::std::os::raw::c_int);
 }
 extern "C" {
     pub fn read(
@@ -9969,8 +8656,6 @@ pub const _SC_THREAD_ROBUST_PRIO_INHERIT: _bindgen_ty_5 =
     _bindgen_ty_5::_SC_THREAD_ROBUST_PRIO_INHERIT;
 pub const _SC_THREAD_ROBUST_PRIO_PROTECT: _bindgen_ty_5 =
     _bindgen_ty_5::_SC_THREAD_ROBUST_PRIO_PROTECT;
-pub const _SC_MINSIGSTKSZ: _bindgen_ty_5 = _bindgen_ty_5::_SC_MINSIGSTKSZ;
-pub const _SC_SIGSTKSZ: _bindgen_ty_5 = _bindgen_ty_5::_SC_SIGSTKSZ;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_5 {
@@ -10188,8 +8873,6 @@ pub enum _bindgen_ty_5 {
     _SC_XOPEN_STREAMS = 246,
     _SC_THREAD_ROBUST_PRIO_INHERIT = 247,
     _SC_THREAD_ROBUST_PRIO_PROTECT = 248,
-    _SC_MINSIGSTKSZ = 249,
-    _SC_SIGSTKSZ = 250,
 }
 pub const _CS_PATH: _bindgen_ty_6 = _bindgen_ty_6::_CS_PATH;
 pub const _CS_V6_WIDTH_RESTRICTED_ENVS: _bindgen_ty_6 = _bindgen_ty_6::_CS_V6_WIDTH_RESTRICTED_ENVS;
@@ -14564,8 +13247,6 @@ pub const SEGV_PKUERR: _bindgen_ty_10 = _bindgen_ty_10::SEGV_PKUERR;
 pub const SEGV_ACCADI: _bindgen_ty_10 = _bindgen_ty_10::SEGV_ACCADI;
 pub const SEGV_ADIDERR: _bindgen_ty_10 = _bindgen_ty_10::SEGV_ADIDERR;
 pub const SEGV_ADIPERR: _bindgen_ty_10 = _bindgen_ty_10::SEGV_ADIPERR;
-pub const SEGV_MTEAERR: _bindgen_ty_10 = _bindgen_ty_10::SEGV_MTEAERR;
-pub const SEGV_MTESERR: _bindgen_ty_10 = _bindgen_ty_10::SEGV_MTESERR;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum _bindgen_ty_10 {
@@ -14576,8 +13257,6 @@ pub enum _bindgen_ty_10 {
     SEGV_ACCADI = 5,
     SEGV_ADIDERR = 6,
     SEGV_ADIPERR = 7,
-    SEGV_MTEAERR = 8,
-    SEGV_MTESERR = 9,
 }
 pub const BUS_ADRALN: _bindgen_ty_11 = _bindgen_ty_11::BUS_ADRALN;
 pub const BUS_ADRERR: _bindgen_ty_11 = _bindgen_ty_11::BUS_ADRERR;
@@ -15060,6 +13739,12 @@ extern "C" {
         __sig: ::std::os::raw::c_int,
         __val: sigval,
     ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub static _sys_siglist: [*const ::std::os::raw::c_char; 65usize];
+}
+extern "C" {
+    pub static sys_siglist: [*const ::std::os::raw::c_char; 65usize];
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
@@ -16471,4397 +15156,6 @@ extern "C" {
 extern "C" {
     pub fn __libc_current_sigrtmax() -> ::std::os::raw::c_int;
 }
-pub type ossl_intmax_t = intmax_t;
-pub type ossl_uintmax_t = uintmax_t;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct stack_st {
-    _unused: [u8; 0],
-}
-pub type OPENSSL_STACK = stack_st;
-pub type OPENSSL_sk_compfunc = ::std::option::Option<
-    unsafe extern "C" fn(
-        arg1: *const ::std::os::raw::c_void,
-        arg2: *const ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int,
->;
-pub type OPENSSL_sk_freefunc =
-    ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void)>;
-pub type OPENSSL_sk_copyfunc = ::std::option::Option<
-    unsafe extern "C" fn(arg1: *const ::std::os::raw::c_void) -> *mut ::std::os::raw::c_void,
->;
-extern "C" {
-    pub fn OPENSSL_sk_num(arg1: *const OPENSSL_STACK) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_sk_value(
-        arg1: *const OPENSSL_STACK,
-        arg2: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn OPENSSL_sk_set(
-        st: *mut OPENSSL_STACK,
-        i: ::std::os::raw::c_int,
-        data: *const ::std::os::raw::c_void,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn OPENSSL_sk_new(cmp: OPENSSL_sk_compfunc) -> *mut OPENSSL_STACK;
-}
-extern "C" {
-    pub fn OPENSSL_sk_new_null() -> *mut OPENSSL_STACK;
-}
-extern "C" {
-    pub fn OPENSSL_sk_new_reserve(
-        c: OPENSSL_sk_compfunc,
-        n: ::std::os::raw::c_int,
-    ) -> *mut OPENSSL_STACK;
-}
-extern "C" {
-    pub fn OPENSSL_sk_reserve(
-        st: *mut OPENSSL_STACK,
-        n: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_sk_free(arg1: *mut OPENSSL_STACK);
-}
-extern "C" {
-    pub fn OPENSSL_sk_pop_free(
-        st: *mut OPENSSL_STACK,
-        func: ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void)>,
-    );
-}
-extern "C" {
-    pub fn OPENSSL_sk_deep_copy(
-        arg1: *const OPENSSL_STACK,
-        c: OPENSSL_sk_copyfunc,
-        f: OPENSSL_sk_freefunc,
-    ) -> *mut OPENSSL_STACK;
-}
-extern "C" {
-    pub fn OPENSSL_sk_insert(
-        sk: *mut OPENSSL_STACK,
-        data: *const ::std::os::raw::c_void,
-        where_: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_sk_delete(
-        st: *mut OPENSSL_STACK,
-        loc: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn OPENSSL_sk_delete_ptr(
-        st: *mut OPENSSL_STACK,
-        p: *const ::std::os::raw::c_void,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn OPENSSL_sk_find(
-        st: *mut OPENSSL_STACK,
-        data: *const ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_sk_find_ex(
-        st: *mut OPENSSL_STACK,
-        data: *const ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_sk_find_all(
-        st: *mut OPENSSL_STACK,
-        data: *const ::std::os::raw::c_void,
-        pnum: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_sk_push(
-        st: *mut OPENSSL_STACK,
-        data: *const ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_sk_unshift(
-        st: *mut OPENSSL_STACK,
-        data: *const ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_sk_shift(st: *mut OPENSSL_STACK) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn OPENSSL_sk_pop(st: *mut OPENSSL_STACK) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn OPENSSL_sk_zero(st: *mut OPENSSL_STACK);
-}
-extern "C" {
-    pub fn OPENSSL_sk_set_cmp_func(
-        sk: *mut OPENSSL_STACK,
-        cmp: OPENSSL_sk_compfunc,
-    ) -> OPENSSL_sk_compfunc;
-}
-extern "C" {
-    pub fn OPENSSL_sk_dup(st: *const OPENSSL_STACK) -> *mut OPENSSL_STACK;
-}
-extern "C" {
-    pub fn OPENSSL_sk_sort(st: *mut OPENSSL_STACK);
-}
-extern "C" {
-    pub fn OPENSSL_sk_is_sorted(st: *const OPENSSL_STACK) -> ::std::os::raw::c_int;
-}
-pub type OPENSSL_STRING = *mut ::std::os::raw::c_char;
-pub type OPENSSL_CSTRING = *const ::std::os::raw::c_char;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct stack_st_OPENSSL_STRING {
-    _unused: [u8; 0],
-}
-pub type sk_OPENSSL_STRING_compfunc = ::std::option::Option<
-    unsafe extern "C" fn(
-        a: *const *const ::std::os::raw::c_char,
-        b: *const *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int,
->;
-pub type sk_OPENSSL_STRING_freefunc =
-    ::std::option::Option<unsafe extern "C" fn(a: *mut ::std::os::raw::c_char)>;
-pub type sk_OPENSSL_STRING_copyfunc = ::std::option::Option<
-    unsafe extern "C" fn(a: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char,
->;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct stack_st_OPENSSL_CSTRING {
-    _unused: [u8; 0],
-}
-pub type sk_OPENSSL_CSTRING_compfunc = ::std::option::Option<
-    unsafe extern "C" fn(
-        a: *const *const ::std::os::raw::c_char,
-        b: *const *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int,
->;
-pub type sk_OPENSSL_CSTRING_freefunc =
-    ::std::option::Option<unsafe extern "C" fn(a: *mut ::std::os::raw::c_char)>;
-pub type sk_OPENSSL_CSTRING_copyfunc = ::std::option::Option<
-    unsafe extern "C" fn(a: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char,
->;
-pub type OPENSSL_BLOCK = *mut ::std::os::raw::c_void;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct stack_st_OPENSSL_BLOCK {
-    _unused: [u8; 0],
-}
-pub type sk_OPENSSL_BLOCK_compfunc = ::std::option::Option<
-    unsafe extern "C" fn(
-        a: *const *const ::std::os::raw::c_void,
-        b: *const *const ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int,
->;
-pub type sk_OPENSSL_BLOCK_freefunc =
-    ::std::option::Option<unsafe extern "C" fn(a: *mut ::std::os::raw::c_void)>;
-pub type sk_OPENSSL_BLOCK_copyfunc = ::std::option::Option<
-    unsafe extern "C" fn(a: *const ::std::os::raw::c_void) -> *mut ::std::os::raw::c_void,
->;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_provider_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_PROVIDER = ossl_provider_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct asn1_string_st {
-    _unused: [u8; 0],
-}
-pub type ASN1_INTEGER = asn1_string_st;
-pub type ASN1_ENUMERATED = asn1_string_st;
-pub type ASN1_BIT_STRING = asn1_string_st;
-pub type ASN1_OCTET_STRING = asn1_string_st;
-pub type ASN1_PRINTABLESTRING = asn1_string_st;
-pub type ASN1_T61STRING = asn1_string_st;
-pub type ASN1_IA5STRING = asn1_string_st;
-pub type ASN1_GENERALSTRING = asn1_string_st;
-pub type ASN1_UNIVERSALSTRING = asn1_string_st;
-pub type ASN1_BMPSTRING = asn1_string_st;
-pub type ASN1_UTCTIME = asn1_string_st;
-pub type ASN1_TIME = asn1_string_st;
-pub type ASN1_GENERALIZEDTIME = asn1_string_st;
-pub type ASN1_VISIBLESTRING = asn1_string_st;
-pub type ASN1_UTF8STRING = asn1_string_st;
-pub type ASN1_STRING = asn1_string_st;
-pub type ASN1_BOOLEAN = ::std::os::raw::c_int;
-pub type ASN1_NULL = ::std::os::raw::c_int;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct asn1_type_st {
-    _unused: [u8; 0],
-}
-pub type ASN1_TYPE = asn1_type_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct asn1_object_st {
-    _unused: [u8; 0],
-}
-pub type ASN1_OBJECT = asn1_object_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct asn1_string_table_st {
-    _unused: [u8; 0],
-}
-pub type ASN1_STRING_TABLE = asn1_string_table_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ASN1_ITEM_st {
-    _unused: [u8; 0],
-}
-pub type ASN1_ITEM = ASN1_ITEM_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct asn1_pctx_st {
-    _unused: [u8; 0],
-}
-pub type ASN1_PCTX = asn1_pctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct asn1_sctx_st {
-    _unused: [u8; 0],
-}
-pub type ASN1_SCTX = asn1_sctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct bio_st {
-    _unused: [u8; 0],
-}
-pub type BIO = bio_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct bignum_st {
-    _unused: [u8; 0],
-}
-pub type BIGNUM = bignum_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct bignum_ctx {
-    _unused: [u8; 0],
-}
-pub type BN_CTX = bignum_ctx;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct bn_blinding_st {
-    _unused: [u8; 0],
-}
-pub type BN_BLINDING = bn_blinding_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct bn_mont_ctx_st {
-    _unused: [u8; 0],
-}
-pub type BN_MONT_CTX = bn_mont_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct bn_recp_ctx_st {
-    _unused: [u8; 0],
-}
-pub type BN_RECP_CTX = bn_recp_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct bn_gencb_st {
-    _unused: [u8; 0],
-}
-pub type BN_GENCB = bn_gencb_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct buf_mem_st {
-    _unused: [u8; 0],
-}
-pub type BUF_MEM = buf_mem_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct stack_st_BIGNUM {
-    _unused: [u8; 0],
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct stack_st_BIGNUM_const {
-    _unused: [u8; 0],
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct err_state_st {
-    _unused: [u8; 0],
-}
-pub type ERR_STATE = err_state_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_cipher_st {
-    _unused: [u8; 0],
-}
-pub type EVP_CIPHER = evp_cipher_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_cipher_ctx_st {
-    _unused: [u8; 0],
-}
-pub type EVP_CIPHER_CTX = evp_cipher_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_md_st {
-    _unused: [u8; 0],
-}
-pub type EVP_MD = evp_md_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_md_ctx_st {
-    _unused: [u8; 0],
-}
-pub type EVP_MD_CTX = evp_md_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_mac_st {
-    _unused: [u8; 0],
-}
-pub type EVP_MAC = evp_mac_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_mac_ctx_st {
-    _unused: [u8; 0],
-}
-pub type EVP_MAC_CTX = evp_mac_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_pkey_st {
-    _unused: [u8; 0],
-}
-pub type EVP_PKEY = evp_pkey_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_pkey_asn1_method_st {
-    _unused: [u8; 0],
-}
-pub type EVP_PKEY_ASN1_METHOD = evp_pkey_asn1_method_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_pkey_method_st {
-    _unused: [u8; 0],
-}
-pub type EVP_PKEY_METHOD = evp_pkey_method_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_pkey_ctx_st {
-    _unused: [u8; 0],
-}
-pub type EVP_PKEY_CTX = evp_pkey_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_keymgmt_st {
-    _unused: [u8; 0],
-}
-pub type EVP_KEYMGMT = evp_keymgmt_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_kdf_st {
-    _unused: [u8; 0],
-}
-pub type EVP_KDF = evp_kdf_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_kdf_ctx_st {
-    _unused: [u8; 0],
-}
-pub type EVP_KDF_CTX = evp_kdf_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_rand_st {
-    _unused: [u8; 0],
-}
-pub type EVP_RAND = evp_rand_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_rand_ctx_st {
-    _unused: [u8; 0],
-}
-pub type EVP_RAND_CTX = evp_rand_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_keyexch_st {
-    _unused: [u8; 0],
-}
-pub type EVP_KEYEXCH = evp_keyexch_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_signature_st {
-    _unused: [u8; 0],
-}
-pub type EVP_SIGNATURE = evp_signature_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_asym_cipher_st {
-    _unused: [u8; 0],
-}
-pub type EVP_ASYM_CIPHER = evp_asym_cipher_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_kem_st {
-    _unused: [u8; 0],
-}
-pub type EVP_KEM = evp_kem_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct evp_Encode_Ctx_st {
-    _unused: [u8; 0],
-}
-pub type EVP_ENCODE_CTX = evp_Encode_Ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct hmac_ctx_st {
-    _unused: [u8; 0],
-}
-pub type HMAC_CTX = hmac_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct dh_st {
-    _unused: [u8; 0],
-}
-pub type DH = dh_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct dh_method {
-    _unused: [u8; 0],
-}
-pub type DH_METHOD = dh_method;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct dsa_st {
-    _unused: [u8; 0],
-}
-pub type DSA = dsa_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct dsa_method {
-    _unused: [u8; 0],
-}
-pub type DSA_METHOD = dsa_method;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct rsa_st {
-    _unused: [u8; 0],
-}
-pub type RSA = rsa_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct rsa_meth_st {
-    _unused: [u8; 0],
-}
-pub type RSA_METHOD = rsa_meth_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct rsa_pss_params_st {
-    _unused: [u8; 0],
-}
-pub type RSA_PSS_PARAMS = rsa_pss_params_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ec_key_st {
-    _unused: [u8; 0],
-}
-pub type EC_KEY = ec_key_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ec_key_method_st {
-    _unused: [u8; 0],
-}
-pub type EC_KEY_METHOD = ec_key_method_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct rand_meth_st {
-    _unused: [u8; 0],
-}
-pub type RAND_METHOD = rand_meth_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct rand_drbg_st {
-    _unused: [u8; 0],
-}
-pub type RAND_DRBG = rand_drbg_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ssl_dane_st {
-    _unused: [u8; 0],
-}
-pub type SSL_DANE = ssl_dane_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct x509_st {
-    _unused: [u8; 0],
-}
-pub type X509 = x509_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct X509_algor_st {
-    _unused: [u8; 0],
-}
-pub type X509_ALGOR = X509_algor_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct X509_crl_st {
-    _unused: [u8; 0],
-}
-pub type X509_CRL = X509_crl_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct x509_crl_method_st {
-    _unused: [u8; 0],
-}
-pub type X509_CRL_METHOD = x509_crl_method_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct x509_revoked_st {
-    _unused: [u8; 0],
-}
-pub type X509_REVOKED = x509_revoked_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct X509_name_st {
-    _unused: [u8; 0],
-}
-pub type X509_NAME = X509_name_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct X509_pubkey_st {
-    _unused: [u8; 0],
-}
-pub type X509_PUBKEY = X509_pubkey_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct x509_store_st {
-    _unused: [u8; 0],
-}
-pub type X509_STORE = x509_store_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct x509_store_ctx_st {
-    _unused: [u8; 0],
-}
-pub type X509_STORE_CTX = x509_store_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct x509_object_st {
-    _unused: [u8; 0],
-}
-pub type X509_OBJECT = x509_object_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct x509_lookup_st {
-    _unused: [u8; 0],
-}
-pub type X509_LOOKUP = x509_lookup_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct x509_lookup_method_st {
-    _unused: [u8; 0],
-}
-pub type X509_LOOKUP_METHOD = x509_lookup_method_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct X509_VERIFY_PARAM_st {
-    _unused: [u8; 0],
-}
-pub type X509_VERIFY_PARAM = X509_VERIFY_PARAM_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct x509_sig_info_st {
-    _unused: [u8; 0],
-}
-pub type X509_SIG_INFO = x509_sig_info_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct pkcs8_priv_key_info_st {
-    _unused: [u8; 0],
-}
-pub type PKCS8_PRIV_KEY_INFO = pkcs8_priv_key_info_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct v3_ext_ctx {
-    _unused: [u8; 0],
-}
-pub type X509V3_CTX = v3_ext_ctx;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct conf_st {
-    _unused: [u8; 0],
-}
-pub type CONF = conf_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_init_settings_st {
-    _unused: [u8; 0],
-}
-pub type OPENSSL_INIT_SETTINGS = ossl_init_settings_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ui_st {
-    _unused: [u8; 0],
-}
-pub type UI = ui_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ui_method_st {
-    _unused: [u8; 0],
-}
-pub type UI_METHOD = ui_method_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct engine_st {
-    _unused: [u8; 0],
-}
-pub type ENGINE = engine_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ssl_st {
-    _unused: [u8; 0],
-}
-pub type SSL = ssl_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ssl_ctx_st {
-    _unused: [u8; 0],
-}
-pub type SSL_CTX = ssl_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct comp_ctx_st {
-    _unused: [u8; 0],
-}
-pub type COMP_CTX = comp_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct comp_method_st {
-    _unused: [u8; 0],
-}
-pub type COMP_METHOD = comp_method_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct X509_POLICY_NODE_st {
-    _unused: [u8; 0],
-}
-pub type X509_POLICY_NODE = X509_POLICY_NODE_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct X509_POLICY_LEVEL_st {
-    _unused: [u8; 0],
-}
-pub type X509_POLICY_LEVEL = X509_POLICY_LEVEL_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct X509_POLICY_TREE_st {
-    _unused: [u8; 0],
-}
-pub type X509_POLICY_TREE = X509_POLICY_TREE_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct X509_POLICY_CACHE_st {
-    _unused: [u8; 0],
-}
-pub type X509_POLICY_CACHE = X509_POLICY_CACHE_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct AUTHORITY_KEYID_st {
-    _unused: [u8; 0],
-}
-pub type AUTHORITY_KEYID = AUTHORITY_KEYID_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct DIST_POINT_st {
-    _unused: [u8; 0],
-}
-pub type DIST_POINT = DIST_POINT_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ISSUING_DIST_POINT_st {
-    _unused: [u8; 0],
-}
-pub type ISSUING_DIST_POINT = ISSUING_DIST_POINT_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct NAME_CONSTRAINTS_st {
-    _unused: [u8; 0],
-}
-pub type NAME_CONSTRAINTS = NAME_CONSTRAINTS_st;
-pub type CRYPTO_EX_DATA = crypto_ex_data_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_http_req_ctx_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_HTTP_REQ_CTX = ossl_http_req_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ocsp_response_st {
-    _unused: [u8; 0],
-}
-pub type OCSP_RESPONSE = ocsp_response_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ocsp_responder_id_st {
-    _unused: [u8; 0],
-}
-pub type OCSP_RESPID = ocsp_responder_id_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct sct_st {
-    _unused: [u8; 0],
-}
-pub type SCT = sct_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct sct_ctx_st {
-    _unused: [u8; 0],
-}
-pub type SCT_CTX = sct_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ctlog_st {
-    _unused: [u8; 0],
-}
-pub type CTLOG = ctlog_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ctlog_store_st {
-    _unused: [u8; 0],
-}
-pub type CTLOG_STORE = ctlog_store_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ct_policy_eval_ctx_st {
-    _unused: [u8; 0],
-}
-pub type CT_POLICY_EVAL_CTX = ct_policy_eval_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_store_info_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_STORE_INFO = ossl_store_info_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_store_search_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_STORE_SEARCH = ossl_store_search_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_lib_ctx_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_LIB_CTX = ossl_lib_ctx_st;
-pub type OSSL_DISPATCH = ossl_dispatch_st;
-pub type OSSL_ITEM = ossl_item_st;
-pub type OSSL_ALGORITHM = ossl_algorithm_st;
-pub type OSSL_PARAM = ossl_param_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_param_bld_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_PARAM_BLD = ossl_param_bld_st;
-pub type pem_password_cb = ::std::option::Option<
-    unsafe extern "C" fn(
-        buf: *mut ::std::os::raw::c_char,
-        size: ::std::os::raw::c_int,
-        rwflag: ::std::os::raw::c_int,
-        userdata: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int,
->;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_encoder_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_ENCODER = ossl_encoder_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_encoder_ctx_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_ENCODER_CTX = ossl_encoder_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_decoder_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_DECODER = ossl_decoder_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_decoder_ctx_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_DECODER_CTX = ossl_decoder_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_self_test_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_SELF_TEST = ossl_self_test_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct tm {
-    pub tm_sec: ::std::os::raw::c_int,
-    pub tm_min: ::std::os::raw::c_int,
-    pub tm_hour: ::std::os::raw::c_int,
-    pub tm_mday: ::std::os::raw::c_int,
-    pub tm_mon: ::std::os::raw::c_int,
-    pub tm_year: ::std::os::raw::c_int,
-    pub tm_wday: ::std::os::raw::c_int,
-    pub tm_yday: ::std::os::raw::c_int,
-    pub tm_isdst: ::std::os::raw::c_int,
-    pub tm_gmtoff: ::std::os::raw::c_long,
-    pub tm_zone: *const ::std::os::raw::c_char,
-}
-#[test]
-fn bindgen_test_layout_tm() {
-    const UNINIT: ::std::mem::MaybeUninit<tm> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<tm>(),
-        56usize,
-        concat!("Size of: ", stringify!(tm))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<tm>(),
-        8usize,
-        concat!("Alignment of ", stringify!(tm))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tm_sec) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(tm),
-            "::",
-            stringify!(tm_sec)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tm_min) as usize - ptr as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(tm),
-            "::",
-            stringify!(tm_min)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tm_hour) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(tm),
-            "::",
-            stringify!(tm_hour)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tm_mday) as usize - ptr as usize },
-        12usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(tm),
-            "::",
-            stringify!(tm_mday)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tm_mon) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(tm),
-            "::",
-            stringify!(tm_mon)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tm_year) as usize - ptr as usize },
-        20usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(tm),
-            "::",
-            stringify!(tm_year)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tm_wday) as usize - ptr as usize },
-        24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(tm),
-            "::",
-            stringify!(tm_wday)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tm_yday) as usize - ptr as usize },
-        28usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(tm),
-            "::",
-            stringify!(tm_yday)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tm_isdst) as usize - ptr as usize },
-        32usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(tm),
-            "::",
-            stringify!(tm_isdst)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tm_gmtoff) as usize - ptr as usize },
-        40usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(tm),
-            "::",
-            stringify!(tm_gmtoff)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).tm_zone) as usize - ptr as usize },
-        48usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(tm),
-            "::",
-            stringify!(tm_zone)
-        )
-    );
-}
-impl Default for tm {
-    fn default() -> Self {
-        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
-        unsafe {
-            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
-            s.assume_init()
-        }
-    }
-}
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct itimerspec {
-    pub it_interval: timespec,
-    pub it_value: timespec,
-}
-#[test]
-fn bindgen_test_layout_itimerspec() {
-    const UNINIT: ::std::mem::MaybeUninit<itimerspec> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<itimerspec>(),
-        32usize,
-        concat!("Size of: ", stringify!(itimerspec))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<itimerspec>(),
-        8usize,
-        concat!("Alignment of ", stringify!(itimerspec))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).it_interval) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(itimerspec),
-            "::",
-            stringify!(it_interval)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).it_value) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(itimerspec),
-            "::",
-            stringify!(it_value)
-        )
-    );
-}
-extern "C" {
-    pub fn clock() -> clock_t;
-}
-extern "C" {
-    pub fn time(__timer: *mut time_t) -> time_t;
-}
-extern "C" {
-    pub fn difftime(__time1: time_t, __time0: time_t) -> f64;
-}
-extern "C" {
-    pub fn mktime(__tp: *mut tm) -> time_t;
-}
-extern "C" {
-    pub fn strftime(
-        __s: *mut ::std::os::raw::c_char,
-        __maxsize: usize,
-        __format: *const ::std::os::raw::c_char,
-        __tp: *const tm,
-    ) -> usize;
-}
-extern "C" {
-    pub fn strftime_l(
-        __s: *mut ::std::os::raw::c_char,
-        __maxsize: usize,
-        __format: *const ::std::os::raw::c_char,
-        __tp: *const tm,
-        __loc: locale_t,
-    ) -> usize;
-}
-extern "C" {
-    pub fn gmtime(__timer: *const time_t) -> *mut tm;
-}
-extern "C" {
-    pub fn localtime(__timer: *const time_t) -> *mut tm;
-}
-extern "C" {
-    pub fn gmtime_r(__timer: *const time_t, __tp: *mut tm) -> *mut tm;
-}
-extern "C" {
-    pub fn localtime_r(__timer: *const time_t, __tp: *mut tm) -> *mut tm;
-}
-extern "C" {
-    pub fn asctime(__tp: *const tm) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn ctime(__timer: *const time_t) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn asctime_r(
-        __tp: *const tm,
-        __buf: *mut ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn ctime_r(
-        __timer: *const time_t,
-        __buf: *mut ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub static mut __tzname: [*mut ::std::os::raw::c_char; 2usize];
-}
-extern "C" {
-    pub static mut __daylight: ::std::os::raw::c_int;
-}
-extern "C" {
-    pub static mut __timezone: ::std::os::raw::c_long;
-}
-extern "C" {
-    pub static mut tzname: [*mut ::std::os::raw::c_char; 2usize];
-}
-extern "C" {
-    pub fn tzset();
-}
-extern "C" {
-    pub static mut daylight: ::std::os::raw::c_int;
-}
-extern "C" {
-    pub static mut timezone: ::std::os::raw::c_long;
-}
-extern "C" {
-    pub fn timegm(__tp: *mut tm) -> time_t;
-}
-extern "C" {
-    pub fn timelocal(__tp: *mut tm) -> time_t;
-}
-extern "C" {
-    pub fn dysize(__year: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn nanosleep(
-        __requested_time: *const timespec,
-        __remaining: *mut timespec,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn clock_getres(__clock_id: clockid_t, __res: *mut timespec) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn clock_gettime(__clock_id: clockid_t, __tp: *mut timespec) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn clock_settime(__clock_id: clockid_t, __tp: *const timespec) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn clock_nanosleep(
-        __clock_id: clockid_t,
-        __flags: ::std::os::raw::c_int,
-        __req: *const timespec,
-        __rem: *mut timespec,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn clock_getcpuclockid(__pid: pid_t, __clock_id: *mut clockid_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn timer_create(
-        __clock_id: clockid_t,
-        __evp: *mut sigevent,
-        __timerid: *mut timer_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn timer_delete(__timerid: timer_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn timer_settime(
-        __timerid: timer_t,
-        __flags: ::std::os::raw::c_int,
-        __value: *const itimerspec,
-        __ovalue: *mut itimerspec,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn timer_gettime(__timerid: timer_t, __value: *mut itimerspec) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn timer_getoverrun(__timerid: timer_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn timespec_get(
-        __ts: *mut timespec,
-        __base: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_ASN1_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_ASYNC_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_BIO_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_BN_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_BUF_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_CMS_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_COMP_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_CONF_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_CRYPTO_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_CT_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_DH_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_DSA_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_EC_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_ENGINE_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_ERR_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_EVP_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_KDF_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_OBJ_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_OCSP_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_PEM_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_PKCS12_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_PKCS7_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_RAND_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_RSA_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_OSSL_STORE_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_TS_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_UI_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_X509_strings() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn ERR_load_X509V3_strings() -> ::std::os::raw::c_int;
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_core_handle_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_CORE_HANDLE = ossl_core_handle_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct openssl_core_ctx_st {
-    _unused: [u8; 0],
-}
-pub type OPENSSL_CORE_CTX = openssl_core_ctx_st;
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ossl_core_bio_st {
-    _unused: [u8; 0],
-}
-pub type OSSL_CORE_BIO = ossl_core_bio_st;
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct ossl_dispatch_st {
-    pub function_id: ::std::os::raw::c_int,
-    pub function: ::std::option::Option<unsafe extern "C" fn()>,
-}
-#[test]
-fn bindgen_test_layout_ossl_dispatch_st() {
-    const UNINIT: ::std::mem::MaybeUninit<ossl_dispatch_st> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<ossl_dispatch_st>(),
-        16usize,
-        concat!("Size of: ", stringify!(ossl_dispatch_st))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ossl_dispatch_st>(),
-        8usize,
-        concat!("Alignment of ", stringify!(ossl_dispatch_st))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).function_id) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_dispatch_st),
-            "::",
-            stringify!(function_id)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).function) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_dispatch_st),
-            "::",
-            stringify!(function)
-        )
-    );
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct ossl_item_st {
-    pub id: ::std::os::raw::c_uint,
-    pub ptr: *mut ::std::os::raw::c_void,
-}
-#[test]
-fn bindgen_test_layout_ossl_item_st() {
-    const UNINIT: ::std::mem::MaybeUninit<ossl_item_st> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<ossl_item_st>(),
-        16usize,
-        concat!("Size of: ", stringify!(ossl_item_st))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ossl_item_st>(),
-        8usize,
-        concat!("Alignment of ", stringify!(ossl_item_st))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).id) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_item_st),
-            "::",
-            stringify!(id)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ptr) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_item_st),
-            "::",
-            stringify!(ptr)
-        )
-    );
-}
-impl Default for ossl_item_st {
-    fn default() -> Self {
-        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
-        unsafe {
-            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
-            s.assume_init()
-        }
-    }
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct ossl_algorithm_st {
-    pub algorithm_names: *const ::std::os::raw::c_char,
-    pub property_definition: *const ::std::os::raw::c_char,
-    pub implementation: *const OSSL_DISPATCH,
-    pub algorithm_description: *const ::std::os::raw::c_char,
-}
-#[test]
-fn bindgen_test_layout_ossl_algorithm_st() {
-    const UNINIT: ::std::mem::MaybeUninit<ossl_algorithm_st> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<ossl_algorithm_st>(),
-        32usize,
-        concat!("Size of: ", stringify!(ossl_algorithm_st))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ossl_algorithm_st>(),
-        8usize,
-        concat!("Alignment of ", stringify!(ossl_algorithm_st))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).algorithm_names) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_algorithm_st),
-            "::",
-            stringify!(algorithm_names)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).property_definition) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_algorithm_st),
-            "::",
-            stringify!(property_definition)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).implementation) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_algorithm_st),
-            "::",
-            stringify!(implementation)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).algorithm_description) as usize - ptr as usize },
-        24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_algorithm_st),
-            "::",
-            stringify!(algorithm_description)
-        )
-    );
-}
-impl Default for ossl_algorithm_st {
-    fn default() -> Self {
-        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
-        unsafe {
-            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
-            s.assume_init()
-        }
-    }
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct ossl_param_st {
-    pub key: *const ::std::os::raw::c_char,
-    pub data_type: ::std::os::raw::c_uint,
-    pub data: *mut ::std::os::raw::c_void,
-    pub data_size: usize,
-    pub return_size: usize,
-}
-#[test]
-fn bindgen_test_layout_ossl_param_st() {
-    const UNINIT: ::std::mem::MaybeUninit<ossl_param_st> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<ossl_param_st>(),
-        40usize,
-        concat!("Size of: ", stringify!(ossl_param_st))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ossl_param_st>(),
-        8usize,
-        concat!("Alignment of ", stringify!(ossl_param_st))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).key) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_param_st),
-            "::",
-            stringify!(key)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).data_type) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_param_st),
-            "::",
-            stringify!(data_type)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).data) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_param_st),
-            "::",
-            stringify!(data)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).data_size) as usize - ptr as usize },
-        24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_param_st),
-            "::",
-            stringify!(data_size)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).return_size) as usize - ptr as usize },
-        32usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ossl_param_st),
-            "::",
-            stringify!(return_size)
-        )
-    );
-}
-impl Default for ossl_param_st {
-    fn default() -> Self {
-        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
-        unsafe {
-            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
-            s.assume_init()
-        }
-    }
-}
-pub type OSSL_thread_stop_handler_fn =
-    ::std::option::Option<unsafe extern "C" fn(arg: *mut ::std::os::raw::c_void)>;
-pub type OSSL_provider_init_fn = ::std::option::Option<
-    unsafe extern "C" fn(
-        handle: *const OSSL_CORE_HANDLE,
-        in_: *const OSSL_DISPATCH,
-        out: *mut *const OSSL_DISPATCH,
-        provctx: *mut *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int,
->;
-extern "C" {
-    pub fn OSSL_provider_init(
-        handle: *const OSSL_CORE_HANDLE,
-        in_: *const OSSL_DISPATCH,
-        out: *mut *const OSSL_DISPATCH,
-        provctx: *mut *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-pub type OSSL_CALLBACK = ::std::option::Option<
-    unsafe extern "C" fn(
-        params: *const OSSL_PARAM,
-        arg: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int,
->;
-pub type OSSL_INOUT_CALLBACK = ::std::option::Option<
-    unsafe extern "C" fn(
-        in_params: *const OSSL_PARAM,
-        out_params: *mut OSSL_PARAM,
-        arg: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int,
->;
-pub type OSSL_PASSPHRASE_CALLBACK = ::std::option::Option<
-    unsafe extern "C" fn(
-        pass: *mut ::std::os::raw::c_char,
-        pass_size: usize,
-        pass_len: *mut usize,
-        params: *const OSSL_PARAM,
-        arg: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int,
->;
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct CRYPTO_dynlock {
-    pub dummy: ::std::os::raw::c_int,
-}
-#[test]
-fn bindgen_test_layout_CRYPTO_dynlock() {
-    const UNINIT: ::std::mem::MaybeUninit<CRYPTO_dynlock> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<CRYPTO_dynlock>(),
-        4usize,
-        concat!("Size of: ", stringify!(CRYPTO_dynlock))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CRYPTO_dynlock>(),
-        4usize,
-        concat!("Alignment of ", stringify!(CRYPTO_dynlock))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).dummy) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(CRYPTO_dynlock),
-            "::",
-            stringify!(dummy)
-        )
-    );
-}
-pub type CRYPTO_RWLOCK = ::std::os::raw::c_void;
-extern "C" {
-    pub fn CRYPTO_THREAD_lock_new() -> *mut CRYPTO_RWLOCK;
-}
-extern "C" {
-    pub fn CRYPTO_THREAD_read_lock(lock: *mut CRYPTO_RWLOCK) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_THREAD_write_lock(lock: *mut CRYPTO_RWLOCK) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_THREAD_unlock(lock: *mut CRYPTO_RWLOCK) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_THREAD_lock_free(lock: *mut CRYPTO_RWLOCK);
-}
-extern "C" {
-    pub fn CRYPTO_atomic_add(
-        val: *mut ::std::os::raw::c_int,
-        amount: ::std::os::raw::c_int,
-        ret: *mut ::std::os::raw::c_int,
-        lock: *mut CRYPTO_RWLOCK,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_atomic_or(
-        val: *mut u64,
-        op: u64,
-        ret: *mut u64,
-        lock: *mut CRYPTO_RWLOCK,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_atomic_load(
-        val: *mut u64,
-        ret: *mut u64,
-        lock: *mut CRYPTO_RWLOCK,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_strlcpy(
-        dst: *mut ::std::os::raw::c_char,
-        src: *const ::std::os::raw::c_char,
-        siz: usize,
-    ) -> usize;
-}
-extern "C" {
-    pub fn OPENSSL_strlcat(
-        dst: *mut ::std::os::raw::c_char,
-        src: *const ::std::os::raw::c_char,
-        siz: usize,
-    ) -> usize;
-}
-extern "C" {
-    pub fn OPENSSL_strnlen(str_: *const ::std::os::raw::c_char, maxlen: usize) -> usize;
-}
-extern "C" {
-    pub fn OPENSSL_buf2hexstr_ex(
-        str_: *mut ::std::os::raw::c_char,
-        str_n: usize,
-        strlength: *mut usize,
-        buf: *const ::std::os::raw::c_uchar,
-        buflen: usize,
-        sep: ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_buf2hexstr(
-        buf: *const ::std::os::raw::c_uchar,
-        buflen: ::std::os::raw::c_long,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn OPENSSL_hexstr2buf_ex(
-        buf: *mut ::std::os::raw::c_uchar,
-        buf_n: usize,
-        buflen: *mut usize,
-        str_: *const ::std::os::raw::c_char,
-        sep: ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_hexstr2buf(
-        str_: *const ::std::os::raw::c_char,
-        buflen: *mut ::std::os::raw::c_long,
-    ) -> *mut ::std::os::raw::c_uchar;
-}
-extern "C" {
-    pub fn OPENSSL_hexchar2int(c: ::std::os::raw::c_uchar) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_strcasecmp(
-        s1: *const ::std::os::raw::c_char,
-        s2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_strncasecmp(
-        s1: *const ::std::os::raw::c_char,
-        s2: *const ::std::os::raw::c_char,
-        n: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_version_major() -> ::std::os::raw::c_uint;
-}
-extern "C" {
-    pub fn OPENSSL_version_minor() -> ::std::os::raw::c_uint;
-}
-extern "C" {
-    pub fn OPENSSL_version_patch() -> ::std::os::raw::c_uint;
-}
-extern "C" {
-    pub fn OPENSSL_version_pre_release() -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn OPENSSL_version_build_metadata() -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn OpenSSL_version_num() -> ::std::os::raw::c_ulong;
-}
-extern "C" {
-    pub fn OpenSSL_version(type_: ::std::os::raw::c_int) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn OPENSSL_info(type_: ::std::os::raw::c_int) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn OPENSSL_issetugid() -> ::std::os::raw::c_int;
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct crypto_ex_data_st {
-    pub ctx: *mut OSSL_LIB_CTX,
-    pub sk: *mut stack_st_void,
-}
-#[test]
-fn bindgen_test_layout_crypto_ex_data_st() {
-    const UNINIT: ::std::mem::MaybeUninit<crypto_ex_data_st> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<crypto_ex_data_st>(),
-        16usize,
-        concat!("Size of: ", stringify!(crypto_ex_data_st))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<crypto_ex_data_st>(),
-        8usize,
-        concat!("Alignment of ", stringify!(crypto_ex_data_st))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).ctx) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(crypto_ex_data_st),
-            "::",
-            stringify!(ctx)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).sk) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(crypto_ex_data_st),
-            "::",
-            stringify!(sk)
-        )
-    );
-}
-impl Default for crypto_ex_data_st {
-    fn default() -> Self {
-        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
-        unsafe {
-            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
-            s.assume_init()
-        }
-    }
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct stack_st_void {
-    _unused: [u8; 0],
-}
-pub type sk_void_compfunc = ::std::option::Option<
-    unsafe extern "C" fn(
-        a: *const *const ::std::os::raw::c_void,
-        b: *const *const ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int,
->;
-pub type sk_void_freefunc =
-    ::std::option::Option<unsafe extern "C" fn(a: *mut ::std::os::raw::c_void)>;
-pub type sk_void_copyfunc = ::std::option::Option<
-    unsafe extern "C" fn(a: *const ::std::os::raw::c_void) -> *mut ::std::os::raw::c_void,
->;
-pub type CRYPTO_EX_new = ::std::option::Option<
-    unsafe extern "C" fn(
-        parent: *mut ::std::os::raw::c_void,
-        ptr: *mut ::std::os::raw::c_void,
-        ad: *mut CRYPTO_EX_DATA,
-        idx: ::std::os::raw::c_int,
-        argl: ::std::os::raw::c_long,
-        argp: *mut ::std::os::raw::c_void,
-    ),
->;
-pub type CRYPTO_EX_free = ::std::option::Option<
-    unsafe extern "C" fn(
-        parent: *mut ::std::os::raw::c_void,
-        ptr: *mut ::std::os::raw::c_void,
-        ad: *mut CRYPTO_EX_DATA,
-        idx: ::std::os::raw::c_int,
-        argl: ::std::os::raw::c_long,
-        argp: *mut ::std::os::raw::c_void,
-    ),
->;
-pub type CRYPTO_EX_dup = ::std::option::Option<
-    unsafe extern "C" fn(
-        to: *mut CRYPTO_EX_DATA,
-        from: *const CRYPTO_EX_DATA,
-        from_d: *mut *mut ::std::os::raw::c_void,
-        idx: ::std::os::raw::c_int,
-        argl: ::std::os::raw::c_long,
-        argp: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int,
->;
-extern "C" {
-    pub fn CRYPTO_get_ex_new_index(
-        class_index: ::std::os::raw::c_int,
-        argl: ::std::os::raw::c_long,
-        argp: *mut ::std::os::raw::c_void,
-        new_func: CRYPTO_EX_new,
-        dup_func: CRYPTO_EX_dup,
-        free_func: CRYPTO_EX_free,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_free_ex_index(
-        class_index: ::std::os::raw::c_int,
-        idx: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_new_ex_data(
-        class_index: ::std::os::raw::c_int,
-        obj: *mut ::std::os::raw::c_void,
-        ad: *mut CRYPTO_EX_DATA,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_dup_ex_data(
-        class_index: ::std::os::raw::c_int,
-        to: *mut CRYPTO_EX_DATA,
-        from: *const CRYPTO_EX_DATA,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_free_ex_data(
-        class_index: ::std::os::raw::c_int,
-        obj: *mut ::std::os::raw::c_void,
-        ad: *mut CRYPTO_EX_DATA,
-    );
-}
-extern "C" {
-    pub fn CRYPTO_alloc_ex_data(
-        class_index: ::std::os::raw::c_int,
-        obj: *mut ::std::os::raw::c_void,
-        ad: *mut CRYPTO_EX_DATA,
-        idx: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_set_ex_data(
-        ad: *mut CRYPTO_EX_DATA,
-        idx: ::std::os::raw::c_int,
-        val: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_get_ex_data(
-        ad: *const CRYPTO_EX_DATA,
-        idx: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void;
-}
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct crypto_threadid_st {
-    pub dummy: ::std::os::raw::c_int,
-}
-#[test]
-fn bindgen_test_layout_crypto_threadid_st() {
-    const UNINIT: ::std::mem::MaybeUninit<crypto_threadid_st> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<crypto_threadid_st>(),
-        4usize,
-        concat!("Size of: ", stringify!(crypto_threadid_st))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<crypto_threadid_st>(),
-        4usize,
-        concat!("Alignment of ", stringify!(crypto_threadid_st))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).dummy) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(crypto_threadid_st),
-            "::",
-            stringify!(dummy)
-        )
-    );
-}
-pub type CRYPTO_THREADID = crypto_threadid_st;
-pub type CRYPTO_malloc_fn = ::std::option::Option<
-    unsafe extern "C" fn(
-        num: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void,
->;
-pub type CRYPTO_realloc_fn = ::std::option::Option<
-    unsafe extern "C" fn(
-        addr: *mut ::std::os::raw::c_void,
-        num: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void,
->;
-pub type CRYPTO_free_fn = ::std::option::Option<
-    unsafe extern "C" fn(
-        addr: *mut ::std::os::raw::c_void,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ),
->;
-extern "C" {
-    pub fn CRYPTO_set_mem_functions(
-        malloc_fn: CRYPTO_malloc_fn,
-        realloc_fn: CRYPTO_realloc_fn,
-        free_fn: CRYPTO_free_fn,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_get_mem_functions(
-        malloc_fn: *mut CRYPTO_malloc_fn,
-        realloc_fn: *mut CRYPTO_realloc_fn,
-        free_fn: *mut CRYPTO_free_fn,
-    );
-}
-extern "C" {
-    pub fn CRYPTO_malloc(
-        num: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn CRYPTO_zalloc(
-        num: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn CRYPTO_memdup(
-        str_: *const ::std::os::raw::c_void,
-        siz: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn CRYPTO_strdup(
-        str_: *const ::std::os::raw::c_char,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn CRYPTO_strndup(
-        str_: *const ::std::os::raw::c_char,
-        s: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn CRYPTO_free(
-        ptr: *mut ::std::os::raw::c_void,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    );
-}
-extern "C" {
-    pub fn CRYPTO_clear_free(
-        ptr: *mut ::std::os::raw::c_void,
-        num: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    );
-}
-extern "C" {
-    pub fn CRYPTO_realloc(
-        addr: *mut ::std::os::raw::c_void,
-        num: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn CRYPTO_clear_realloc(
-        addr: *mut ::std::os::raw::c_void,
-        old_num: usize,
-        num: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn CRYPTO_secure_malloc_init(sz: usize, minsize: usize) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_secure_malloc_done() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_secure_malloc(
-        num: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn CRYPTO_secure_zalloc(
-        num: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn CRYPTO_secure_free(
-        ptr: *mut ::std::os::raw::c_void,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    );
-}
-extern "C" {
-    pub fn CRYPTO_secure_clear_free(
-        ptr: *mut ::std::os::raw::c_void,
-        num: usize,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    );
-}
-extern "C" {
-    pub fn CRYPTO_secure_allocated(ptr: *const ::std::os::raw::c_void) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_secure_malloc_initialized() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_secure_actual_size(ptr: *mut ::std::os::raw::c_void) -> usize;
-}
-extern "C" {
-    pub fn CRYPTO_secure_used() -> usize;
-}
-extern "C" {
-    pub fn OPENSSL_cleanse(ptr: *mut ::std::os::raw::c_void, len: usize);
-}
-extern "C" {
-    pub fn OPENSSL_die(
-        assertion: *const ::std::os::raw::c_char,
-        file: *const ::std::os::raw::c_char,
-        line: ::std::os::raw::c_int,
-    );
-}
-extern "C" {
-    pub fn OPENSSL_isservice() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_init();
-}
-extern "C" {
-    pub fn OPENSSL_fork_prepare();
-}
-extern "C" {
-    pub fn OPENSSL_fork_parent();
-}
-extern "C" {
-    pub fn OPENSSL_fork_child();
-}
-extern "C" {
-    pub fn OPENSSL_gmtime(timer: *const time_t, result: *mut tm) -> *mut tm;
-}
-extern "C" {
-    pub fn OPENSSL_gmtime_adj(
-        tm: *mut tm,
-        offset_day: ::std::os::raw::c_int,
-        offset_sec: ::std::os::raw::c_long,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_gmtime_diff(
-        pday: *mut ::std::os::raw::c_int,
-        psec: *mut ::std::os::raw::c_int,
-        from: *const tm,
-        to: *const tm,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_memcmp(
-        in_a: *const ::std::os::raw::c_void,
-        in_b: *const ::std::os::raw::c_void,
-        len: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_cleanup();
-}
-extern "C" {
-    pub fn OPENSSL_init_crypto(
-        opts: u64,
-        settings: *const OPENSSL_INIT_SETTINGS,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_atexit(
-        handler: ::std::option::Option<unsafe extern "C" fn()>,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_thread_stop();
-}
-extern "C" {
-    pub fn OPENSSL_thread_stop_ex(ctx: *mut OSSL_LIB_CTX);
-}
-extern "C" {
-    pub fn OPENSSL_INIT_new() -> *mut OPENSSL_INIT_SETTINGS;
-}
-extern "C" {
-    pub fn OPENSSL_INIT_set_config_filename(
-        settings: *mut OPENSSL_INIT_SETTINGS,
-        config_filename: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_INIT_set_config_file_flags(
-        settings: *mut OPENSSL_INIT_SETTINGS,
-        flags: ::std::os::raw::c_ulong,
-    );
-}
-extern "C" {
-    pub fn OPENSSL_INIT_set_config_appname(
-        settings: *mut OPENSSL_INIT_SETTINGS,
-        config_appname: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OPENSSL_INIT_free(settings: *mut OPENSSL_INIT_SETTINGS);
-}
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct sched_param {
-    pub sched_priority: ::std::os::raw::c_int,
-}
-#[test]
-fn bindgen_test_layout_sched_param() {
-    const UNINIT: ::std::mem::MaybeUninit<sched_param> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<sched_param>(),
-        4usize,
-        concat!("Size of: ", stringify!(sched_param))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<sched_param>(),
-        4usize,
-        concat!("Alignment of ", stringify!(sched_param))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).sched_priority) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(sched_param),
-            "::",
-            stringify!(sched_priority)
-        )
-    );
-}
-pub type __cpu_mask = ::std::os::raw::c_ulong;
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct cpu_set_t {
-    pub __bits: [__cpu_mask; 16usize],
-}
-#[test]
-fn bindgen_test_layout_cpu_set_t() {
-    const UNINIT: ::std::mem::MaybeUninit<cpu_set_t> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<cpu_set_t>(),
-        128usize,
-        concat!("Size of: ", stringify!(cpu_set_t))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<cpu_set_t>(),
-        8usize,
-        concat!("Alignment of ", stringify!(cpu_set_t))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__bits) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cpu_set_t),
-            "::",
-            stringify!(__bits)
-        )
-    );
-}
-extern "C" {
-    pub fn __sched_cpucount(__setsize: usize, __setp: *const cpu_set_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn __sched_cpualloc(__count: usize) -> *mut cpu_set_t;
-}
-extern "C" {
-    pub fn __sched_cpufree(__set: *mut cpu_set_t);
-}
-extern "C" {
-    pub fn sched_setparam(__pid: __pid_t, __param: *const sched_param) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn sched_getparam(__pid: __pid_t, __param: *mut sched_param) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn sched_setscheduler(
-        __pid: __pid_t,
-        __policy: ::std::os::raw::c_int,
-        __param: *const sched_param,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn sched_getscheduler(__pid: __pid_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn sched_yield() -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn sched_get_priority_max(__algorithm: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn sched_get_priority_min(__algorithm: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn sched_rr_get_interval(__pid: __pid_t, __t: *mut timespec) -> ::std::os::raw::c_int;
-}
-pub type __jmp_buf = [::std::os::raw::c_long; 8usize];
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct __jmp_buf_tag {
-    pub __jmpbuf: __jmp_buf,
-    pub __mask_was_saved: ::std::os::raw::c_int,
-    pub __saved_mask: __sigset_t,
-}
-#[test]
-fn bindgen_test_layout___jmp_buf_tag() {
-    const UNINIT: ::std::mem::MaybeUninit<__jmp_buf_tag> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<__jmp_buf_tag>(),
-        200usize,
-        concat!("Size of: ", stringify!(__jmp_buf_tag))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<__jmp_buf_tag>(),
-        8usize,
-        concat!("Alignment of ", stringify!(__jmp_buf_tag))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__jmpbuf) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__jmp_buf_tag),
-            "::",
-            stringify!(__jmpbuf)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__mask_was_saved) as usize - ptr as usize },
-        64usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__jmp_buf_tag),
-            "::",
-            stringify!(__mask_was_saved)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__saved_mask) as usize - ptr as usize },
-        72usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__jmp_buf_tag),
-            "::",
-            stringify!(__saved_mask)
-        )
-    );
-}
-pub const PTHREAD_CREATE_JOINABLE: _bindgen_ty_16 = _bindgen_ty_16::PTHREAD_CREATE_JOINABLE;
-pub const PTHREAD_CREATE_DETACHED: _bindgen_ty_16 = _bindgen_ty_16::PTHREAD_CREATE_DETACHED;
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_16 {
-    PTHREAD_CREATE_JOINABLE = 0,
-    PTHREAD_CREATE_DETACHED = 1,
-}
-pub const PTHREAD_MUTEX_TIMED_NP: _bindgen_ty_17 = _bindgen_ty_17::PTHREAD_MUTEX_TIMED_NP;
-pub const PTHREAD_MUTEX_RECURSIVE_NP: _bindgen_ty_17 = _bindgen_ty_17::PTHREAD_MUTEX_RECURSIVE_NP;
-pub const PTHREAD_MUTEX_ERRORCHECK_NP: _bindgen_ty_17 = _bindgen_ty_17::PTHREAD_MUTEX_ERRORCHECK_NP;
-pub const PTHREAD_MUTEX_ADAPTIVE_NP: _bindgen_ty_17 = _bindgen_ty_17::PTHREAD_MUTEX_ADAPTIVE_NP;
-pub const PTHREAD_MUTEX_NORMAL: _bindgen_ty_17 = _bindgen_ty_17::PTHREAD_MUTEX_TIMED_NP;
-pub const PTHREAD_MUTEX_RECURSIVE: _bindgen_ty_17 = _bindgen_ty_17::PTHREAD_MUTEX_RECURSIVE_NP;
-pub const PTHREAD_MUTEX_ERRORCHECK: _bindgen_ty_17 = _bindgen_ty_17::PTHREAD_MUTEX_ERRORCHECK_NP;
-pub const PTHREAD_MUTEX_DEFAULT: _bindgen_ty_17 = _bindgen_ty_17::PTHREAD_MUTEX_TIMED_NP;
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_17 {
-    PTHREAD_MUTEX_TIMED_NP = 0,
-    PTHREAD_MUTEX_RECURSIVE_NP = 1,
-    PTHREAD_MUTEX_ERRORCHECK_NP = 2,
-    PTHREAD_MUTEX_ADAPTIVE_NP = 3,
-}
-pub const PTHREAD_MUTEX_STALLED: _bindgen_ty_18 = _bindgen_ty_18::PTHREAD_MUTEX_STALLED;
-pub const PTHREAD_MUTEX_STALLED_NP: _bindgen_ty_18 = _bindgen_ty_18::PTHREAD_MUTEX_STALLED;
-pub const PTHREAD_MUTEX_ROBUST: _bindgen_ty_18 = _bindgen_ty_18::PTHREAD_MUTEX_ROBUST;
-pub const PTHREAD_MUTEX_ROBUST_NP: _bindgen_ty_18 = _bindgen_ty_18::PTHREAD_MUTEX_ROBUST;
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_18 {
-    PTHREAD_MUTEX_STALLED = 0,
-    PTHREAD_MUTEX_ROBUST = 1,
-}
-pub const PTHREAD_PRIO_NONE: _bindgen_ty_19 = _bindgen_ty_19::PTHREAD_PRIO_NONE;
-pub const PTHREAD_PRIO_INHERIT: _bindgen_ty_19 = _bindgen_ty_19::PTHREAD_PRIO_INHERIT;
-pub const PTHREAD_PRIO_PROTECT: _bindgen_ty_19 = _bindgen_ty_19::PTHREAD_PRIO_PROTECT;
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_19 {
-    PTHREAD_PRIO_NONE = 0,
-    PTHREAD_PRIO_INHERIT = 1,
-    PTHREAD_PRIO_PROTECT = 2,
-}
-pub const PTHREAD_RWLOCK_PREFER_READER_NP: _bindgen_ty_20 =
-    _bindgen_ty_20::PTHREAD_RWLOCK_PREFER_READER_NP;
-pub const PTHREAD_RWLOCK_PREFER_WRITER_NP: _bindgen_ty_20 =
-    _bindgen_ty_20::PTHREAD_RWLOCK_PREFER_WRITER_NP;
-pub const PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP: _bindgen_ty_20 =
-    _bindgen_ty_20::PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP;
-pub const PTHREAD_RWLOCK_DEFAULT_NP: _bindgen_ty_20 =
-    _bindgen_ty_20::PTHREAD_RWLOCK_PREFER_READER_NP;
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_20 {
-    PTHREAD_RWLOCK_PREFER_READER_NP = 0,
-    PTHREAD_RWLOCK_PREFER_WRITER_NP = 1,
-    PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP = 2,
-}
-pub const PTHREAD_INHERIT_SCHED: _bindgen_ty_21 = _bindgen_ty_21::PTHREAD_INHERIT_SCHED;
-pub const PTHREAD_EXPLICIT_SCHED: _bindgen_ty_21 = _bindgen_ty_21::PTHREAD_EXPLICIT_SCHED;
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_21 {
-    PTHREAD_INHERIT_SCHED = 0,
-    PTHREAD_EXPLICIT_SCHED = 1,
-}
-pub const PTHREAD_SCOPE_SYSTEM: _bindgen_ty_22 = _bindgen_ty_22::PTHREAD_SCOPE_SYSTEM;
-pub const PTHREAD_SCOPE_PROCESS: _bindgen_ty_22 = _bindgen_ty_22::PTHREAD_SCOPE_PROCESS;
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_22 {
-    PTHREAD_SCOPE_SYSTEM = 0,
-    PTHREAD_SCOPE_PROCESS = 1,
-}
-pub const PTHREAD_PROCESS_PRIVATE: _bindgen_ty_23 = _bindgen_ty_23::PTHREAD_PROCESS_PRIVATE;
-pub const PTHREAD_PROCESS_SHARED: _bindgen_ty_23 = _bindgen_ty_23::PTHREAD_PROCESS_SHARED;
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_23 {
-    PTHREAD_PROCESS_PRIVATE = 0,
-    PTHREAD_PROCESS_SHARED = 1,
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct _pthread_cleanup_buffer {
-    pub __routine: ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void)>,
-    pub __arg: *mut ::std::os::raw::c_void,
-    pub __canceltype: ::std::os::raw::c_int,
-    pub __prev: *mut _pthread_cleanup_buffer,
-}
-#[test]
-fn bindgen_test_layout__pthread_cleanup_buffer() {
-    const UNINIT: ::std::mem::MaybeUninit<_pthread_cleanup_buffer> =
-        ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<_pthread_cleanup_buffer>(),
-        32usize,
-        concat!("Size of: ", stringify!(_pthread_cleanup_buffer))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<_pthread_cleanup_buffer>(),
-        8usize,
-        concat!("Alignment of ", stringify!(_pthread_cleanup_buffer))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__routine) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_pthread_cleanup_buffer),
-            "::",
-            stringify!(__routine)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__arg) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_pthread_cleanup_buffer),
-            "::",
-            stringify!(__arg)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__canceltype) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_pthread_cleanup_buffer),
-            "::",
-            stringify!(__canceltype)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__prev) as usize - ptr as usize },
-        24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(_pthread_cleanup_buffer),
-            "::",
-            stringify!(__prev)
-        )
-    );
-}
-impl Default for _pthread_cleanup_buffer {
-    fn default() -> Self {
-        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
-        unsafe {
-            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
-            s.assume_init()
-        }
-    }
-}
-pub const PTHREAD_CANCEL_ENABLE: _bindgen_ty_24 = _bindgen_ty_24::PTHREAD_CANCEL_ENABLE;
-pub const PTHREAD_CANCEL_DISABLE: _bindgen_ty_24 = _bindgen_ty_24::PTHREAD_CANCEL_DISABLE;
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_24 {
-    PTHREAD_CANCEL_ENABLE = 0,
-    PTHREAD_CANCEL_DISABLE = 1,
-}
-pub const PTHREAD_CANCEL_DEFERRED: _bindgen_ty_25 = _bindgen_ty_25::PTHREAD_CANCEL_DEFERRED;
-pub const PTHREAD_CANCEL_ASYNCHRONOUS: _bindgen_ty_25 = _bindgen_ty_25::PTHREAD_CANCEL_ASYNCHRONOUS;
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_25 {
-    PTHREAD_CANCEL_DEFERRED = 0,
-    PTHREAD_CANCEL_ASYNCHRONOUS = 1,
-}
-extern "C" {
-    pub fn pthread_create(
-        __newthread: *mut pthread_t,
-        __attr: *const pthread_attr_t,
-        __start_routine: ::std::option::Option<
-            unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void) -> *mut ::std::os::raw::c_void,
-        >,
-        __arg: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_exit(__retval: *mut ::std::os::raw::c_void) -> !;
-}
-extern "C" {
-    pub fn pthread_join(
-        __th: pthread_t,
-        __thread_return: *mut *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_detach(__th: pthread_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_self() -> pthread_t;
-}
-extern "C" {
-    pub fn pthread_equal(__thread1: pthread_t, __thread2: pthread_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_init(__attr: *mut pthread_attr_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_destroy(__attr: *mut pthread_attr_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_getdetachstate(
-        __attr: *const pthread_attr_t,
-        __detachstate: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_setdetachstate(
-        __attr: *mut pthread_attr_t,
-        __detachstate: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_getguardsize(
-        __attr: *const pthread_attr_t,
-        __guardsize: *mut usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_setguardsize(
-        __attr: *mut pthread_attr_t,
-        __guardsize: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_getschedparam(
-        __attr: *const pthread_attr_t,
-        __param: *mut sched_param,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_setschedparam(
-        __attr: *mut pthread_attr_t,
-        __param: *const sched_param,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_getschedpolicy(
-        __attr: *const pthread_attr_t,
-        __policy: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_setschedpolicy(
-        __attr: *mut pthread_attr_t,
-        __policy: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_getinheritsched(
-        __attr: *const pthread_attr_t,
-        __inherit: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_setinheritsched(
-        __attr: *mut pthread_attr_t,
-        __inherit: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_getscope(
-        __attr: *const pthread_attr_t,
-        __scope: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_setscope(
-        __attr: *mut pthread_attr_t,
-        __scope: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_getstackaddr(
-        __attr: *const pthread_attr_t,
-        __stackaddr: *mut *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_setstackaddr(
-        __attr: *mut pthread_attr_t,
-        __stackaddr: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_getstacksize(
-        __attr: *const pthread_attr_t,
-        __stacksize: *mut usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_setstacksize(
-        __attr: *mut pthread_attr_t,
-        __stacksize: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_getstack(
-        __attr: *const pthread_attr_t,
-        __stackaddr: *mut *mut ::std::os::raw::c_void,
-        __stacksize: *mut usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_attr_setstack(
-        __attr: *mut pthread_attr_t,
-        __stackaddr: *mut ::std::os::raw::c_void,
-        __stacksize: usize,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_setschedparam(
-        __target_thread: pthread_t,
-        __policy: ::std::os::raw::c_int,
-        __param: *const sched_param,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_getschedparam(
-        __target_thread: pthread_t,
-        __policy: *mut ::std::os::raw::c_int,
-        __param: *mut sched_param,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_setschedprio(
-        __target_thread: pthread_t,
-        __prio: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_once(
-        __once_control: *mut pthread_once_t,
-        __init_routine: ::std::option::Option<unsafe extern "C" fn()>,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_setcancelstate(
-        __state: ::std::os::raw::c_int,
-        __oldstate: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_setcanceltype(
-        __type: ::std::os::raw::c_int,
-        __oldtype: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_cancel(__th: pthread_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_testcancel();
-}
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct __cancel_jmp_buf_tag {
-    pub __cancel_jmp_buf: __jmp_buf,
-    pub __mask_was_saved: ::std::os::raw::c_int,
-}
-#[test]
-fn bindgen_test_layout___cancel_jmp_buf_tag() {
-    const UNINIT: ::std::mem::MaybeUninit<__cancel_jmp_buf_tag> = ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<__cancel_jmp_buf_tag>(),
-        72usize,
-        concat!("Size of: ", stringify!(__cancel_jmp_buf_tag))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<__cancel_jmp_buf_tag>(),
-        8usize,
-        concat!("Alignment of ", stringify!(__cancel_jmp_buf_tag))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__cancel_jmp_buf) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__cancel_jmp_buf_tag),
-            "::",
-            stringify!(__cancel_jmp_buf)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__mask_was_saved) as usize - ptr as usize },
-        64usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__cancel_jmp_buf_tag),
-            "::",
-            stringify!(__mask_was_saved)
-        )
-    );
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct __pthread_unwind_buf_t {
-    pub __cancel_jmp_buf: [__cancel_jmp_buf_tag; 1usize],
-    pub __pad: [*mut ::std::os::raw::c_void; 4usize],
-}
-#[test]
-fn bindgen_test_layout___pthread_unwind_buf_t() {
-    const UNINIT: ::std::mem::MaybeUninit<__pthread_unwind_buf_t> =
-        ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<__pthread_unwind_buf_t>(),
-        104usize,
-        concat!("Size of: ", stringify!(__pthread_unwind_buf_t))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<__pthread_unwind_buf_t>(),
-        8usize,
-        concat!("Alignment of ", stringify!(__pthread_unwind_buf_t))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__cancel_jmp_buf) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__pthread_unwind_buf_t),
-            "::",
-            stringify!(__cancel_jmp_buf)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__pad) as usize - ptr as usize },
-        72usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__pthread_unwind_buf_t),
-            "::",
-            stringify!(__pad)
-        )
-    );
-}
-impl Default for __pthread_unwind_buf_t {
-    fn default() -> Self {
-        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
-        unsafe {
-            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
-            s.assume_init()
-        }
-    }
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct __pthread_cleanup_frame {
-    pub __cancel_routine:
-        ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void)>,
-    pub __cancel_arg: *mut ::std::os::raw::c_void,
-    pub __do_it: ::std::os::raw::c_int,
-    pub __cancel_type: ::std::os::raw::c_int,
-}
-#[test]
-fn bindgen_test_layout___pthread_cleanup_frame() {
-    const UNINIT: ::std::mem::MaybeUninit<__pthread_cleanup_frame> =
-        ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<__pthread_cleanup_frame>(),
-        24usize,
-        concat!("Size of: ", stringify!(__pthread_cleanup_frame))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<__pthread_cleanup_frame>(),
-        8usize,
-        concat!("Alignment of ", stringify!(__pthread_cleanup_frame))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__cancel_routine) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__pthread_cleanup_frame),
-            "::",
-            stringify!(__cancel_routine)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__cancel_arg) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__pthread_cleanup_frame),
-            "::",
-            stringify!(__cancel_arg)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__do_it) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__pthread_cleanup_frame),
-            "::",
-            stringify!(__do_it)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).__cancel_type) as usize - ptr as usize },
-        20usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__pthread_cleanup_frame),
-            "::",
-            stringify!(__cancel_type)
-        )
-    );
-}
-impl Default for __pthread_cleanup_frame {
-    fn default() -> Self {
-        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
-        unsafe {
-            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
-            s.assume_init()
-        }
-    }
-}
-extern "C" {
-    pub fn __pthread_register_cancel(__buf: *mut __pthread_unwind_buf_t);
-}
-extern "C" {
-    pub fn __pthread_unregister_cancel(__buf: *mut __pthread_unwind_buf_t);
-}
-extern "C" {
-    pub fn __pthread_unwind_next(__buf: *mut __pthread_unwind_buf_t) -> !;
-}
-extern "C" {
-    pub fn __sigsetjmp(
-        __env: *mut __jmp_buf_tag,
-        __savemask: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutex_init(
-        __mutex: *mut pthread_mutex_t,
-        __mutexattr: *const pthread_mutexattr_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutex_destroy(__mutex: *mut pthread_mutex_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutex_trylock(__mutex: *mut pthread_mutex_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutex_lock(__mutex: *mut pthread_mutex_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutex_timedlock(
-        __mutex: *mut pthread_mutex_t,
-        __abstime: *const timespec,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutex_unlock(__mutex: *mut pthread_mutex_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutex_getprioceiling(
-        __mutex: *const pthread_mutex_t,
-        __prioceiling: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutex_setprioceiling(
-        __mutex: *mut pthread_mutex_t,
-        __prioceiling: ::std::os::raw::c_int,
-        __old_ceiling: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutex_consistent(__mutex: *mut pthread_mutex_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_init(__attr: *mut pthread_mutexattr_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_destroy(__attr: *mut pthread_mutexattr_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_getpshared(
-        __attr: *const pthread_mutexattr_t,
-        __pshared: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_setpshared(
-        __attr: *mut pthread_mutexattr_t,
-        __pshared: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_gettype(
-        __attr: *const pthread_mutexattr_t,
-        __kind: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_settype(
-        __attr: *mut pthread_mutexattr_t,
-        __kind: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_getprotocol(
-        __attr: *const pthread_mutexattr_t,
-        __protocol: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_setprotocol(
-        __attr: *mut pthread_mutexattr_t,
-        __protocol: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_getprioceiling(
-        __attr: *const pthread_mutexattr_t,
-        __prioceiling: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_setprioceiling(
-        __attr: *mut pthread_mutexattr_t,
-        __prioceiling: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_getrobust(
-        __attr: *const pthread_mutexattr_t,
-        __robustness: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_mutexattr_setrobust(
-        __attr: *mut pthread_mutexattr_t,
-        __robustness: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlock_init(
-        __rwlock: *mut pthread_rwlock_t,
-        __attr: *const pthread_rwlockattr_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlock_destroy(__rwlock: *mut pthread_rwlock_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlock_rdlock(__rwlock: *mut pthread_rwlock_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlock_tryrdlock(__rwlock: *mut pthread_rwlock_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlock_timedrdlock(
-        __rwlock: *mut pthread_rwlock_t,
-        __abstime: *const timespec,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlock_wrlock(__rwlock: *mut pthread_rwlock_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlock_trywrlock(__rwlock: *mut pthread_rwlock_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlock_timedwrlock(
-        __rwlock: *mut pthread_rwlock_t,
-        __abstime: *const timespec,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlock_unlock(__rwlock: *mut pthread_rwlock_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlockattr_init(__attr: *mut pthread_rwlockattr_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlockattr_destroy(__attr: *mut pthread_rwlockattr_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlockattr_getpshared(
-        __attr: *const pthread_rwlockattr_t,
-        __pshared: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlockattr_setpshared(
-        __attr: *mut pthread_rwlockattr_t,
-        __pshared: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlockattr_getkind_np(
-        __attr: *const pthread_rwlockattr_t,
-        __pref: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_rwlockattr_setkind_np(
-        __attr: *mut pthread_rwlockattr_t,
-        __pref: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_cond_init(
-        __cond: *mut pthread_cond_t,
-        __cond_attr: *const pthread_condattr_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_cond_destroy(__cond: *mut pthread_cond_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_cond_signal(__cond: *mut pthread_cond_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_cond_broadcast(__cond: *mut pthread_cond_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_cond_wait(
-        __cond: *mut pthread_cond_t,
-        __mutex: *mut pthread_mutex_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_cond_timedwait(
-        __cond: *mut pthread_cond_t,
-        __mutex: *mut pthread_mutex_t,
-        __abstime: *const timespec,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_condattr_init(__attr: *mut pthread_condattr_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_condattr_destroy(__attr: *mut pthread_condattr_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_condattr_getpshared(
-        __attr: *const pthread_condattr_t,
-        __pshared: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_condattr_setpshared(
-        __attr: *mut pthread_condattr_t,
-        __pshared: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_condattr_getclock(
-        __attr: *const pthread_condattr_t,
-        __clock_id: *mut __clockid_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_condattr_setclock(
-        __attr: *mut pthread_condattr_t,
-        __clock_id: __clockid_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_spin_init(
-        __lock: *mut pthread_spinlock_t,
-        __pshared: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_spin_destroy(__lock: *mut pthread_spinlock_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_spin_lock(__lock: *mut pthread_spinlock_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_spin_trylock(__lock: *mut pthread_spinlock_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_spin_unlock(__lock: *mut pthread_spinlock_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_barrier_init(
-        __barrier: *mut pthread_barrier_t,
-        __attr: *const pthread_barrierattr_t,
-        __count: ::std::os::raw::c_uint,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_barrier_destroy(__barrier: *mut pthread_barrier_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_barrier_wait(__barrier: *mut pthread_barrier_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_barrierattr_init(__attr: *mut pthread_barrierattr_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_barrierattr_destroy(__attr: *mut pthread_barrierattr_t)
-        -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_barrierattr_getpshared(
-        __attr: *const pthread_barrierattr_t,
-        __pshared: *mut ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_barrierattr_setpshared(
-        __attr: *mut pthread_barrierattr_t,
-        __pshared: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_key_create(
-        __key: *mut pthread_key_t,
-        __destr_function: ::std::option::Option<
-            unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void),
-        >,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_key_delete(__key: pthread_key_t) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_getspecific(__key: pthread_key_t) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn pthread_setspecific(
-        __key: pthread_key_t,
-        __pointer: *const ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_getcpuclockid(
-        __thread_id: pthread_t,
-        __clock_id: *mut __clockid_t,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn pthread_atfork(
-        __prepare: ::std::option::Option<unsafe extern "C" fn()>,
-        __parent: ::std::option::Option<unsafe extern "C" fn()>,
-        __child: ::std::option::Option<unsafe extern "C" fn()>,
-    ) -> ::std::os::raw::c_int;
-}
-pub type CRYPTO_ONCE = pthread_once_t;
-pub type CRYPTO_THREAD_LOCAL = pthread_key_t;
-pub type CRYPTO_THREAD_ID = pthread_t;
-extern "C" {
-    pub fn CRYPTO_THREAD_run_once(
-        once: *mut CRYPTO_ONCE,
-        init: ::std::option::Option<unsafe extern "C" fn()>,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_THREAD_init_local(
-        key: *mut CRYPTO_THREAD_LOCAL,
-        cleanup: ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void)>,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_THREAD_get_local(key: *mut CRYPTO_THREAD_LOCAL) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn CRYPTO_THREAD_set_local(
-        key: *mut CRYPTO_THREAD_LOCAL,
-        val: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_THREAD_cleanup_local(key: *mut CRYPTO_THREAD_LOCAL) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn CRYPTO_THREAD_get_current_id() -> CRYPTO_THREAD_ID;
-}
-extern "C" {
-    pub fn CRYPTO_THREAD_compare_id(
-        a: CRYPTO_THREAD_ID,
-        b: CRYPTO_THREAD_ID,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OSSL_LIB_CTX_new() -> *mut OSSL_LIB_CTX;
-}
-extern "C" {
-    pub fn OSSL_LIB_CTX_new_from_dispatch(
-        handle: *const OSSL_CORE_HANDLE,
-        in_: *const OSSL_DISPATCH,
-    ) -> *mut OSSL_LIB_CTX;
-}
-extern "C" {
-    pub fn OSSL_LIB_CTX_new_child(
-        handle: *const OSSL_CORE_HANDLE,
-        in_: *const OSSL_DISPATCH,
-    ) -> *mut OSSL_LIB_CTX;
-}
-extern "C" {
-    pub fn OSSL_LIB_CTX_load_config(
-        ctx: *mut OSSL_LIB_CTX,
-        config_file: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn OSSL_LIB_CTX_free(arg1: *mut OSSL_LIB_CTX);
-}
-extern "C" {
-    pub fn OSSL_LIB_CTX_get0_global_default() -> *mut OSSL_LIB_CTX;
-}
-extern "C" {
-    pub fn OSSL_LIB_CTX_set0_default(libctx: *mut OSSL_LIB_CTX) -> *mut OSSL_LIB_CTX;
-}
-extern "C" {
-    pub fn BN_set_flags(b: *mut BIGNUM, n: ::std::os::raw::c_int);
-}
-extern "C" {
-    pub fn BN_get_flags(b: *const BIGNUM, n: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_with_flags(dest: *mut BIGNUM, b: *const BIGNUM, flags: ::std::os::raw::c_int);
-}
-extern "C" {
-    pub fn BN_GENCB_call(
-        cb: *mut BN_GENCB,
-        a: ::std::os::raw::c_int,
-        b: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GENCB_new() -> *mut BN_GENCB;
-}
-extern "C" {
-    pub fn BN_GENCB_free(cb: *mut BN_GENCB);
-}
-extern "C" {
-    pub fn BN_GENCB_set_old(
-        gencb: *mut BN_GENCB,
-        callback: ::std::option::Option<
-            unsafe extern "C" fn(
-                arg1: ::std::os::raw::c_int,
-                arg2: ::std::os::raw::c_int,
-                arg3: *mut ::std::os::raw::c_void,
-            ),
-        >,
-        cb_arg: *mut ::std::os::raw::c_void,
-    );
-}
-extern "C" {
-    pub fn BN_GENCB_set(
-        gencb: *mut BN_GENCB,
-        callback: ::std::option::Option<
-            unsafe extern "C" fn(
-                arg1: ::std::os::raw::c_int,
-                arg2: ::std::os::raw::c_int,
-                arg3: *mut BN_GENCB,
-            ) -> ::std::os::raw::c_int,
-        >,
-        cb_arg: *mut ::std::os::raw::c_void,
-    );
-}
-extern "C" {
-    pub fn BN_GENCB_get_arg(cb: *mut BN_GENCB) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn BN_abs_is_word(a: *const BIGNUM, w: ::std::os::raw::c_ulong) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_is_zero(a: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_is_one(a: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_is_word(a: *const BIGNUM, w: ::std::os::raw::c_ulong) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_is_odd(a: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_zero_ex(a: *mut BIGNUM);
-}
-extern "C" {
-    pub fn BN_value_one() -> *const BIGNUM;
-}
-extern "C" {
-    pub fn BN_options() -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn BN_CTX_new_ex(ctx: *mut OSSL_LIB_CTX) -> *mut BN_CTX;
-}
-extern "C" {
-    pub fn BN_CTX_new() -> *mut BN_CTX;
-}
-extern "C" {
-    pub fn BN_CTX_secure_new_ex(ctx: *mut OSSL_LIB_CTX) -> *mut BN_CTX;
-}
-extern "C" {
-    pub fn BN_CTX_secure_new() -> *mut BN_CTX;
-}
-extern "C" {
-    pub fn BN_CTX_free(c: *mut BN_CTX);
-}
-extern "C" {
-    pub fn BN_CTX_start(ctx: *mut BN_CTX);
-}
-extern "C" {
-    pub fn BN_CTX_get(ctx: *mut BN_CTX) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_CTX_end(ctx: *mut BN_CTX);
-}
-extern "C" {
-    pub fn BN_rand_ex(
-        rnd: *mut BIGNUM,
-        bits: ::std::os::raw::c_int,
-        top: ::std::os::raw::c_int,
-        bottom: ::std::os::raw::c_int,
-        strength: ::std::os::raw::c_uint,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_rand(
-        rnd: *mut BIGNUM,
-        bits: ::std::os::raw::c_int,
-        top: ::std::os::raw::c_int,
-        bottom: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_priv_rand_ex(
-        rnd: *mut BIGNUM,
-        bits: ::std::os::raw::c_int,
-        top: ::std::os::raw::c_int,
-        bottom: ::std::os::raw::c_int,
-        strength: ::std::os::raw::c_uint,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_priv_rand(
-        rnd: *mut BIGNUM,
-        bits: ::std::os::raw::c_int,
-        top: ::std::os::raw::c_int,
-        bottom: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_rand_range_ex(
-        r: *mut BIGNUM,
-        range: *const BIGNUM,
-        strength: ::std::os::raw::c_uint,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_rand_range(rnd: *mut BIGNUM, range: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_priv_rand_range_ex(
-        r: *mut BIGNUM,
-        range: *const BIGNUM,
-        strength: ::std::os::raw::c_uint,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_priv_rand_range(rnd: *mut BIGNUM, range: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_pseudo_rand(
-        rnd: *mut BIGNUM,
-        bits: ::std::os::raw::c_int,
-        top: ::std::os::raw::c_int,
-        bottom: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_pseudo_rand_range(rnd: *mut BIGNUM, range: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_num_bits(a: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_num_bits_word(l: ::std::os::raw::c_ulong) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_security_bits(
-        L: ::std::os::raw::c_int,
-        N: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_new() -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_secure_new() -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_clear_free(a: *mut BIGNUM);
-}
-extern "C" {
-    pub fn BN_copy(a: *mut BIGNUM, b: *const BIGNUM) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_swap(a: *mut BIGNUM, b: *mut BIGNUM);
-}
-extern "C" {
-    pub fn BN_bin2bn(
-        s: *const ::std::os::raw::c_uchar,
-        len: ::std::os::raw::c_int,
-        ret: *mut BIGNUM,
-    ) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_bn2bin(a: *const BIGNUM, to: *mut ::std::os::raw::c_uchar) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_bn2binpad(
-        a: *const BIGNUM,
-        to: *mut ::std::os::raw::c_uchar,
-        tolen: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_lebin2bn(
-        s: *const ::std::os::raw::c_uchar,
-        len: ::std::os::raw::c_int,
-        ret: *mut BIGNUM,
-    ) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_bn2lebinpad(
-        a: *const BIGNUM,
-        to: *mut ::std::os::raw::c_uchar,
-        tolen: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_native2bn(
-        s: *const ::std::os::raw::c_uchar,
-        len: ::std::os::raw::c_int,
-        ret: *mut BIGNUM,
-    ) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_bn2nativepad(
-        a: *const BIGNUM,
-        to: *mut ::std::os::raw::c_uchar,
-        tolen: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mpi2bn(
-        s: *const ::std::os::raw::c_uchar,
-        len: ::std::os::raw::c_int,
-        ret: *mut BIGNUM,
-    ) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_bn2mpi(a: *const BIGNUM, to: *mut ::std::os::raw::c_uchar) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_sub(r: *mut BIGNUM, a: *const BIGNUM, b: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_usub(r: *mut BIGNUM, a: *const BIGNUM, b: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_uadd(r: *mut BIGNUM, a: *const BIGNUM, b: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_add(r: *mut BIGNUM, a: *const BIGNUM, b: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mul(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_sqr(r: *mut BIGNUM, a: *const BIGNUM, ctx: *mut BN_CTX) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_set_negative(b: *mut BIGNUM, n: ::std::os::raw::c_int);
-}
-extern "C" {
-    pub fn BN_is_negative(b: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_div(
-        dv: *mut BIGNUM,
-        rem: *mut BIGNUM,
-        m: *const BIGNUM,
-        d: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_nnmod(
-        r: *mut BIGNUM,
-        m: *const BIGNUM,
-        d: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_add(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_add_quick(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        m: *const BIGNUM,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_sub(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_sub_quick(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        m: *const BIGNUM,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_mul(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_sqr(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_lshift1(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_lshift1_quick(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        m: *const BIGNUM,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_lshift(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        n: ::std::os::raw::c_int,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_lshift_quick(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        n: ::std::os::raw::c_int,
-        m: *const BIGNUM,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_word(a: *const BIGNUM, w: ::std::os::raw::c_ulong) -> ::std::os::raw::c_ulong;
-}
-extern "C" {
-    pub fn BN_div_word(a: *mut BIGNUM, w: ::std::os::raw::c_ulong) -> ::std::os::raw::c_ulong;
-}
-extern "C" {
-    pub fn BN_mul_word(a: *mut BIGNUM, w: ::std::os::raw::c_ulong) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_add_word(a: *mut BIGNUM, w: ::std::os::raw::c_ulong) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_sub_word(a: *mut BIGNUM, w: ::std::os::raw::c_ulong) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_set_word(a: *mut BIGNUM, w: ::std::os::raw::c_ulong) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_get_word(a: *const BIGNUM) -> ::std::os::raw::c_ulong;
-}
-extern "C" {
-    pub fn BN_cmp(a: *const BIGNUM, b: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_free(a: *mut BIGNUM);
-}
-extern "C" {
-    pub fn BN_is_bit_set(a: *const BIGNUM, n: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_lshift(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        n: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_lshift1(r: *mut BIGNUM, a: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_exp(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_exp(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_exp_mont(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-        m_ctx: *mut BN_MONT_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_exp_mont_consttime(
-        rr: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-        in_mont: *mut BN_MONT_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_exp_mont_word(
-        r: *mut BIGNUM,
-        a: ::std::os::raw::c_ulong,
-        p: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-        m_ctx: *mut BN_MONT_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_exp2_mont(
-        r: *mut BIGNUM,
-        a1: *const BIGNUM,
-        p1: *const BIGNUM,
-        a2: *const BIGNUM,
-        p2: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-        m_ctx: *mut BN_MONT_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_exp_simple(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_exp_mont_consttime_x2(
-        rr1: *mut BIGNUM,
-        a1: *const BIGNUM,
-        p1: *const BIGNUM,
-        m1: *const BIGNUM,
-        in_mont1: *mut BN_MONT_CTX,
-        rr2: *mut BIGNUM,
-        a2: *const BIGNUM,
-        p2: *const BIGNUM,
-        m2: *const BIGNUM,
-        in_mont2: *mut BN_MONT_CTX,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mask_bits(a: *mut BIGNUM, n: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_print_fp(fp: *mut FILE, a: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_print(bio: *mut BIO, a: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_reciprocal(
-        r: *mut BIGNUM,
-        m: *const BIGNUM,
-        len: ::std::os::raw::c_int,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_rshift(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        n: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_rshift1(r: *mut BIGNUM, a: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_clear(a: *mut BIGNUM);
-}
-extern "C" {
-    pub fn BN_dup(a: *const BIGNUM) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_ucmp(a: *const BIGNUM, b: *const BIGNUM) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_set_bit(a: *mut BIGNUM, n: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_clear_bit(a: *mut BIGNUM, n: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_bn2hex(a: *const BIGNUM) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn BN_bn2dec(a: *const BIGNUM) -> *mut ::std::os::raw::c_char;
-}
-extern "C" {
-    pub fn BN_hex2bn(
-        a: *mut *mut BIGNUM,
-        str_: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_dec2bn(
-        a: *mut *mut BIGNUM,
-        str_: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_asc2bn(
-        a: *mut *mut BIGNUM,
-        str_: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_gcd(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_kronecker(
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_inverse(
-        ret: *mut BIGNUM,
-        a: *const BIGNUM,
-        n: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_mod_sqrt(
-        ret: *mut BIGNUM,
-        a: *const BIGNUM,
-        n: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_consttime_swap(
-        swap: ::std::os::raw::c_ulong,
-        a: *mut BIGNUM,
-        b: *mut BIGNUM,
-        nwords: ::std::os::raw::c_int,
-    );
-}
-extern "C" {
-    pub fn BN_generate_prime(
-        ret: *mut BIGNUM,
-        bits: ::std::os::raw::c_int,
-        safe: ::std::os::raw::c_int,
-        add: *const BIGNUM,
-        rem: *const BIGNUM,
-        callback: ::std::option::Option<
-            unsafe extern "C" fn(
-                arg1: ::std::os::raw::c_int,
-                arg2: ::std::os::raw::c_int,
-                arg3: *mut ::std::os::raw::c_void,
-            ),
-        >,
-        cb_arg: *mut ::std::os::raw::c_void,
-    ) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_is_prime(
-        p: *const BIGNUM,
-        nchecks: ::std::os::raw::c_int,
-        callback: ::std::option::Option<
-            unsafe extern "C" fn(
-                arg1: ::std::os::raw::c_int,
-                arg2: ::std::os::raw::c_int,
-                arg3: *mut ::std::os::raw::c_void,
-            ),
-        >,
-        ctx: *mut BN_CTX,
-        cb_arg: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_is_prime_fasttest(
-        p: *const BIGNUM,
-        nchecks: ::std::os::raw::c_int,
-        callback: ::std::option::Option<
-            unsafe extern "C" fn(
-                arg1: ::std::os::raw::c_int,
-                arg2: ::std::os::raw::c_int,
-                arg3: *mut ::std::os::raw::c_void,
-            ),
-        >,
-        ctx: *mut BN_CTX,
-        cb_arg: *mut ::std::os::raw::c_void,
-        do_trial_division: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_is_prime_ex(
-        p: *const BIGNUM,
-        nchecks: ::std::os::raw::c_int,
-        ctx: *mut BN_CTX,
-        cb: *mut BN_GENCB,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_is_prime_fasttest_ex(
-        p: *const BIGNUM,
-        nchecks: ::std::os::raw::c_int,
-        ctx: *mut BN_CTX,
-        do_trial_division: ::std::os::raw::c_int,
-        cb: *mut BN_GENCB,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_generate_prime_ex2(
-        ret: *mut BIGNUM,
-        bits: ::std::os::raw::c_int,
-        safe: ::std::os::raw::c_int,
-        add: *const BIGNUM,
-        rem: *const BIGNUM,
-        cb: *mut BN_GENCB,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_generate_prime_ex(
-        ret: *mut BIGNUM,
-        bits: ::std::os::raw::c_int,
-        safe: ::std::os::raw::c_int,
-        add: *const BIGNUM,
-        rem: *const BIGNUM,
-        cb: *mut BN_GENCB,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_check_prime(
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-        cb: *mut BN_GENCB,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_X931_generate_Xpq(
-        Xp: *mut BIGNUM,
-        Xq: *mut BIGNUM,
-        nbits: ::std::os::raw::c_int,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_X931_derive_prime_ex(
-        p: *mut BIGNUM,
-        p1: *mut BIGNUM,
-        p2: *mut BIGNUM,
-        Xp: *const BIGNUM,
-        Xp1: *const BIGNUM,
-        Xp2: *const BIGNUM,
-        e: *const BIGNUM,
-        ctx: *mut BN_CTX,
-        cb: *mut BN_GENCB,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_X931_generate_prime_ex(
-        p: *mut BIGNUM,
-        p1: *mut BIGNUM,
-        p2: *mut BIGNUM,
-        Xp1: *mut BIGNUM,
-        Xp2: *mut BIGNUM,
-        Xp: *const BIGNUM,
-        e: *const BIGNUM,
-        ctx: *mut BN_CTX,
-        cb: *mut BN_GENCB,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_MONT_CTX_new() -> *mut BN_MONT_CTX;
-}
-extern "C" {
-    pub fn BN_mod_mul_montgomery(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        mont: *mut BN_MONT_CTX,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_to_montgomery(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        mont: *mut BN_MONT_CTX,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_from_montgomery(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        mont: *mut BN_MONT_CTX,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_MONT_CTX_free(mont: *mut BN_MONT_CTX);
-}
-extern "C" {
-    pub fn BN_MONT_CTX_set(
-        mont: *mut BN_MONT_CTX,
-        mod_: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_MONT_CTX_copy(to: *mut BN_MONT_CTX, from: *mut BN_MONT_CTX) -> *mut BN_MONT_CTX;
-}
-extern "C" {
-    pub fn BN_MONT_CTX_set_locked(
-        pmont: *mut *mut BN_MONT_CTX,
-        lock: *mut CRYPTO_RWLOCK,
-        mod_: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> *mut BN_MONT_CTX;
-}
-extern "C" {
-    pub fn BN_BLINDING_new(
-        A: *const BIGNUM,
-        Ai: *const BIGNUM,
-        mod_: *mut BIGNUM,
-    ) -> *mut BN_BLINDING;
-}
-extern "C" {
-    pub fn BN_BLINDING_free(b: *mut BN_BLINDING);
-}
-extern "C" {
-    pub fn BN_BLINDING_update(b: *mut BN_BLINDING, ctx: *mut BN_CTX) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_BLINDING_convert(
-        n: *mut BIGNUM,
-        b: *mut BN_BLINDING,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_BLINDING_invert(
-        n: *mut BIGNUM,
-        b: *mut BN_BLINDING,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_BLINDING_convert_ex(
-        n: *mut BIGNUM,
-        r: *mut BIGNUM,
-        b: *mut BN_BLINDING,
-        arg1: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_BLINDING_invert_ex(
-        n: *mut BIGNUM,
-        r: *const BIGNUM,
-        b: *mut BN_BLINDING,
-        arg1: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_BLINDING_is_current_thread(b: *mut BN_BLINDING) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_BLINDING_set_current_thread(b: *mut BN_BLINDING);
-}
-extern "C" {
-    pub fn BN_BLINDING_lock(b: *mut BN_BLINDING) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_BLINDING_unlock(b: *mut BN_BLINDING) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_BLINDING_get_flags(arg1: *const BN_BLINDING) -> ::std::os::raw::c_ulong;
-}
-extern "C" {
-    pub fn BN_BLINDING_set_flags(arg1: *mut BN_BLINDING, arg2: ::std::os::raw::c_ulong);
-}
-extern "C" {
-    pub fn BN_BLINDING_create_param(
-        b: *mut BN_BLINDING,
-        e: *const BIGNUM,
-        m: *mut BIGNUM,
-        ctx: *mut BN_CTX,
-        bn_mod_exp: ::std::option::Option<
-            unsafe extern "C" fn(
-                r: *mut BIGNUM,
-                a: *const BIGNUM,
-                p: *const BIGNUM,
-                m: *const BIGNUM,
-                ctx: *mut BN_CTX,
-                m_ctx: *mut BN_MONT_CTX,
-            ) -> ::std::os::raw::c_int,
-        >,
-        m_ctx: *mut BN_MONT_CTX,
-    ) -> *mut BN_BLINDING;
-}
-extern "C" {
-    pub fn BN_set_params(
-        mul: ::std::os::raw::c_int,
-        high: ::std::os::raw::c_int,
-        low: ::std::os::raw::c_int,
-        mont: ::std::os::raw::c_int,
-    );
-}
-extern "C" {
-    pub fn BN_get_params(which: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_RECP_CTX_new() -> *mut BN_RECP_CTX;
-}
-extern "C" {
-    pub fn BN_RECP_CTX_free(recp: *mut BN_RECP_CTX);
-}
-extern "C" {
-    pub fn BN_RECP_CTX_set(
-        recp: *mut BN_RECP_CTX,
-        rdiv: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_mul_reciprocal(
-        r: *mut BIGNUM,
-        x: *const BIGNUM,
-        y: *const BIGNUM,
-        recp: *mut BN_RECP_CTX,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_mod_exp_recp(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        m: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_div_recp(
-        dv: *mut BIGNUM,
-        rem: *mut BIGNUM,
-        m: *const BIGNUM,
-        recp: *mut BN_RECP_CTX,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_add(r: *mut BIGNUM, a: *const BIGNUM, b: *const BIGNUM)
-        -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod(r: *mut BIGNUM, a: *const BIGNUM, p: *const BIGNUM)
-        -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_mul(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_sqr(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_inv(
-        r: *mut BIGNUM,
-        b: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_div(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_exp(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_sqrt(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_solve_quad(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_arr(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_mul_arr(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        p: *const ::std::os::raw::c_int,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_sqr_arr(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const ::std::os::raw::c_int,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_inv_arr(
-        r: *mut BIGNUM,
-        b: *const BIGNUM,
-        p: *const ::std::os::raw::c_int,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_div_arr(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        p: *const ::std::os::raw::c_int,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_exp_arr(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        b: *const BIGNUM,
-        p: *const ::std::os::raw::c_int,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_sqrt_arr(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const ::std::os::raw::c_int,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_mod_solve_quad_arr(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const ::std::os::raw::c_int,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_poly2arr(
-        a: *const BIGNUM,
-        p: *mut ::std::os::raw::c_int,
-        max: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_GF2m_arr2poly(
-        p: *const ::std::os::raw::c_int,
-        a: *mut BIGNUM,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_nist_mod_192(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_nist_mod_224(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_nist_mod_256(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_nist_mod_384(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_nist_mod_521(
-        r: *mut BIGNUM,
-        a: *const BIGNUM,
-        p: *const BIGNUM,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_get0_nist_prime_192() -> *const BIGNUM;
-}
-extern "C" {
-    pub fn BN_get0_nist_prime_224() -> *const BIGNUM;
-}
-extern "C" {
-    pub fn BN_get0_nist_prime_256() -> *const BIGNUM;
-}
-extern "C" {
-    pub fn BN_get0_nist_prime_384() -> *const BIGNUM;
-}
-extern "C" {
-    pub fn BN_get0_nist_prime_521() -> *const BIGNUM;
-}
-extern "C" {
-    pub fn BN_nist_mod_func(
-        p: *const BIGNUM,
-    ) -> ::std::option::Option<
-        unsafe extern "C" fn(
-            p: *mut BIGNUM,
-            arg1: *const BIGNUM,
-            arg2: *const BIGNUM,
-            arg3: *mut BN_CTX,
-        ) -> ::std::os::raw::c_int,
-    >;
-}
-extern "C" {
-    pub fn BN_generate_dsa_nonce(
-        out: *mut BIGNUM,
-        range: *const BIGNUM,
-        priv_: *const BIGNUM,
-        message: *const ::std::os::raw::c_uchar,
-        message_len: usize,
-        ctx: *mut BN_CTX,
-    ) -> ::std::os::raw::c_int;
-}
-extern "C" {
-    pub fn BN_get_rfc2409_prime_768(bn: *mut BIGNUM) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_get_rfc2409_prime_1024(bn: *mut BIGNUM) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_get_rfc3526_prime_1536(bn: *mut BIGNUM) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_get_rfc3526_prime_2048(bn: *mut BIGNUM) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_get_rfc3526_prime_3072(bn: *mut BIGNUM) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_get_rfc3526_prime_4096(bn: *mut BIGNUM) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_get_rfc3526_prime_6144(bn: *mut BIGNUM) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_get_rfc3526_prime_8192(bn: *mut BIGNUM) -> *mut BIGNUM;
-}
-extern "C" {
-    pub fn BN_bntest_rand(
-        rnd: *mut BIGNUM,
-        bits: ::std::os::raw::c_int,
-        top: ::std::os::raw::c_int,
-        bottom: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
-}
 extern "C" {
     pub fn rz_axml_decode(
         buffer: *const ::std::os::raw::c_uchar,
@@ -22245,18 +16539,12 @@ extern "C" {
         oldmask: *mut sigset_t,
     );
 }
-pub type RMalloc =
-    ::std::option::Option<unsafe extern "C" fn(arg1: usize) -> *mut ::std::os::raw::c_void>;
-pub type RCalloc = ::std::option::Option<
-    unsafe extern "C" fn(arg1: usize, arg2: usize) -> *mut ::std::os::raw::c_void,
->;
-pub type RRealloc = ::std::option::Option<
-    unsafe extern "C" fn(
-        arg1: *mut ::std::os::raw::c_void,
-        arg2: usize,
-    ) -> *mut ::std::os::raw::c_void,
->;
-pub type RFree = ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void)>;
+extern "C" {
+    pub fn rz_mem_alloc(sz: usize) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn rz_mem_free(arg1: *mut ::std::os::raw::c_void);
+}
 extern "C" {
     pub fn rz_malloc_aligned(size: usize, alignment: usize) -> *mut ::std::os::raw::c_void;
 }
@@ -22844,83 +17132,134 @@ extern "C" {
     ) -> bool;
 }
 pub type RzIntervalTreeIter = RBIter;
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_num_big_t {
+    pub array: [::std::os::raw::c_uint; 128usize],
+    pub sign: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout_rz_num_big_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_num_big_t> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_num_big_t>(),
+        516usize,
+        concat!("Size of: ", stringify!(rz_num_big_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_num_big_t>(),
+        4usize,
+        concat!("Alignment of ", stringify!(rz_num_big_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).array) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_num_big_t),
+            "::",
+            stringify!(array)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).sign) as usize - ptr as usize },
+        512usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_num_big_t),
+            "::",
+            stringify!(sign)
+        )
+    );
+}
+impl Default for rz_num_big_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+pub type RzNumBig = rz_num_big_t;
 extern "C" {
-    pub fn rz_big_new() -> *mut BIGNUM;
+    pub fn rz_big_new() -> *mut RzNumBig;
 }
 extern "C" {
-    pub fn rz_big_free(b: *mut BIGNUM);
+    pub fn rz_big_free(b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_init(b: *mut BIGNUM);
+    pub fn rz_big_init(b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_fini(b: *mut BIGNUM);
+    pub fn rz_big_fini(b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_from_int(b: *mut BIGNUM, v: ::std::os::raw::c_longlong);
+    pub fn rz_big_from_int(b: *mut RzNumBig, v: ::std::os::raw::c_longlong);
 }
 extern "C" {
-    pub fn rz_big_to_int(b: *mut BIGNUM) -> ::std::os::raw::c_longlong;
+    pub fn rz_big_to_int(b: *mut RzNumBig) -> ::std::os::raw::c_longlong;
 }
 extern "C" {
-    pub fn rz_big_from_hexstr(b: *mut BIGNUM, str_: *const ::std::os::raw::c_char);
+    pub fn rz_big_from_hexstr(b: *mut RzNumBig, str_: *const ::std::os::raw::c_char);
 }
 extern "C" {
-    pub fn rz_big_to_hexstr(b: *mut BIGNUM) -> *mut ::std::os::raw::c_char;
+    pub fn rz_big_to_hexstr(b: *mut RzNumBig) -> *mut ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn rz_big_assign(dst: *mut BIGNUM, src: *mut BIGNUM);
+    pub fn rz_big_assign(dst: *mut RzNumBig, src: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_add(c: *mut BIGNUM, a: *mut BIGNUM, b: *mut BIGNUM);
+    pub fn rz_big_add(c: *mut RzNumBig, a: *mut RzNumBig, b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_sub(c: *mut BIGNUM, a: *mut BIGNUM, b: *mut BIGNUM);
+    pub fn rz_big_sub(c: *mut RzNumBig, a: *mut RzNumBig, b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_mul(c: *mut BIGNUM, a: *mut BIGNUM, b: *mut BIGNUM);
+    pub fn rz_big_mul(c: *mut RzNumBig, a: *mut RzNumBig, b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_div(c: *mut BIGNUM, a: *mut BIGNUM, b: *mut BIGNUM);
+    pub fn rz_big_div(c: *mut RzNumBig, a: *mut RzNumBig, b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_mod(c: *mut BIGNUM, a: *mut BIGNUM, b: *mut BIGNUM);
+    pub fn rz_big_mod(c: *mut RzNumBig, a: *mut RzNumBig, b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_divmod(c: *mut BIGNUM, d: *mut BIGNUM, a: *mut BIGNUM, b: *mut BIGNUM);
+    pub fn rz_big_divmod(c: *mut RzNumBig, d: *mut RzNumBig, a: *mut RzNumBig, b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_and(c: *mut BIGNUM, a: *mut BIGNUM, b: *mut BIGNUM);
+    pub fn rz_big_and(c: *mut RzNumBig, a: *mut RzNumBig, b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_or(c: *mut BIGNUM, a: *mut BIGNUM, b: *mut BIGNUM);
+    pub fn rz_big_or(c: *mut RzNumBig, a: *mut RzNumBig, b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_xor(c: *mut BIGNUM, a: *mut BIGNUM, b: *mut BIGNUM);
+    pub fn rz_big_xor(c: *mut RzNumBig, a: *mut RzNumBig, b: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_lshift(c: *mut BIGNUM, a: *mut BIGNUM, nbits: usize);
+    pub fn rz_big_lshift(c: *mut RzNumBig, a: *mut RzNumBig, nbits: usize);
 }
 extern "C" {
-    pub fn rz_big_rshift(c: *mut BIGNUM, a: *mut BIGNUM, nbits: usize);
+    pub fn rz_big_rshift(c: *mut RzNumBig, a: *mut RzNumBig, nbits: usize);
 }
 extern "C" {
-    pub fn rz_big_cmp(a: *mut BIGNUM, b: *mut BIGNUM) -> ::std::os::raw::c_int;
+    pub fn rz_big_cmp(a: *mut RzNumBig, b: *mut RzNumBig) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn rz_big_is_zero(a: *mut BIGNUM) -> ::std::os::raw::c_int;
+    pub fn rz_big_is_zero(a: *mut RzNumBig) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn rz_big_inc(a: *mut BIGNUM);
+    pub fn rz_big_inc(a: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_dec(a: *mut BIGNUM);
+    pub fn rz_big_dec(a: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_powm(c: *mut BIGNUM, a: *mut BIGNUM, b: *mut BIGNUM, m: *mut BIGNUM);
+    pub fn rz_big_powm(c: *mut RzNumBig, a: *mut RzNumBig, b: *mut RzNumBig, m: *mut RzNumBig);
 }
 extern "C" {
-    pub fn rz_big_isqrt(c: *mut BIGNUM, a: *mut BIGNUM);
+    pub fn rz_big_isqrt(c: *mut RzNumBig, a: *mut RzNumBig);
 }
 extern "C" {
     pub fn rz_base64_encode(
@@ -23070,12 +17409,6 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_void;
 }
 extern "C" {
-    pub fn rz_mem_alloc(sz: ::std::os::raw::c_int) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn rz_mem_free(arg1: *mut ::std::os::raw::c_void);
-}
-extern "C" {
     pub fn rz_mem_memzero(arg1: *mut ::std::os::raw::c_void, arg2: usize);
 }
 extern "C" {
@@ -23101,6 +17434,14 @@ extern "C" {
         b: *const ::std::os::raw::c_uchar,
         len: ::std::os::raw::c_int,
     ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn rz_mem_eq_masked(
+        a: *const ::std::os::raw::c_uchar,
+        b: *const ::std::os::raw::c_uchar,
+        mask: *const ::std::os::raw::c_uchar,
+        size: usize,
+    ) -> bool;
 }
 extern "C" {
     pub fn rz_mem_copybits(
@@ -23133,21 +17474,6 @@ extern "C" {
         src: *const ::std::os::raw::c_void,
         smax: usize,
     ) -> *mut ::std::os::raw::c_void;
-}
-extern "C" {
-    pub fn rz_mem_swapendian(
-        dest: *mut ::std::os::raw::c_uchar,
-        orig: *const ::std::os::raw::c_uchar,
-        size: ::std::os::raw::c_int,
-    );
-}
-extern "C" {
-    pub fn rz_mem_cmp_mask(
-        dest: *const ::std::os::raw::c_uchar,
-        orig: *const ::std::os::raw::c_uchar,
-        mask: *const ::std::os::raw::c_uchar,
-        len: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn rz_mem_mem(
@@ -23877,46 +18203,145 @@ extern "C" {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct rz_bitmap_t {
-    pub length: usize,
-    pub bitmap: *mut ::std::os::raw::c_ulonglong,
+pub struct tm {
+    pub tm_sec: ::std::os::raw::c_int,
+    pub tm_min: ::std::os::raw::c_int,
+    pub tm_hour: ::std::os::raw::c_int,
+    pub tm_mday: ::std::os::raw::c_int,
+    pub tm_mon: ::std::os::raw::c_int,
+    pub tm_year: ::std::os::raw::c_int,
+    pub tm_wday: ::std::os::raw::c_int,
+    pub tm_yday: ::std::os::raw::c_int,
+    pub tm_isdst: ::std::os::raw::c_int,
+    pub tm_gmtoff: ::std::os::raw::c_long,
+    pub tm_zone: *const ::std::os::raw::c_char,
 }
 #[test]
-fn bindgen_test_layout_rz_bitmap_t() {
-    const UNINIT: ::std::mem::MaybeUninit<rz_bitmap_t> = ::std::mem::MaybeUninit::uninit();
+fn bindgen_test_layout_tm() {
+    const UNINIT: ::std::mem::MaybeUninit<tm> = ::std::mem::MaybeUninit::uninit();
     let ptr = UNINIT.as_ptr();
     assert_eq!(
-        ::std::mem::size_of::<rz_bitmap_t>(),
-        16usize,
-        concat!("Size of: ", stringify!(rz_bitmap_t))
+        ::std::mem::size_of::<tm>(),
+        56usize,
+        concat!("Size of: ", stringify!(tm))
     );
     assert_eq!(
-        ::std::mem::align_of::<rz_bitmap_t>(),
+        ::std::mem::align_of::<tm>(),
         8usize,
-        concat!("Alignment of ", stringify!(rz_bitmap_t))
+        concat!("Alignment of ", stringify!(tm))
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).length) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).tm_sec) as usize - ptr as usize },
         0usize,
         concat!(
             "Offset of field: ",
-            stringify!(rz_bitmap_t),
+            stringify!(tm),
             "::",
-            stringify!(length)
+            stringify!(tm_sec)
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).bitmap) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).tm_min) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tm),
+            "::",
+            stringify!(tm_min)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).tm_hour) as usize - ptr as usize },
         8usize,
         concat!(
             "Offset of field: ",
-            stringify!(rz_bitmap_t),
+            stringify!(tm),
             "::",
-            stringify!(bitmap)
+            stringify!(tm_hour)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).tm_mday) as usize - ptr as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tm),
+            "::",
+            stringify!(tm_mday)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).tm_mon) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tm),
+            "::",
+            stringify!(tm_mon)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).tm_year) as usize - ptr as usize },
+        20usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tm),
+            "::",
+            stringify!(tm_year)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).tm_wday) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tm),
+            "::",
+            stringify!(tm_wday)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).tm_yday) as usize - ptr as usize },
+        28usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tm),
+            "::",
+            stringify!(tm_yday)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).tm_isdst) as usize - ptr as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tm),
+            "::",
+            stringify!(tm_isdst)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).tm_gmtoff) as usize - ptr as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tm),
+            "::",
+            stringify!(tm_gmtoff)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).tm_zone) as usize - ptr as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(tm),
+            "::",
+            stringify!(tm_zone)
         )
     );
 }
-impl Default for rz_bitmap_t {
+impl Default for tm {
     fn default() -> Self {
         let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
         unsafe {
@@ -23925,24 +18350,191 @@ impl Default for rz_bitmap_t {
         }
     }
 }
-pub type RzBitmap = rz_bitmap_t;
-extern "C" {
-    pub fn rz_bitmap_new(len: usize) -> *mut RzBitmap;
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
+pub struct itimerspec {
+    pub it_interval: timespec,
+    pub it_value: timespec,
+}
+#[test]
+fn bindgen_test_layout_itimerspec() {
+    const UNINIT: ::std::mem::MaybeUninit<itimerspec> = ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<itimerspec>(),
+        32usize,
+        concat!("Size of: ", stringify!(itimerspec))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<itimerspec>(),
+        8usize,
+        concat!("Alignment of ", stringify!(itimerspec))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).it_interval) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(itimerspec),
+            "::",
+            stringify!(it_interval)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).it_value) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(itimerspec),
+            "::",
+            stringify!(it_value)
+        )
+    );
 }
 extern "C" {
-    pub fn rz_bitmap_set_bytes(b: *mut RzBitmap, buf: *const ::std::os::raw::c_uchar, len: usize);
+    pub fn clock() -> clock_t;
 }
 extern "C" {
-    pub fn rz_bitmap_free(b: *mut RzBitmap);
+    pub fn time(__timer: *mut time_t) -> time_t;
 }
 extern "C" {
-    pub fn rz_bitmap_set(b: *mut RzBitmap, bit: usize);
+    pub fn difftime(__time1: time_t, __time0: time_t) -> f64;
 }
 extern "C" {
-    pub fn rz_bitmap_unset(b: *mut RzBitmap, bit: usize);
+    pub fn mktime(__tp: *mut tm) -> time_t;
 }
 extern "C" {
-    pub fn rz_bitmap_test(b: *mut RzBitmap, bit: usize) -> ::std::os::raw::c_int;
+    pub fn strftime(
+        __s: *mut ::std::os::raw::c_char,
+        __maxsize: usize,
+        __format: *const ::std::os::raw::c_char,
+        __tp: *const tm,
+    ) -> usize;
+}
+extern "C" {
+    pub fn strftime_l(
+        __s: *mut ::std::os::raw::c_char,
+        __maxsize: usize,
+        __format: *const ::std::os::raw::c_char,
+        __tp: *const tm,
+        __loc: locale_t,
+    ) -> usize;
+}
+extern "C" {
+    pub fn gmtime(__timer: *const time_t) -> *mut tm;
+}
+extern "C" {
+    pub fn localtime(__timer: *const time_t) -> *mut tm;
+}
+extern "C" {
+    pub fn gmtime_r(__timer: *const time_t, __tp: *mut tm) -> *mut tm;
+}
+extern "C" {
+    pub fn localtime_r(__timer: *const time_t, __tp: *mut tm) -> *mut tm;
+}
+extern "C" {
+    pub fn asctime(__tp: *const tm) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn ctime(__timer: *const time_t) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn asctime_r(
+        __tp: *const tm,
+        __buf: *mut ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn ctime_r(
+        __timer: *const time_t,
+        __buf: *mut ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub static mut __tzname: [*mut ::std::os::raw::c_char; 2usize];
+}
+extern "C" {
+    pub static mut __daylight: ::std::os::raw::c_int;
+}
+extern "C" {
+    pub static mut __timezone: ::std::os::raw::c_long;
+}
+extern "C" {
+    pub static mut tzname: [*mut ::std::os::raw::c_char; 2usize];
+}
+extern "C" {
+    pub fn tzset();
+}
+extern "C" {
+    pub static mut daylight: ::std::os::raw::c_int;
+}
+extern "C" {
+    pub static mut timezone: ::std::os::raw::c_long;
+}
+extern "C" {
+    pub fn timegm(__tp: *mut tm) -> time_t;
+}
+extern "C" {
+    pub fn timelocal(__tp: *mut tm) -> time_t;
+}
+extern "C" {
+    pub fn dysize(__year: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn nanosleep(
+        __requested_time: *const timespec,
+        __remaining: *mut timespec,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn clock_getres(__clock_id: clockid_t, __res: *mut timespec) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn clock_gettime(__clock_id: clockid_t, __tp: *mut timespec) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn clock_settime(__clock_id: clockid_t, __tp: *const timespec) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn clock_nanosleep(
+        __clock_id: clockid_t,
+        __flags: ::std::os::raw::c_int,
+        __req: *const timespec,
+        __rem: *mut timespec,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn clock_getcpuclockid(__pid: pid_t, __clock_id: *mut clockid_t) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn timer_create(
+        __clock_id: clockid_t,
+        __evp: *mut sigevent,
+        __timerid: *mut timer_t,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn timer_delete(__timerid: timer_t) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn timer_settime(
+        __timerid: timer_t,
+        __flags: ::std::os::raw::c_int,
+        __value: *const itimerspec,
+        __ovalue: *mut itimerspec,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn timer_gettime(__timerid: timer_t, __value: *mut itimerspec) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn timer_getoverrun(__timerid: timer_t) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn timespec_get(
+        __ts: *mut timespec,
+        __base: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn rz_time_gettimeofday(p: *mut timeval, tz: *mut timezone) -> ::std::os::raw::c_int;
@@ -24396,6 +18988,25 @@ extern "C" {
 extern "C" {
     pub fn rz_file_is_deflated(src: *const ::std::os::raw::c_char) -> bool;
 }
+extern "C" {
+    #[doc = " Portable float nums in C"]
+    pub fn rz_types_gen_f32_nan() -> f32;
+}
+extern "C" {
+    pub fn rz_types_gen_f32_inf() -> f32;
+}
+extern "C" {
+    pub fn rz_types_gen_f64_nan() -> f64;
+}
+extern "C" {
+    pub fn rz_types_gen_f64_inf() -> f64;
+}
+extern "C" {
+    pub fn rz_types_gen_f128_nan() -> u128;
+}
+extern "C" {
+    pub fn rz_types_gen_f128_inf() -> u128;
+}
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum rz_float_format_enum {
@@ -24604,7 +19215,19 @@ extern "C" {
     pub fn rz_float_get_mantissa_stretched(f: *mut RzFloat) -> *mut RzBitVector;
 }
 extern "C" {
+    pub fn rz_float_get_sign(f: *mut RzFloat) -> bool;
+}
+extern "C" {
+    pub fn rz_float_set_sign(f: *mut RzFloat, new_sign: bool) -> bool;
+}
+extern "C" {
     pub fn rz_float_get_exponent(f: *mut RzFloat) -> *mut RzBitVector;
+}
+extern "C" {
+    pub fn rz_float_get_exponent_val(f: *mut RzFloat) -> ::std::os::raw::c_uint;
+}
+extern "C" {
+    pub fn rz_float_get_exponent_val_no_bias(f: *mut RzFloat) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn rz_float_get_mantissa(f: *mut RzFloat) -> *mut RzBitVector;
@@ -24626,6 +19249,18 @@ extern "C" {
 }
 extern "C" {
     pub fn rz_float_is_equal(x: *mut RzFloat, y: *mut RzFloat) -> bool;
+}
+extern "C" {
+    pub fn rz_float_neg(f: *mut RzFloat) -> *mut RzFloat;
+}
+extern "C" {
+    pub fn rz_float_succ(f: *mut RzFloat) -> *mut RzFloat;
+}
+extern "C" {
+    pub fn rz_float_pred(f: *mut RzFloat) -> *mut RzFloat;
+}
+extern "C" {
+    pub fn rz_float_cmp(x: *mut RzFloat, y: *mut RzFloat) -> ::std::os::raw::c_int;
 }
 extern "C" {
     pub fn rz_float_add_ieee_bin(
@@ -24740,6 +19375,27 @@ extern "C" {
     pub fn rz_float_abs(f: *mut RzFloat) -> *mut RzFloat;
 }
 extern "C" {
+    pub fn rz_float_round_to_integral(f: *mut RzFloat, mode: RzFloatRMode) -> *mut RzFloat;
+}
+extern "C" {
+    pub fn rz_float_round_significant(
+        sign: bool,
+        sig: *mut RzBitVector,
+        precision: ::std::os::raw::c_uint,
+        mode: RzFloatRMode,
+        should_inc: *mut bool,
+    ) -> *mut RzBitVector;
+}
+extern "C" {
+    pub fn rz_float_round_bv_and_pack(
+        sign: bool,
+        exp: ::std::os::raw::c_int,
+        sig: *mut RzBitVector,
+        format: RzFloatFormat,
+        mode: RzFloatRMode,
+    ) -> *mut RzFloat;
+}
+extern "C" {
     pub fn rz_float_new_from_ut64_as_f64(value: ::std::os::raw::c_ulonglong) -> *mut RzFloat;
 }
 extern "C" {
@@ -24780,6 +19436,41 @@ extern "C" {
 }
 extern "C" {
     pub fn rz_float_new_snan(format: RzFloatFormat) -> *mut RzFloat;
+}
+extern "C" {
+    pub fn rz_float_cast_float(
+        bv: *mut RzBitVector,
+        format: RzFloatFormat,
+        mode: RzFloatRMode,
+    ) -> *mut RzFloat;
+}
+extern "C" {
+    pub fn rz_float_cast_sfloat(
+        bv: *mut RzBitVector,
+        format: RzFloatFormat,
+        mode: RzFloatRMode,
+    ) -> *mut RzFloat;
+}
+extern "C" {
+    pub fn rz_float_cast_int(
+        f: *mut RzFloat,
+        length: ::std::os::raw::c_uint,
+        mode: RzFloatRMode,
+    ) -> *mut RzBitVector;
+}
+extern "C" {
+    pub fn rz_float_cast_sint(
+        f: *mut RzFloat,
+        length: ::std::os::raw::c_uint,
+        mode: RzFloatRMode,
+    ) -> *mut RzBitVector;
+}
+extern "C" {
+    pub fn rz_float_convert(
+        f: *mut RzFloat,
+        format: RzFloatFormat,
+        mode: RzFloatRMode,
+    ) -> *mut RzFloat;
 }
 extern "C" {
     pub fn rz_hex_pair2bin(arg: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
@@ -25343,7 +20034,10 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn rz_num_rand(max: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+    pub fn rz_num_rand32(max: ::std::os::raw::c_uint) -> ::std::os::raw::c_uint;
+}
+extern "C" {
+    pub fn rz_num_rand64(max: ::std::os::raw::c_ulonglong) -> ::std::os::raw::c_ulonglong;
 }
 extern "C" {
     pub fn rz_num_irand();
@@ -25634,12 +20328,12 @@ impl Default for RzListInfo {
         }
     }
 }
-pub const RZ_TABLE_ALIGN_LEFT: _bindgen_ty_26 = _bindgen_ty_26::RZ_TABLE_ALIGN_LEFT;
-pub const RZ_TABLE_ALIGN_RIGHT: _bindgen_ty_26 = _bindgen_ty_26::RZ_TABLE_ALIGN_RIGHT;
-pub const RZ_TABLE_ALIGN_CENTER: _bindgen_ty_26 = _bindgen_ty_26::RZ_TABLE_ALIGN_CENTER;
+pub const RZ_TABLE_ALIGN_LEFT: _bindgen_ty_16 = _bindgen_ty_16::RZ_TABLE_ALIGN_LEFT;
+pub const RZ_TABLE_ALIGN_RIGHT: _bindgen_ty_16 = _bindgen_ty_16::RZ_TABLE_ALIGN_RIGHT;
+pub const RZ_TABLE_ALIGN_CENTER: _bindgen_ty_16 = _bindgen_ty_16::RZ_TABLE_ALIGN_CENTER;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_26 {
+pub enum _bindgen_ty_16 {
     RZ_TABLE_ALIGN_LEFT = 0,
     RZ_TABLE_ALIGN_RIGHT = 1,
     RZ_TABLE_ALIGN_CENTER = 2,
@@ -31872,13 +26566,13 @@ extern "C" {
         str_: *const ::std::os::raw::c_char,
     ) -> *const ::std::os::raw::c_char;
 }
-pub const RZ_SYS_BITS_8: _bindgen_ty_27 = _bindgen_ty_27::RZ_SYS_BITS_8;
-pub const RZ_SYS_BITS_16: _bindgen_ty_27 = _bindgen_ty_27::RZ_SYS_BITS_16;
-pub const RZ_SYS_BITS_32: _bindgen_ty_27 = _bindgen_ty_27::RZ_SYS_BITS_32;
-pub const RZ_SYS_BITS_64: _bindgen_ty_27 = _bindgen_ty_27::RZ_SYS_BITS_64;
+pub const RZ_SYS_BITS_8: _bindgen_ty_17 = _bindgen_ty_17::RZ_SYS_BITS_8;
+pub const RZ_SYS_BITS_16: _bindgen_ty_17 = _bindgen_ty_17::RZ_SYS_BITS_16;
+pub const RZ_SYS_BITS_32: _bindgen_ty_17 = _bindgen_ty_17::RZ_SYS_BITS_32;
+pub const RZ_SYS_BITS_64: _bindgen_ty_17 = _bindgen_ty_17::RZ_SYS_BITS_64;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_27 {
+pub enum _bindgen_ty_17 {
     RZ_SYS_BITS_8 = 1,
     RZ_SYS_BITS_16 = 2,
     RZ_SYS_BITS_32 = 4,
@@ -35984,14 +30678,6 @@ extern "C" {
         ...
     ) -> ::std::os::raw::c_int;
 }
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum idtype_t {
-    P_ALL = 0,
-    P_PID = 1,
-    P_PGID = 2,
-    P_PIDFD = 3,
-}
 extern "C" {
     pub fn wait(__stat_loc: *mut ::std::os::raw::c_int) -> __pid_t;
 }
@@ -36196,30 +30882,30 @@ impl Default for sockaddr_storage {
         }
     }
 }
-pub const MSG_OOB: _bindgen_ty_28 = _bindgen_ty_28::MSG_OOB;
-pub const MSG_PEEK: _bindgen_ty_28 = _bindgen_ty_28::MSG_PEEK;
-pub const MSG_DONTROUTE: _bindgen_ty_28 = _bindgen_ty_28::MSG_DONTROUTE;
-pub const MSG_CTRUNC: _bindgen_ty_28 = _bindgen_ty_28::MSG_CTRUNC;
-pub const MSG_PROXY: _bindgen_ty_28 = _bindgen_ty_28::MSG_PROXY;
-pub const MSG_TRUNC: _bindgen_ty_28 = _bindgen_ty_28::MSG_TRUNC;
-pub const MSG_DONTWAIT: _bindgen_ty_28 = _bindgen_ty_28::MSG_DONTWAIT;
-pub const MSG_EOR: _bindgen_ty_28 = _bindgen_ty_28::MSG_EOR;
-pub const MSG_WAITALL: _bindgen_ty_28 = _bindgen_ty_28::MSG_WAITALL;
-pub const MSG_FIN: _bindgen_ty_28 = _bindgen_ty_28::MSG_FIN;
-pub const MSG_SYN: _bindgen_ty_28 = _bindgen_ty_28::MSG_SYN;
-pub const MSG_CONFIRM: _bindgen_ty_28 = _bindgen_ty_28::MSG_CONFIRM;
-pub const MSG_RST: _bindgen_ty_28 = _bindgen_ty_28::MSG_RST;
-pub const MSG_ERRQUEUE: _bindgen_ty_28 = _bindgen_ty_28::MSG_ERRQUEUE;
-pub const MSG_NOSIGNAL: _bindgen_ty_28 = _bindgen_ty_28::MSG_NOSIGNAL;
-pub const MSG_MORE: _bindgen_ty_28 = _bindgen_ty_28::MSG_MORE;
-pub const MSG_WAITFORONE: _bindgen_ty_28 = _bindgen_ty_28::MSG_WAITFORONE;
-pub const MSG_BATCH: _bindgen_ty_28 = _bindgen_ty_28::MSG_BATCH;
-pub const MSG_ZEROCOPY: _bindgen_ty_28 = _bindgen_ty_28::MSG_ZEROCOPY;
-pub const MSG_FASTOPEN: _bindgen_ty_28 = _bindgen_ty_28::MSG_FASTOPEN;
-pub const MSG_CMSG_CLOEXEC: _bindgen_ty_28 = _bindgen_ty_28::MSG_CMSG_CLOEXEC;
+pub const MSG_OOB: _bindgen_ty_18 = _bindgen_ty_18::MSG_OOB;
+pub const MSG_PEEK: _bindgen_ty_18 = _bindgen_ty_18::MSG_PEEK;
+pub const MSG_DONTROUTE: _bindgen_ty_18 = _bindgen_ty_18::MSG_DONTROUTE;
+pub const MSG_CTRUNC: _bindgen_ty_18 = _bindgen_ty_18::MSG_CTRUNC;
+pub const MSG_PROXY: _bindgen_ty_18 = _bindgen_ty_18::MSG_PROXY;
+pub const MSG_TRUNC: _bindgen_ty_18 = _bindgen_ty_18::MSG_TRUNC;
+pub const MSG_DONTWAIT: _bindgen_ty_18 = _bindgen_ty_18::MSG_DONTWAIT;
+pub const MSG_EOR: _bindgen_ty_18 = _bindgen_ty_18::MSG_EOR;
+pub const MSG_WAITALL: _bindgen_ty_18 = _bindgen_ty_18::MSG_WAITALL;
+pub const MSG_FIN: _bindgen_ty_18 = _bindgen_ty_18::MSG_FIN;
+pub const MSG_SYN: _bindgen_ty_18 = _bindgen_ty_18::MSG_SYN;
+pub const MSG_CONFIRM: _bindgen_ty_18 = _bindgen_ty_18::MSG_CONFIRM;
+pub const MSG_RST: _bindgen_ty_18 = _bindgen_ty_18::MSG_RST;
+pub const MSG_ERRQUEUE: _bindgen_ty_18 = _bindgen_ty_18::MSG_ERRQUEUE;
+pub const MSG_NOSIGNAL: _bindgen_ty_18 = _bindgen_ty_18::MSG_NOSIGNAL;
+pub const MSG_MORE: _bindgen_ty_18 = _bindgen_ty_18::MSG_MORE;
+pub const MSG_WAITFORONE: _bindgen_ty_18 = _bindgen_ty_18::MSG_WAITFORONE;
+pub const MSG_BATCH: _bindgen_ty_18 = _bindgen_ty_18::MSG_BATCH;
+pub const MSG_ZEROCOPY: _bindgen_ty_18 = _bindgen_ty_18::MSG_ZEROCOPY;
+pub const MSG_FASTOPEN: _bindgen_ty_18 = _bindgen_ty_18::MSG_FASTOPEN;
+pub const MSG_CMSG_CLOEXEC: _bindgen_ty_18 = _bindgen_ty_18::MSG_CMSG_CLOEXEC;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_28 {
+pub enum _bindgen_ty_18 {
     MSG_OOB = 1,
     MSG_PEEK = 2,
     MSG_DONTROUTE = 4,
@@ -36413,10 +31099,10 @@ fn bindgen_test_layout_cmsghdr() {
 extern "C" {
     pub fn __cmsg_nxthdr(__mhdr: *mut msghdr, __cmsg: *mut cmsghdr) -> *mut cmsghdr;
 }
-pub const SCM_RIGHTS: _bindgen_ty_29 = _bindgen_ty_29::SCM_RIGHTS;
+pub const SCM_RIGHTS: _bindgen_ty_19 = _bindgen_ty_19::SCM_RIGHTS;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_29 {
+pub enum _bindgen_ty_19 {
     SCM_RIGHTS = 1,
 }
 #[repr(C)]
@@ -36503,7 +31189,6 @@ fn bindgen_test_layout___kernel_fsid_t() {
 }
 pub type __kernel_off_t = __kernel_long_t;
 pub type __kernel_loff_t = ::std::os::raw::c_longlong;
-pub type __kernel_old_time_t = __kernel_long_t;
 pub type __kernel_time_t = __kernel_long_t;
 pub type __kernel_time64_t = ::std::os::raw::c_longlong;
 pub type __kernel_clock_t = __kernel_long_t;
@@ -36594,12 +31279,12 @@ fn bindgen_test_layout_osockaddr() {
         )
     );
 }
-pub const SHUT_RD: _bindgen_ty_30 = _bindgen_ty_30::SHUT_RD;
-pub const SHUT_WR: _bindgen_ty_30 = _bindgen_ty_30::SHUT_WR;
-pub const SHUT_RDWR: _bindgen_ty_30 = _bindgen_ty_30::SHUT_RDWR;
+pub const SHUT_RD: _bindgen_ty_20 = _bindgen_ty_20::SHUT_RD;
+pub const SHUT_WR: _bindgen_ty_20 = _bindgen_ty_20::SHUT_WR;
+pub const SHUT_RDWR: _bindgen_ty_20 = _bindgen_ty_20::SHUT_RDWR;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_30 {
+pub enum _bindgen_ty_20 {
     SHUT_RD = 0,
     SHUT_WR = 1,
     SHUT_RDWR = 2,
@@ -37155,26 +31840,26 @@ impl Default for rz_cons_grep_t {
     }
 }
 pub type RzConsGrep = rz_cons_grep_t;
-pub const ALPHA_RESET: _bindgen_ty_31 = _bindgen_ty_31::ALPHA_RESET;
-pub const ALPHA_FG: _bindgen_ty_31 = _bindgen_ty_31::ALPHA_FG;
-pub const ALPHA_BG: _bindgen_ty_31 = _bindgen_ty_31::ALPHA_BG;
-pub const ALPHA_FGBG: _bindgen_ty_31 = _bindgen_ty_31::ALPHA_FGBG;
+pub const ALPHA_RESET: _bindgen_ty_21 = _bindgen_ty_21::ALPHA_RESET;
+pub const ALPHA_FG: _bindgen_ty_21 = _bindgen_ty_21::ALPHA_FG;
+pub const ALPHA_BG: _bindgen_ty_21 = _bindgen_ty_21::ALPHA_BG;
+pub const ALPHA_FGBG: _bindgen_ty_21 = _bindgen_ty_21::ALPHA_FGBG;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_31 {
+pub enum _bindgen_ty_21 {
     ALPHA_RESET = 0,
     ALPHA_FG = 1,
     ALPHA_BG = 2,
     ALPHA_FGBG = 3,
 }
-pub const RZ_CONS_ATTR_BOLD: _bindgen_ty_32 = _bindgen_ty_32::RZ_CONS_ATTR_BOLD;
-pub const RZ_CONS_ATTR_DIM: _bindgen_ty_32 = _bindgen_ty_32::RZ_CONS_ATTR_DIM;
-pub const RZ_CONS_ATTR_ITALIC: _bindgen_ty_32 = _bindgen_ty_32::RZ_CONS_ATTR_ITALIC;
-pub const RZ_CONS_ATTR_UNDERLINE: _bindgen_ty_32 = _bindgen_ty_32::RZ_CONS_ATTR_UNDERLINE;
-pub const RZ_CONS_ATTR_BLINK: _bindgen_ty_32 = _bindgen_ty_32::RZ_CONS_ATTR_BLINK;
+pub const RZ_CONS_ATTR_BOLD: _bindgen_ty_22 = _bindgen_ty_22::RZ_CONS_ATTR_BOLD;
+pub const RZ_CONS_ATTR_DIM: _bindgen_ty_22 = _bindgen_ty_22::RZ_CONS_ATTR_DIM;
+pub const RZ_CONS_ATTR_ITALIC: _bindgen_ty_22 = _bindgen_ty_22::RZ_CONS_ATTR_ITALIC;
+pub const RZ_CONS_ATTR_UNDERLINE: _bindgen_ty_22 = _bindgen_ty_22::RZ_CONS_ATTR_UNDERLINE;
+pub const RZ_CONS_ATTR_BLINK: _bindgen_ty_22 = _bindgen_ty_22::RZ_CONS_ATTR_BLINK;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_32 {
+pub enum _bindgen_ty_22 {
     RZ_CONS_ATTR_BOLD = 2,
     RZ_CONS_ATTR_DIM = 4,
     RZ_CONS_ATTR_ITALIC = 8,
@@ -40301,29 +34986,29 @@ impl Default for rz_cons_t {
     }
 }
 pub type RzCons = rz_cons_t;
-pub const PAL_PROMPT: _bindgen_ty_33 = _bindgen_ty_33::PAL_PROMPT;
-pub const PAL_ADDRESS: _bindgen_ty_33 = _bindgen_ty_33::PAL_ADDRESS;
-pub const PAL_DEFAULT: _bindgen_ty_33 = _bindgen_ty_33::PAL_DEFAULT;
-pub const PAL_CHANGED: _bindgen_ty_33 = _bindgen_ty_33::PAL_CHANGED;
-pub const PAL_JUMP: _bindgen_ty_33 = _bindgen_ty_33::PAL_JUMP;
-pub const PAL_CALL: _bindgen_ty_33 = _bindgen_ty_33::PAL_CALL;
-pub const PAL_PUSH: _bindgen_ty_33 = _bindgen_ty_33::PAL_PUSH;
-pub const PAL_TRAP: _bindgen_ty_33 = _bindgen_ty_33::PAL_TRAP;
-pub const PAL_CMP: _bindgen_ty_33 = _bindgen_ty_33::PAL_CMP;
-pub const PAL_RET: _bindgen_ty_33 = _bindgen_ty_33::PAL_RET;
-pub const PAL_NOP: _bindgen_ty_33 = _bindgen_ty_33::PAL_NOP;
-pub const PAL_METADATA: _bindgen_ty_33 = _bindgen_ty_33::PAL_METADATA;
-pub const PAL_HEADER: _bindgen_ty_33 = _bindgen_ty_33::PAL_HEADER;
-pub const PAL_PRINTABLE: _bindgen_ty_33 = _bindgen_ty_33::PAL_PRINTABLE;
-pub const PAL_LINES0: _bindgen_ty_33 = _bindgen_ty_33::PAL_LINES0;
-pub const PAL_LINES1: _bindgen_ty_33 = _bindgen_ty_33::PAL_LINES1;
-pub const PAL_LINES2: _bindgen_ty_33 = _bindgen_ty_33::PAL_LINES2;
-pub const PAL_00: _bindgen_ty_33 = _bindgen_ty_33::PAL_00;
-pub const PAL_7F: _bindgen_ty_33 = _bindgen_ty_33::PAL_7F;
-pub const PAL_FF: _bindgen_ty_33 = _bindgen_ty_33::PAL_FF;
+pub const PAL_PROMPT: _bindgen_ty_23 = _bindgen_ty_23::PAL_PROMPT;
+pub const PAL_ADDRESS: _bindgen_ty_23 = _bindgen_ty_23::PAL_ADDRESS;
+pub const PAL_DEFAULT: _bindgen_ty_23 = _bindgen_ty_23::PAL_DEFAULT;
+pub const PAL_CHANGED: _bindgen_ty_23 = _bindgen_ty_23::PAL_CHANGED;
+pub const PAL_JUMP: _bindgen_ty_23 = _bindgen_ty_23::PAL_JUMP;
+pub const PAL_CALL: _bindgen_ty_23 = _bindgen_ty_23::PAL_CALL;
+pub const PAL_PUSH: _bindgen_ty_23 = _bindgen_ty_23::PAL_PUSH;
+pub const PAL_TRAP: _bindgen_ty_23 = _bindgen_ty_23::PAL_TRAP;
+pub const PAL_CMP: _bindgen_ty_23 = _bindgen_ty_23::PAL_CMP;
+pub const PAL_RET: _bindgen_ty_23 = _bindgen_ty_23::PAL_RET;
+pub const PAL_NOP: _bindgen_ty_23 = _bindgen_ty_23::PAL_NOP;
+pub const PAL_METADATA: _bindgen_ty_23 = _bindgen_ty_23::PAL_METADATA;
+pub const PAL_HEADER: _bindgen_ty_23 = _bindgen_ty_23::PAL_HEADER;
+pub const PAL_PRINTABLE: _bindgen_ty_23 = _bindgen_ty_23::PAL_PRINTABLE;
+pub const PAL_LINES0: _bindgen_ty_23 = _bindgen_ty_23::PAL_LINES0;
+pub const PAL_LINES1: _bindgen_ty_23 = _bindgen_ty_23::PAL_LINES1;
+pub const PAL_LINES2: _bindgen_ty_23 = _bindgen_ty_23::PAL_LINES2;
+pub const PAL_00: _bindgen_ty_23 = _bindgen_ty_23::PAL_00;
+pub const PAL_7F: _bindgen_ty_23 = _bindgen_ty_23::PAL_7F;
+pub const PAL_FF: _bindgen_ty_23 = _bindgen_ty_23::PAL_FF;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_33 {
+pub enum _bindgen_ty_23 {
     PAL_PROMPT = 0,
     PAL_ADDRESS = 1,
     PAL_DEFAULT = 2,
@@ -40345,15 +35030,15 @@ pub enum _bindgen_ty_33 {
     PAL_7F = 18,
     PAL_FF = 19,
 }
-pub const LINE_NONE: _bindgen_ty_34 = _bindgen_ty_34::LINE_NONE;
-pub const LINE_TRUE: _bindgen_ty_34 = _bindgen_ty_34::LINE_TRUE;
-pub const LINE_FALSE: _bindgen_ty_34 = _bindgen_ty_34::LINE_FALSE;
-pub const LINE_UNCJMP: _bindgen_ty_34 = _bindgen_ty_34::LINE_UNCJMP;
-pub const LINE_NOSYM_VERT: _bindgen_ty_34 = _bindgen_ty_34::LINE_NOSYM_VERT;
-pub const LINE_NOSYM_HORIZ: _bindgen_ty_34 = _bindgen_ty_34::LINE_NOSYM_HORIZ;
+pub const LINE_NONE: _bindgen_ty_24 = _bindgen_ty_24::LINE_NONE;
+pub const LINE_TRUE: _bindgen_ty_24 = _bindgen_ty_24::LINE_TRUE;
+pub const LINE_FALSE: _bindgen_ty_24 = _bindgen_ty_24::LINE_FALSE;
+pub const LINE_UNCJMP: _bindgen_ty_24 = _bindgen_ty_24::LINE_UNCJMP;
+pub const LINE_NOSYM_VERT: _bindgen_ty_24 = _bindgen_ty_24::LINE_NOSYM_VERT;
+pub const LINE_NOSYM_HORIZ: _bindgen_ty_24 = _bindgen_ty_24::LINE_NOSYM_HORIZ;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum _bindgen_ty_34 {
+pub enum _bindgen_ty_24 {
     LINE_NONE = 0,
     LINE_TRUE = 1,
     LINE_FALSE = 2,
@@ -41935,12 +36620,19 @@ pub type RzLineHistoryUpCb =
 pub type RzLineHistoryDownCb =
     ::std::option::Option<unsafe extern "C" fn(line: *mut RzLine) -> ::std::os::raw::c_int>;
 #[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct rz_line_undo_entry_t {
+    _unused: [u8; 0],
+}
+pub type RzLineUndoEntry = rz_line_undo_entry_t;
+#[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct rz_line_t {
     pub completion: RzLineCompletion,
     pub ns_completion: RzLineNSCompletion,
     pub buffer: RzLineBuffer,
     pub history: RzLineHistory,
+    pub undo_vec: *mut RzVector,
     pub sel_widget: *mut RzSelWidget,
     pub cb_history_up: RzLineHistoryUpCb,
     pub cb_history_down: RzLineHistoryDownCb,
@@ -41951,6 +36643,8 @@ pub struct rz_line_t {
     pub prompt: *mut ::std::os::raw::c_char,
     pub kill_ring: *mut RzList,
     pub kill_ring_ptr: ::std::os::raw::c_int,
+    pub undo_cursor: ::std::os::raw::c_int,
+    pub undo_continue: bool,
     pub clipboard: *mut ::std::os::raw::c_char,
     pub disable: ::std::os::raw::c_int,
     pub user: *mut ::std::os::raw::c_void,
@@ -41979,7 +36673,7 @@ fn bindgen_test_layout_rz_line_t() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<rz_line_t>(),
-        4424usize,
+        4440usize,
         concat!("Size of: ", stringify!(rz_line_t))
     );
     assert_eq!(
@@ -42028,8 +36722,18 @@ fn bindgen_test_layout_rz_line_t() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).sel_widget) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).undo_vec) as usize - ptr as usize },
         4248usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_line_t),
+            "::",
+            stringify!(undo_vec)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).sel_widget) as usize - ptr as usize },
+        4256usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42039,7 +36743,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).cb_history_up) as usize - ptr as usize },
-        4256usize,
+        4264usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42049,7 +36753,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).cb_history_down) as usize - ptr as usize },
-        4264usize,
+        4272usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42059,7 +36763,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).cb_editor) as usize - ptr as usize },
-        4272usize,
+        4280usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42069,7 +36773,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).cb_fkey) as usize - ptr as usize },
-        4280usize,
+        4288usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42079,7 +36783,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).echo) as usize - ptr as usize },
-        4288usize,
+        4296usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42089,7 +36793,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).has_echo) as usize - ptr as usize },
-        4292usize,
+        4300usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42099,7 +36803,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).prompt) as usize - ptr as usize },
-        4296usize,
+        4304usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42109,7 +36813,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).kill_ring) as usize - ptr as usize },
-        4304usize,
+        4312usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42119,7 +36823,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).kill_ring_ptr) as usize - ptr as usize },
-        4312usize,
+        4320usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42128,8 +36832,28 @@ fn bindgen_test_layout_rz_line_t() {
         )
     );
     assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).undo_cursor) as usize - ptr as usize },
+        4324usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_line_t),
+            "::",
+            stringify!(undo_cursor)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).undo_continue) as usize - ptr as usize },
+        4328usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_line_t),
+            "::",
+            stringify!(undo_continue)
+        )
+    );
+    assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).clipboard) as usize - ptr as usize },
-        4320usize,
+        4336usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42139,7 +36863,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).disable) as usize - ptr as usize },
-        4328usize,
+        4344usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42149,7 +36873,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).user) as usize - ptr as usize },
-        4336usize,
+        4352usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42159,7 +36883,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).hist_up) as usize - ptr as usize },
-        4344usize,
+        4360usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42169,7 +36893,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).hist_down) as usize - ptr as usize },
-        4352usize,
+        4368usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42179,7 +36903,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).contents) as usize - ptr as usize },
-        4360usize,
+        4376usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42189,7 +36913,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).zerosep) as usize - ptr as usize },
-        4368usize,
+        4384usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42199,7 +36923,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).enable_vi_mode) as usize - ptr as usize },
-        4369usize,
+        4385usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42209,7 +36933,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).vi_mode) as usize - ptr as usize },
-        4372usize,
+        4388usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42219,7 +36943,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).prompt_mode) as usize - ptr as usize },
-        4376usize,
+        4392usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42229,7 +36953,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).prompt_type) as usize - ptr as usize },
-        4380usize,
+        4396usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42239,7 +36963,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).offset_hist_index) as usize - ptr as usize },
-        4384usize,
+        4400usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42249,7 +36973,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).file_hist_index) as usize - ptr as usize },
-        4388usize,
+        4404usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42259,7 +36983,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).hud) as usize - ptr as usize },
-        4392usize,
+        4408usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42269,7 +36993,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).sdbshell_hist) as usize - ptr as usize },
-        4400usize,
+        4416usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42279,7 +37003,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).sdbshell_hist_iter) as usize - ptr as usize },
-        4408usize,
+        4424usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42289,7 +37013,7 @@ fn bindgen_test_layout_rz_line_t() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).vtmode) as usize - ptr as usize },
-        4416usize,
+        4432usize,
         concat!(
             "Offset of field: ",
             stringify!(rz_line_t),
@@ -42323,7 +37047,7 @@ extern "C" {
     pub fn rz_line_set_prompt(prompt: *const ::std::os::raw::c_char);
 }
 extern "C" {
-    pub fn rz_line_dietline_init() -> ::std::os::raw::c_int;
+    pub fn rz_line_dietline_init() -> bool;
 }
 extern "C" {
     pub fn rz_line_clipboard_push(str_: *const ::std::os::raw::c_char);
@@ -43528,7 +38252,6 @@ pub enum __ptrace_request {
     PTRACE_SECCOMP_GET_FILTER = 16908,
     PTRACE_SECCOMP_GET_METADATA = 16909,
     PTRACE_GET_SYSCALL_INFO = 16910,
-    PTRACE_GET_RSEQ_CONFIGURATION = 16911,
 }
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -43958,81 +38681,6 @@ impl Default for __ptrace_syscall_info {
             s.assume_init()
         }
     }
-}
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct __ptrace_rseq_configuration {
-    pub rseq_abi_pointer: __uint64_t,
-    pub rseq_abi_size: __uint32_t,
-    pub signature: __uint32_t,
-    pub flags: __uint32_t,
-    pub pad: __uint32_t,
-}
-#[test]
-fn bindgen_test_layout___ptrace_rseq_configuration() {
-    const UNINIT: ::std::mem::MaybeUninit<__ptrace_rseq_configuration> =
-        ::std::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::std::mem::size_of::<__ptrace_rseq_configuration>(),
-        24usize,
-        concat!("Size of: ", stringify!(__ptrace_rseq_configuration))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<__ptrace_rseq_configuration>(),
-        8usize,
-        concat!("Alignment of ", stringify!(__ptrace_rseq_configuration))
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).rseq_abi_pointer) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__ptrace_rseq_configuration),
-            "::",
-            stringify!(rseq_abi_pointer)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).rseq_abi_size) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__ptrace_rseq_configuration),
-            "::",
-            stringify!(rseq_abi_size)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).signature) as usize - ptr as usize },
-        12usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__ptrace_rseq_configuration),
-            "::",
-            stringify!(signature)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).flags) as usize - ptr as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__ptrace_rseq_configuration),
-            "::",
-            stringify!(flags)
-        )
-    );
-    assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).pad) as usize - ptr as usize },
-        20usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(__ptrace_rseq_configuration),
-            "::",
-            stringify!(pad)
-        )
-    );
 }
 extern "C" {
     pub fn ptrace(__request: __ptrace_request, ...) -> ::std::os::raw::c_long;
@@ -51589,6 +46237,7 @@ extern "C" {
 pub enum RzILTypePure {
     RZ_IL_TYPE_PURE_BOOL = 0,
     RZ_IL_TYPE_PURE_BITVECTOR = 1,
+    RZ_IL_TYPE_PURE_FLOAT = 2,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -51600,6 +46249,7 @@ pub struct rz_il_sort_pure_t {
 #[derive(Copy, Clone)]
 pub union rz_il_sort_pure_t__bindgen_ty_1 {
     pub bv: rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_1,
+    pub f: rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_2,
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
@@ -51638,6 +46288,52 @@ fn bindgen_test_layout_rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_1() {
         )
     );
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_2 {
+    pub format: RzFloatFormat,
+}
+#[test]
+fn bindgen_test_layout_rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_2() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_2> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_2>(),
+        4usize,
+        concat!(
+            "Size of: ",
+            stringify!(rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_2)
+        )
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_2>(),
+        4usize,
+        concat!(
+            "Alignment of ",
+            stringify!(rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_2)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).format) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_2),
+            "::",
+            stringify!(format)
+        )
+    );
+}
+impl Default for rz_il_sort_pure_t__bindgen_ty_1__bindgen_ty_2 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[test]
 fn bindgen_test_layout_rz_il_sort_pure_t__bindgen_ty_1() {
     const UNINIT: ::std::mem::MaybeUninit<rz_il_sort_pure_t__bindgen_ty_1> =
@@ -51661,6 +46357,16 @@ fn bindgen_test_layout_rz_il_sort_pure_t__bindgen_ty_1() {
             stringify!(rz_il_sort_pure_t__bindgen_ty_1),
             "::",
             stringify!(bv)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).f) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_sort_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(f)
         )
     );
 }
@@ -51736,6 +46442,7 @@ pub enum RzILTypeEffect {
 pub union RzValUnion {
     pub bv: *mut RzBitVector,
     pub b: *mut RzILBool,
+    pub f: *mut RzFloat,
 }
 #[test]
 fn bindgen_test_layout_RzValUnion() {
@@ -51769,6 +46476,16 @@ fn bindgen_test_layout_RzValUnion() {
             stringify!(RzValUnion),
             "::",
             stringify!(b)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).f) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(RzValUnion),
+            "::",
+            stringify!(f)
         )
     );
 }
@@ -51841,6 +46558,9 @@ extern "C" {
 }
 extern "C" {
     pub fn rz_il_value_new_bool(b: *mut RzILBool) -> *mut RzILVal;
+}
+extern "C" {
+    pub fn rz_il_value_new_float(f: *mut RzFloat) -> *mut RzILVal;
 }
 extern "C" {
     pub fn rz_il_value_new_zero_of(sort: RzILSortPure) -> *mut RzILVal;
@@ -52257,12 +46977,23 @@ extern "C" {
         big_endian: bool,
     ) -> bool;
 }
+extern "C" {
+    pub fn rz_il_float_new(format: RzFloatFormat, bv: *mut RzBitVector) -> *mut RzFloat;
+}
+extern "C" {
+    pub fn rz_il_float_stringify_rmode(mode: RzFloatRMode) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn rz_il_float_stringify_format(format: RzFloatFormat) -> *const ::std::os::raw::c_char;
+}
 #[doc = " \\file\n \\brief signatures of core theory opcodes\n\n Modular Hierarchy of the whole core theory\n (we implement the Minimal part only)\n                          o Core\n                            |\n             Trans o--------+--------o Float\n                            |        |\n                            o Basic  o FBasic\n                            |\n                            o Minimal\n                            |\n           +-------+--------+--------+-------+\n           |       |        |        |       |\n           o       o        o        o       o\n         Init    RzILBool     Bitv    Memory   Effect\n\n See also the references :\n 0. A gentle introduction to core theory http://binaryanalysisplatform.github.io/bap/api/odoc/bap-core-theory/Bap_core_theory/index.html\n 1. http://binaryanalysisplatform.github.io/bap/api/odoc/bap-core-theory/Bap_core_theory/Theory/index.html\n 2. For core and array theories https://smtlib.cs.uiowa.edu/theories.shtml"]
 pub type RzILOpPure = rz_il_op_pure_t;
 #[doc = " \\brief An IL op performing a pure computation, 'a pure\n\n BAP uses ocaml's type system for statically differentiating between different\n kinds of pure ops. Some ops however are polymorphic over all pure types,\n such as `ite : bool -> 'a pure -> 'a pure -> 'a pure`, which is not directly possible in C.\n So our pure ops are dynamically typed (only on the level of C, the IL is still fully statically typed)\n and we simply use typedefs like `RzILOpBool` and `RzILOpBitVector` to at least weakly indicate which concrete type is required."]
 pub type RzILOpBool = RzILOpPure;
 #[doc = " \\brief An IL op performing a pure computation, 'a pure\n\n BAP uses ocaml's type system for statically differentiating between different\n kinds of pure ops. Some ops however are polymorphic over all pure types,\n such as `ite : bool -> 'a pure -> 'a pure -> 'a pure`, which is not directly possible in C.\n So our pure ops are dynamically typed (only on the level of C, the IL is still fully statically typed)\n and we simply use typedefs like `RzILOpBool` and `RzILOpBitVector` to at least weakly indicate which concrete type is required."]
 pub type RzILOpBitVector = RzILOpPure;
+#[doc = " \\brief An IL op performing a pure computation, 'a pure\n\n BAP uses ocaml's type system for statically differentiating between different\n kinds of pure ops. Some ops however are polymorphic over all pure types,\n such as `ite : bool -> 'a pure -> 'a pure -> 'a pure`, which is not directly possible in C.\n So our pure ops are dynamically typed (only on the level of C, the IL is still fully statically typed)\n and we simply use typedefs like `RzILOpBool` and `RzILOpBitVector` to at least weakly indicate which concrete type is required."]
+pub type RzILOpFloat = RzILOpPure;
 pub type RzILOpEffect = rz_il_op_effect_t;
 #[doc = " \\brief value is a bitvector constant.\n\n In BAP: `int : 's Bitv.t Value.sort -> word -> 's bitv`"]
 #[repr(C)]
@@ -53678,6 +48409,719 @@ impl Default for rz_il_op_args_storew_t {
 }
 #[doc = " \\brief Store an entire word of arbitrary bit size into a memory\n\n Endianness is determined by the vm"]
 pub type RzILOpArgsStoreW = rz_il_op_args_storew_t;
+#[doc = " \\brief value for a float constant\n `float s x` interprets x as a floating-point number in format s.\n In BAP : `( 'r, 's ) format Float.t Value.sort -> 's bitv -> ( 'r, 's ) format float"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_op_args_float_t {
+    pub r: RzFloatFormat,
+    pub bv: *mut RzILOpBitVector,
+}
+#[test]
+fn bindgen_test_layout_rz_il_op_args_float_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_op_args_float_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_op_args_float_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(rz_il_op_args_float_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_op_args_float_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(rz_il_op_args_float_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).r) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_t),
+            "::",
+            stringify!(r)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).bv) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_t),
+            "::",
+            stringify!(bv)
+        )
+    );
+}
+impl Default for rz_il_op_args_float_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " \\brief value for a float constant\n `float s x` interprets x as a floating-point number in format s.\n In BAP : `( 'r, 's ) format Float.t Value.sort -> 's bitv -> ( 'r, 's ) format float"]
+pub type RzILOpArgsFloat = rz_il_op_args_float_t;
+#[doc = " \\brief op structure for unary without rmode"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_op_args_float_unary_t {
+    pub f: *mut RzILOpFloat,
+}
+#[test]
+fn bindgen_test_layout_rz_il_op_args_float_unary_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_op_args_float_unary_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_op_args_float_unary_t>(),
+        8usize,
+        concat!("Size of: ", stringify!(rz_il_op_args_float_unary_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_op_args_float_unary_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(rz_il_op_args_float_unary_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).f) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_unary_t),
+            "::",
+            stringify!(f)
+        )
+    );
+}
+impl Default for rz_il_op_args_float_unary_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " \\brief opstructure for fbits : ( 'r, 's ) format float -> 's bitv\n fbits x is a bitvector representation of the floating-point number x."]
+pub type RzILOpArgsFbits = rz_il_op_args_float_unary_t;
+#[doc = " \\brief op structure for 'f float -> bool\n [IS_FINITE] is_finite x holds if x represents a finite number.\n [IS_NAN] is_nan x holds if x represents a not-a-number (NaN).\n [IS_INF] is_inf x holds if x represents an infinite number.\n [IS_FZERO] is_fzero x holds if x represents a zero.\n [IS_FNEG] is_fpos x holds if x represents a positive number.\n [IS_FPOS] is_fneg x hold if x represents a negative number."]
+pub type RzILOpArgsIsFinite = rz_il_op_args_float_unary_t;
+#[doc = " \\brief op structure for unary without rmode"]
+pub type RzILOpArgsIsNan = rz_il_op_args_float_unary_t;
+#[doc = " \\brief op structure for unary without rmode"]
+pub type RzILOpArgsIsInf = rz_il_op_args_float_unary_t;
+#[doc = " \\brief op structure for unary without rmode"]
+pub type RzILOpArgsIsFzero = rz_il_op_args_float_unary_t;
+#[doc = " \\brief op structure for unary without rmode"]
+pub type RzILOpArgsIsFpos = rz_il_op_args_float_unary_t;
+#[doc = " \\brief op structure for unary without rmode"]
+pub type RzILOpArgsIsFneg = rz_il_op_args_float_unary_t;
+#[doc = " op structure for 'f float -> float\n [FNEG] fneg x is -x\n [FABS] fabs x is absolute value of x (|x|)\n [FSUCC] fsucc x is the least floating-point number representable in (sort x) that is greater than x.\n [FPRED] fpred x is the greatest floating-point number representable in (sort x) that is less than x."]
+pub type RzILOpArgsFneg = rz_il_op_args_float_unary_t;
+#[doc = " \\brief op structure for unary without rmode"]
+pub type RzILOpArgsFabs = rz_il_op_args_float_unary_t;
+#[doc = " \\brief op structure for unary without rmode"]
+pub type RzILOpArgsFsucc = rz_il_op_args_float_unary_t;
+#[doc = " \\brief op structure for unary without rmode"]
+pub type RzILOpArgsFpred = rz_il_op_args_float_unary_t;
+#[doc = " \\brief op structure for cast to bv from float\n [FCAST_INT] `f_cast_int s rm x` returns an integer closest to x.\n [FCAST_SINT] `f_cast_sint s rm x` returns an integer closest to x."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_op_args_float_cast_int_t {
+    pub length: ::std::os::raw::c_uint,
+    pub mode: RzFloatRMode,
+    pub f: *mut RzILOpFloat,
+}
+#[test]
+fn bindgen_test_layout_rz_il_op_args_float_cast_int_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_op_args_float_cast_int_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_op_args_float_cast_int_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(rz_il_op_args_float_cast_int_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_op_args_float_cast_int_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(rz_il_op_args_float_cast_int_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).length) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_cast_int_t),
+            "::",
+            stringify!(length)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).mode) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_cast_int_t),
+            "::",
+            stringify!(mode)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).f) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_cast_int_t),
+            "::",
+            stringify!(f)
+        )
+    );
+}
+impl Default for rz_il_op_args_float_cast_int_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " \\brief op structure for cast to bv from float\n [FCAST_INT] `f_cast_int s rm x` returns an integer closest to x.\n [FCAST_SINT] `f_cast_sint s rm x` returns an integer closest to x."]
+pub type RzILOpArgsFCastint = rz_il_op_args_float_cast_int_t;
+#[doc = " \\brief op structure for cast to bv from float\n [FCAST_INT] `f_cast_int s rm x` returns an integer closest to x.\n [FCAST_SINT] `f_cast_sint s rm x` returns an integer closest to x."]
+pub type RzILOpArgsFCastsint = rz_il_op_args_float_cast_int_t;
+#[doc = " \\brief for cast to float from bv\n 'f Float.t Value.sort -> rmode -> 'a bitv -> 'f float\n [FCAST_FLOAT] `cast_float s rm x` is the closest to x floating-point number of sort x.\n \tnote that : The bitvector x is interpreted as an unsigned integer in the two-complement form.\n [FCAST_SFLOAT] `cast_sfloat s rm x` is the closest to x floating-point number of sort x.\n \tnote that : The bitvector x is interpreted as a signed integer in the two-complement form."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_op_args_float_cast_float_t {
+    pub format: RzFloatFormat,
+    pub mode: RzFloatRMode,
+    pub bv: *mut RzILOpBitVector,
+}
+#[test]
+fn bindgen_test_layout_rz_il_op_args_float_cast_float_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_op_args_float_cast_float_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_op_args_float_cast_float_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(rz_il_op_args_float_cast_float_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_op_args_float_cast_float_t>(),
+        8usize,
+        concat!(
+            "Alignment of ",
+            stringify!(rz_il_op_args_float_cast_float_t)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).format) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_cast_float_t),
+            "::",
+            stringify!(format)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).mode) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_cast_float_t),
+            "::",
+            stringify!(mode)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).bv) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_cast_float_t),
+            "::",
+            stringify!(bv)
+        )
+    );
+}
+impl Default for rz_il_op_args_float_cast_float_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " \\brief for cast to float from bv\n 'f Float.t Value.sort -> rmode -> 'a bitv -> 'f float\n [FCAST_FLOAT] `cast_float s rm x` is the closest to x floating-point number of sort x.\n \tnote that : The bitvector x is interpreted as an unsigned integer in the two-complement form.\n [FCAST_SFLOAT] `cast_sfloat s rm x` is the closest to x floating-point number of sort x.\n \tnote that : The bitvector x is interpreted as a signed integer in the two-complement form."]
+pub type RzILOpArgsFCastfloat = rz_il_op_args_float_cast_float_t;
+#[doc = " \\brief for cast to float from bv\n 'f Float.t Value.sort -> rmode -> 'a bitv -> 'f float\n [FCAST_FLOAT] `cast_float s rm x` is the closest to x floating-point number of sort x.\n \tnote that : The bitvector x is interpreted as an unsigned integer in the two-complement form.\n [FCAST_SFLOAT] `cast_sfloat s rm x` is the closest to x floating-point number of sort x.\n \tnote that : The bitvector x is interpreted as a signed integer in the two-complement form."]
+pub type RzILOpArgsFCastsfloat = rz_il_op_args_float_cast_float_t;
+#[doc = " \\brief convert between different float format\n 'f Float.t Value.sort -> rmode -> _ float -> 'f float\n [FCONVERT] `fconvert f r x` is the closest to x floating number in format f."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_op_args_float_fconvert_t {
+    pub format: RzFloatFormat,
+    pub mode: RzFloatRMode,
+    pub f: *mut RzILOpFloat,
+}
+#[test]
+fn bindgen_test_layout_rz_il_op_args_float_fconvert_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_op_args_float_fconvert_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_op_args_float_fconvert_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(rz_il_op_args_float_fconvert_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_op_args_float_fconvert_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(rz_il_op_args_float_fconvert_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).format) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_fconvert_t),
+            "::",
+            stringify!(format)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).mode) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_fconvert_t),
+            "::",
+            stringify!(mode)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).f) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_fconvert_t),
+            "::",
+            stringify!(f)
+        )
+    );
+}
+impl Default for rz_il_op_args_float_fconvert_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " \\brief convert between different float format\n 'f Float.t Value.sort -> rmode -> _ float -> 'f float\n [FCONVERT] `fconvert f r x` is the closest to x floating number in format f."]
+pub type RzILOpArgsFconvert = rz_il_op_args_float_fconvert_t;
+#[doc = " \\brief op structure of requal\n  rmode -> rmode -> bool\n requal x y holds if rounding modes are equal."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_op_args_float_requal_t {
+    pub x: RzFloatRMode,
+    pub y: RzFloatRMode,
+}
+#[test]
+fn bindgen_test_layout_rz_il_op_args_float_requal_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_op_args_float_requal_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_op_args_float_requal_t>(),
+        8usize,
+        concat!("Size of: ", stringify!(rz_il_op_args_float_requal_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_op_args_float_requal_t>(),
+        4usize,
+        concat!("Alignment of ", stringify!(rz_il_op_args_float_requal_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).x) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_requal_t),
+            "::",
+            stringify!(x)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).y) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_requal_t),
+            "::",
+            stringify!(y)
+        )
+    );
+}
+impl Default for rz_il_op_args_float_requal_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " \\brief op structure of requal\n  rmode -> rmode -> bool\n requal x y holds if rounding modes are equal."]
+pub type RzILOpArgsFrequal = rz_il_op_args_float_requal_t;
+#[doc = " \\brief op structure of binary op without rmode\n ('float -> 'flaat -> bool)\n forder x y holds if floating-point number x is less than y."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_op_args_float_binop_t {
+    pub x: *mut RzILOpFloat,
+    pub y: *mut RzILOpFloat,
+}
+#[test]
+fn bindgen_test_layout_rz_il_op_args_float_binop_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_op_args_float_binop_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_op_args_float_binop_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(rz_il_op_args_float_binop_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_op_args_float_binop_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(rz_il_op_args_float_binop_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).x) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_binop_t),
+            "::",
+            stringify!(x)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).y) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_binop_t),
+            "::",
+            stringify!(y)
+        )
+    );
+}
+impl Default for rz_il_op_args_float_binop_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " \\brief op structure of binary op without rmode\n ('float -> 'flaat -> bool)\n forder x y holds if floating-point number x is less than y."]
+pub type RzILOpArgsForder = rz_il_op_args_float_binop_t;
+#[doc = " \\brief op structure for float operation (unary op with rmode)\n `rmode -> 'f float -> 'f float`\n [FROUND]\n [FSQRT] fsqrt m x returns the closest floating-point number to r, where r is such number that r*r is equal to x.\n [FRSQRT] reverse sqrt, rsqrt m x is the closest floating-point number to 1 / sqrt x."]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_op_args_float_alg_unop_t {
+    pub rmode: RzFloatRMode,
+    pub f: *mut RzILOpFloat,
+}
+#[test]
+fn bindgen_test_layout_rz_il_op_args_float_alg_unop_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_op_args_float_alg_unop_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_op_args_float_alg_unop_t>(),
+        16usize,
+        concat!("Size of: ", stringify!(rz_il_op_args_float_alg_unop_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_op_args_float_alg_unop_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(rz_il_op_args_float_alg_unop_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).rmode) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_unop_t),
+            "::",
+            stringify!(rmode)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).f) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_unop_t),
+            "::",
+            stringify!(f)
+        )
+    );
+}
+impl Default for rz_il_op_args_float_alg_unop_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " \\brief op structure for float operation (unary op with rmode)\n `rmode -> 'f float -> 'f float`\n [FROUND]\n [FSQRT] fsqrt m x returns the closest floating-point number to r, where r is such number that r*r is equal to x.\n [FRSQRT] reverse sqrt, rsqrt m x is the closest floating-point number to 1 / sqrt x."]
+pub type RzILOpArgsFround = rz_il_op_args_float_alg_unop_t;
+#[doc = " \\brief op structure for float operation (unary op with rmode)\n `rmode -> 'f float -> 'f float`\n [FROUND]\n [FSQRT] fsqrt m x returns the closest floating-point number to r, where r is such number that r*r is equal to x.\n [FRSQRT] reverse sqrt, rsqrt m x is the closest floating-point number to 1 / sqrt x."]
+pub type RzILOpArgsFsqrt = rz_il_op_args_float_alg_unop_t;
+#[doc = " \\brief op structure for float operation (unary op with rmode)\n `rmode -> 'f float -> 'f float`\n [FROUND]\n [FSQRT] fsqrt m x returns the closest floating-point number to r, where r is such number that r*r is equal to x.\n [FRSQRT] reverse sqrt, rsqrt m x is the closest floating-point number to 1 / sqrt x."]
+pub type RzILOpArgsFrsqrt = rz_il_op_args_float_alg_unop_t;
+#[doc = " \\brief op structure for float basic arithmetic operations (binary op with rmode)\n rmode -> 'f float -> 'f float -> 'f float\n [FADD]"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_op_args_float_alg_binop_t {
+    pub rmode: RzFloatRMode,
+    pub x: *mut RzILOpFloat,
+    pub y: *mut RzILOpFloat,
+}
+#[test]
+fn bindgen_test_layout_rz_il_op_args_float_alg_binop_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_op_args_float_alg_binop_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_op_args_float_alg_binop_t>(),
+        24usize,
+        concat!("Size of: ", stringify!(rz_il_op_args_float_alg_binop_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_op_args_float_alg_binop_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(rz_il_op_args_float_alg_binop_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).rmode) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_binop_t),
+            "::",
+            stringify!(rmode)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).x) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_binop_t),
+            "::",
+            stringify!(x)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).y) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_binop_t),
+            "::",
+            stringify!(y)
+        )
+    );
+}
+impl Default for rz_il_op_args_float_alg_binop_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " \\brief op structure for float basic arithmetic operations (binary op with rmode)\n rmode -> 'f float -> 'f float -> 'f float\n [FADD]"]
+pub type RzILOpArgsFadd = rz_il_op_args_float_alg_binop_t;
+#[doc = " \\brief op structure for float basic arithmetic operations (binary op with rmode)\n rmode -> 'f float -> 'f float -> 'f float\n [FADD]"]
+pub type RzILOpArgsFsub = rz_il_op_args_float_alg_binop_t;
+#[doc = " \\brief op structure for float basic arithmetic operations (binary op with rmode)\n rmode -> 'f float -> 'f float -> 'f float\n [FADD]"]
+pub type RzILOpArgsFmul = rz_il_op_args_float_alg_binop_t;
+#[doc = " \\brief op structure for float basic arithmetic operations (binary op with rmode)\n rmode -> 'f float -> 'f float -> 'f float\n [FADD]"]
+pub type RzILOpArgsFdiv = rz_il_op_args_float_alg_binop_t;
+#[doc = " \\brief op structure for float basic arithmetic operations (binary op with rmode)\n rmode -> 'f float -> 'f float -> 'f float\n [FADD]"]
+pub type RzILOpArgsFmod = rz_il_op_args_float_alg_binop_t;
+#[doc = " \\brief op structure for float basic arithmetic operations (binary op with rmode)\n rmode -> 'f float -> 'f float -> 'f float\n [FADD]"]
+pub type RzILOpArgsFhypot = rz_il_op_args_float_alg_binop_t;
+#[doc = " \\brief op structure for float basic arithmetic operations (binary op with rmode)\n rmode -> 'f float -> 'f float -> 'f float\n [FADD]"]
+pub type RzILOpArgsFpow = rz_il_op_args_float_alg_binop_t;
+#[doc = " \\brief op structure of ternary op in float\n rmode -> 'f float -> 'f float -> 'f float -> 'f float"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_op_args_float_alg_terop_t {
+    pub rmode: RzFloatRMode,
+    pub x: *mut RzILOpFloat,
+    pub y: *mut RzILOpFloat,
+    pub z: *mut RzILOpFloat,
+}
+#[test]
+fn bindgen_test_layout_rz_il_op_args_float_alg_terop_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_op_args_float_alg_terop_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_op_args_float_alg_terop_t>(),
+        32usize,
+        concat!("Size of: ", stringify!(rz_il_op_args_float_alg_terop_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_op_args_float_alg_terop_t>(),
+        8usize,
+        concat!("Alignment of ", stringify!(rz_il_op_args_float_alg_terop_t))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).rmode) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_terop_t),
+            "::",
+            stringify!(rmode)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).x) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_terop_t),
+            "::",
+            stringify!(x)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).y) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_terop_t),
+            "::",
+            stringify!(y)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).z) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_terop_t),
+            "::",
+            stringify!(z)
+        )
+    );
+}
+impl Default for rz_il_op_args_float_alg_terop_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " \\brief op structure of ternary op in float\n rmode -> 'f float -> 'f float -> 'f float -> 'f float"]
+pub type RzILOpArgsFmad = rz_il_op_args_float_alg_terop_t;
+#[doc = " \\brief op structure for some float binary op requiring `int`\n rmode -> 'f float -> 'a bitv -> 'f float"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct rz_il_op_args_float_alg_hybrid_binop_t {
+    pub rmode: RzFloatRMode,
+    pub f: *mut RzILOpFloat,
+    pub n: *mut RzILOpBitVector,
+}
+#[test]
+fn bindgen_test_layout_rz_il_op_args_float_alg_hybrid_binop_t() {
+    const UNINIT: ::std::mem::MaybeUninit<rz_il_op_args_float_alg_hybrid_binop_t> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<rz_il_op_args_float_alg_hybrid_binop_t>(),
+        24usize,
+        concat!(
+            "Size of: ",
+            stringify!(rz_il_op_args_float_alg_hybrid_binop_t)
+        )
+    );
+    assert_eq!(
+        ::std::mem::align_of::<rz_il_op_args_float_alg_hybrid_binop_t>(),
+        8usize,
+        concat!(
+            "Alignment of ",
+            stringify!(rz_il_op_args_float_alg_hybrid_binop_t)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).rmode) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_hybrid_binop_t),
+            "::",
+            stringify!(rmode)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).f) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_hybrid_binop_t),
+            "::",
+            stringify!(f)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).n) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_args_float_alg_hybrid_binop_t),
+            "::",
+            stringify!(n)
+        )
+    );
+}
+impl Default for rz_il_op_args_float_alg_hybrid_binop_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[doc = " \\brief op structure for some float binary op requiring `int`\n rmode -> 'f float -> 'a bitv -> 'f float"]
+pub type RzILOpArgsFrootn = rz_il_op_args_float_alg_hybrid_binop_t;
+#[doc = " \\brief op structure for some float binary op requiring `int`\n rmode -> 'f float -> 'a bitv -> 'f float"]
+pub type RzILOpArgsFpown = rz_il_op_args_float_alg_hybrid_binop_t;
+#[doc = " \\brief op structure for some float binary op requiring `int`\n rmode -> 'f float -> 'a bitv -> 'f float"]
+pub type RzILOpArgsFcompound = rz_il_op_args_float_alg_hybrid_binop_t;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum RzILOpPureCode {
@@ -53713,9 +49157,42 @@ pub enum RzILOpPureCode {
     RZ_IL_OP_ULE = 29,
     RZ_IL_OP_CAST = 30,
     RZ_IL_OP_APPEND = 31,
-    RZ_IL_OP_LOAD = 32,
-    RZ_IL_OP_LOADW = 33,
-    RZ_IL_OP_PURE_MAX = 34,
+    RZ_IL_OP_FLOAT = 32,
+    RZ_IL_OP_FBITS = 33,
+    RZ_IL_OP_IS_FINITE = 34,
+    RZ_IL_OP_IS_NAN = 35,
+    RZ_IL_OP_IS_INF = 36,
+    RZ_IL_OP_IS_FZERO = 37,
+    RZ_IL_OP_IS_FNEG = 38,
+    RZ_IL_OP_IS_FPOS = 39,
+    RZ_IL_OP_FNEG = 40,
+    RZ_IL_OP_FABS = 41,
+    RZ_IL_OP_FCAST_INT = 42,
+    RZ_IL_OP_FCAST_SINT = 43,
+    RZ_IL_OP_FCAST_FLOAT = 44,
+    RZ_IL_OP_FCAST_SFLOAT = 45,
+    RZ_IL_OP_FCONVERT = 46,
+    RZ_IL_OP_FREQUAL = 47,
+    RZ_IL_OP_FSUCC = 48,
+    RZ_IL_OP_FPRED = 49,
+    RZ_IL_OP_FORDER = 50,
+    RZ_IL_OP_FROUND = 51,
+    RZ_IL_OP_FSQRT = 52,
+    RZ_IL_OP_FRSQRT = 53,
+    RZ_IL_OP_FADD = 54,
+    RZ_IL_OP_FSUB = 55,
+    RZ_IL_OP_FMUL = 56,
+    RZ_IL_OP_FDIV = 57,
+    RZ_IL_OP_FMOD = 58,
+    RZ_IL_OP_FHYPOT = 59,
+    RZ_IL_OP_FPOW = 60,
+    RZ_IL_OP_FMAD = 61,
+    RZ_IL_OP_FROOTN = 62,
+    RZ_IL_OP_FPOWN = 63,
+    RZ_IL_OP_FCOMPOUND = 64,
+    RZ_IL_OP_LOAD = 65,
+    RZ_IL_OP_LOADW = 66,
+    RZ_IL_OP_PURE_MAX = 67,
 }
 #[doc = " \\brief An IL op performing a pure computation, 'a pure\n\n BAP uses ocaml's type system for statically differentiating between different\n kinds of pure ops. Some ops however are polymorphic over all pure types,\n such as `ite : bool -> 'a pure -> 'a pure -> 'a pure`, which is not directly possible in C.\n So our pure ops are dynamically typed (only on the level of C, the IL is still fully statically typed)\n and we simply use typedefs like `RzILOpBool` and `RzILOpBitVector` to at least weakly indicate which concrete type is required."]
 #[repr(C)]
@@ -53759,6 +49236,39 @@ pub union rz_il_op_pure_t__bindgen_ty_1 {
     pub append: RzILOpArgsAppend,
     pub load: RzILOpArgsLoad,
     pub loadw: RzILOpArgsLoadW,
+    pub float_: RzILOpArgsFloat,
+    pub fbits: RzILOpArgsFbits,
+    pub is_finite: RzILOpArgsIsFinite,
+    pub is_nan: RzILOpArgsIsNan,
+    pub is_inf: RzILOpArgsIsInf,
+    pub is_fzero: RzILOpArgsIsFzero,
+    pub is_fneg: RzILOpArgsIsFneg,
+    pub is_fpos: RzILOpArgsIsFpos,
+    pub fneg: RzILOpArgsFneg,
+    pub fabs: RzILOpArgsFabs,
+    pub fcast_int: RzILOpArgsFCastint,
+    pub fcast_sint: RzILOpArgsFCastsint,
+    pub fcast_float: RzILOpArgsFCastfloat,
+    pub fcast_sfloat: RzILOpArgsFCastsfloat,
+    pub fconvert: RzILOpArgsFconvert,
+    pub frequal: RzILOpArgsFrequal,
+    pub fsucc: RzILOpArgsFsucc,
+    pub fpred: RzILOpArgsFpred,
+    pub forder: RzILOpArgsForder,
+    pub fround: RzILOpArgsFround,
+    pub fsqrt: RzILOpArgsFsqrt,
+    pub frsqrt: RzILOpArgsFrsqrt,
+    pub fadd: RzILOpArgsFadd,
+    pub fsub: RzILOpArgsFsub,
+    pub fmul: RzILOpArgsFmul,
+    pub fdiv: RzILOpArgsFdiv,
+    pub fmod: RzILOpArgsFmod,
+    pub fmad: RzILOpArgsFmad,
+    pub fpow: RzILOpArgsFpow,
+    pub fpown: RzILOpArgsFpown,
+    pub frootn: RzILOpArgsFrootn,
+    pub fcompound: RzILOpArgsFcompound,
+    pub fhypot: RzILOpArgsFhypot,
 }
 #[test]
 fn bindgen_test_layout_rz_il_op_pure_t__bindgen_ty_1() {
@@ -53767,7 +49277,7 @@ fn bindgen_test_layout_rz_il_op_pure_t__bindgen_ty_1() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<rz_il_op_pure_t__bindgen_ty_1>(),
-        24usize,
+        32usize,
         concat!("Size of: ", stringify!(rz_il_op_pure_t__bindgen_ty_1))
     );
     assert_eq!(
@@ -54095,6 +49605,336 @@ fn bindgen_test_layout_rz_il_op_pure_t__bindgen_ty_1() {
             stringify!(loadw)
         )
     );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).float_) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(float_)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fbits) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fbits)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).is_finite) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(is_finite)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).is_nan) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(is_nan)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).is_inf) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(is_inf)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).is_fzero) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(is_fzero)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).is_fneg) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(is_fneg)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).is_fpos) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(is_fpos)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fneg) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fneg)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fabs) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fabs)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fcast_int) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fcast_int)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fcast_sint) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fcast_sint)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fcast_float) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fcast_float)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fcast_sfloat) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fcast_sfloat)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fconvert) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fconvert)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).frequal) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(frequal)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fsucc) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fsucc)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fpred) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fpred)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).forder) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(forder)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fround) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fround)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fsqrt) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fsqrt)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).frsqrt) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(frsqrt)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fadd) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fadd)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fsub) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fsub)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fmul) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fmul)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fdiv) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fdiv)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fmod) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fmod)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fmad) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fmad)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fpow) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fpow)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fpown) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fpown)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).frootn) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(frootn)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fcompound) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fcompound)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).fhypot) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(rz_il_op_pure_t__bindgen_ty_1),
+            "::",
+            stringify!(fhypot)
+        )
+    );
 }
 impl Default for rz_il_op_pure_t__bindgen_ty_1 {
     fn default() -> Self {
@@ -54111,7 +49951,7 @@ fn bindgen_test_layout_rz_il_op_pure_t() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<rz_il_op_pure_t>(),
-        32usize,
+        40usize,
         concat!("Size of: ", stringify!(rz_il_op_pure_t))
     );
     assert_eq!(
@@ -54370,6 +50210,176 @@ extern "C" {
         key: *mut RzILOpBitVector,
         n_bits: ::std::os::raw::c_uint,
     ) -> *mut RzILOpBitVector;
+}
+extern "C" {
+    pub fn rz_il_op_new_float(format: RzFloatFormat, bv: *mut RzILOpBitVector) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_float_from_f32(f: f32) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_float_from_f64(f: f64) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fbits(f: *mut RzILOpFloat) -> *mut RzILOpBitVector;
+}
+extern "C" {
+    pub fn rz_il_op_new_is_finite(f: *mut RzILOpFloat) -> *mut RzILOpBool;
+}
+extern "C" {
+    pub fn rz_il_op_new_is_nan(f: *mut RzILOpFloat) -> *mut RzILOpBool;
+}
+extern "C" {
+    pub fn rz_il_op_new_is_inf(f: *mut RzILOpFloat) -> *mut RzILOpBool;
+}
+extern "C" {
+    pub fn rz_il_op_new_is_fzero(f: *mut RzILOpFloat) -> *mut RzILOpBool;
+}
+extern "C" {
+    pub fn rz_il_op_new_is_fneg(f: *mut RzILOpFloat) -> *mut RzILOpBool;
+}
+extern "C" {
+    pub fn rz_il_op_new_is_fpos(f: *mut RzILOpFloat) -> *mut RzILOpBool;
+}
+extern "C" {
+    pub fn rz_il_op_new_fneg(f: *mut RzILOpFloat) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fabs(f: *mut RzILOpFloat) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fcast_int(
+        length: ::std::os::raw::c_uint,
+        mode: RzFloatRMode,
+        f: *mut RzILOpFloat,
+    ) -> *mut RzILOpBitVector;
+}
+extern "C" {
+    pub fn rz_il_op_new_fcast_sint(
+        length: ::std::os::raw::c_uint,
+        mode: RzFloatRMode,
+        f: *mut RzILOpFloat,
+    ) -> *mut RzILOpBitVector;
+}
+extern "C" {
+    pub fn rz_il_op_new_fcast_float(
+        format: RzFloatFormat,
+        mode: RzFloatRMode,
+        bv: *mut RzILOpBitVector,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fcast_sfloat(
+        format: RzFloatFormat,
+        mode: RzFloatRMode,
+        bv: *mut RzILOpBitVector,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fconvert(
+        format: RzFloatFormat,
+        mode: RzFloatRMode,
+        f: *mut RzILOpFloat,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_frequal(x: RzFloatRMode, y: RzFloatRMode) -> *mut RzILOpBool;
+}
+extern "C" {
+    pub fn rz_il_op_new_fsucc(f: *mut RzILOpFloat) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fpred(f: *mut RzILOpFloat) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_forder(x: *mut RzILOpFloat, y: *mut RzILOpFloat) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fround(rmode: RzFloatRMode, f: *mut RzILOpFloat) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fsqrt(rmode: RzFloatRMode, f: *mut RzILOpFloat) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_frsqrt(rmode: RzFloatRMode, f: *mut RzILOpFloat) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fadd(
+        rmode: RzFloatRMode,
+        x: *mut RzILOpFloat,
+        y: *mut RzILOpFloat,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fsub(
+        rmode: RzFloatRMode,
+        x: *mut RzILOpFloat,
+        y: *mut RzILOpFloat,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fmul(
+        rmode: RzFloatRMode,
+        x: *mut RzILOpFloat,
+        y: *mut RzILOpFloat,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fdiv(
+        rmode: RzFloatRMode,
+        x: *mut RzILOpFloat,
+        y: *mut RzILOpFloat,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fmod(
+        rmode: RzFloatRMode,
+        x: *mut RzILOpFloat,
+        y: *mut RzILOpFloat,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fhypot(
+        rmode: RzFloatRMode,
+        x: *mut RzILOpFloat,
+        y: *mut RzILOpFloat,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fpow(
+        rmode: RzFloatRMode,
+        x: *mut RzILOpFloat,
+        y: *mut RzILOpFloat,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fmad(
+        rmode: RzFloatRMode,
+        x: *mut RzILOpFloat,
+        y: *mut RzILOpFloat,
+        z: *mut RzILOpFloat,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_frootn(
+        rmode: RzFloatRMode,
+        x: *mut RzILOpFloat,
+        n: *mut RzILOpBitVector,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fpown(
+        rmode: RzFloatRMode,
+        x: *mut RzILOpFloat,
+        n: *mut RzILOpBitVector,
+    ) -> *mut RzILOpFloat;
+}
+extern "C" {
+    pub fn rz_il_op_new_fcompound(
+        rmode: RzFloatRMode,
+        x: *mut RzILOpFloat,
+        n: *mut RzILOpBitVector,
+    ) -> *mut RzILOpFloat;
 }
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -55633,6 +51643,9 @@ extern "C" {
 }
 extern "C" {
     pub fn rz_il_evaluate_bool(vm: *mut RzILVM, op: *mut RzILOpBool) -> *mut RzILBool;
+}
+extern "C" {
+    pub fn rz_il_evaluate_float(vm: *mut RzILVM, op: *mut RzILOpPure) -> *mut RzFloat;
 }
 extern "C" {
     pub fn rz_il_evaluate_val(vm: *mut RzILVM, op: *mut RzILOpPure) -> *mut RzILVal;

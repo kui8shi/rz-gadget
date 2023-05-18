@@ -7,7 +7,7 @@ pub trait RzApi {
     fn init(&mut self);
 
     // Recv raw output
-    fn raw(&mut self, cmd: String) -> Result<String,RzPipeLangError>;
+    fn raw(&mut self, cmd: String) -> Result<String, RzPipeLangError>;
 
     /// Run rz-based analysis on the file to extract information
     fn analyze(&mut self);
@@ -74,8 +74,8 @@ pub trait RzApi {
     fn strings(&mut self, data_only: bool) -> Result<Vec<LStringInfo>, RzPipeLangError>;
     /// Get list of local variables in function defined at a particular address
     fn locals_of(&mut self, location: u64) -> Result<Vec<LVarInfo>, RzPipeLangError>;
-    /// Get calling convention information for a function defined at a particular address
-    fn cc_info_of(&mut self, location: u64) -> Result<LCCInfo, RzPipeLangError>;
+    /// Get list of calling convention information
+    fn cc_info(&mut self) -> Result<Vec<LCCInfo>, RzPipeLangError>;
     /// Detect a function at a particular address in the binary
     fn function<T: AsRef<str>>(&mut self, func: T) -> Result<LFunctionInfo, RzPipeLangError>;
 

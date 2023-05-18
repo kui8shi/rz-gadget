@@ -46,6 +46,7 @@ pub struct LRegProfile {
 pub struct LFlagInfo {
     pub offset: u64,
     pub name: String,
+    pub realname: String,
     pub size: u64,
 }
 

@@ -12,5 +12,3 @@ extern crate serde_derive;
 
 #[macro_use]
 pub mod api;
-pub mod api_trait;
-pub mod structs;

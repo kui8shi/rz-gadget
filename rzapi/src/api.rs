@@ -1,113 +1,978 @@
-use crate::api_trait::RzApi;
-use crate::structs::*;
-
 use rzpipe::errors::RzPipeLangError;
-use rzpipe::rz::Rz;
+use rzpipe::open_pipe;
+use rzpipe::rzpipe::RzPipe;
+use serde::{Deserialize, Serialize};
 use serde_json::from_str;
+use std::boxed::Box;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
-impl RzApi for Rz {
-    fn analyze(&mut self) {
-        self.send("aaa");
-        self.flush();
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(tag = "opcode", rename_all = "snake_case")]
+pub enum RzIL {
+    // RzILOpPure
+    Var {
+        value: String,
+    },
+    Ite {
+        condition: Box<RzIL>,
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Let {
+        dst: String,
+        exp: Box<RzIL>,
+        body: Box<RzIL>,
+    },
+    // Box<RzIL>OpBool
+    Bool {
+        value: bool,
+    },
+
+    #[serde(rename = "!")]
+    BoolInv {
+        x: Box<RzIL>,
+    },
+    #[serde(rename = "&&")]
+    BoolAnd {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = "||")]
+    BoolOr {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = "^^")]
+    BoolXor {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    // Box<RzIL>OpBitvector
+    Bitv {
+        bits: String,
+        len: u64,
+    },
+    Msb {
+        bv: Box<RzIL>,
+    },
+    Lsb {
+        bv: Box<RzIL>,
+    },
+    IsZero {
+        bv: Box<RzIL>,
+    },
+    #[serde(rename = "~-")]
+    Neg {
+        bv: Box<RzIL>,
+    },
+    #[serde(rename = "~")]
+    LogNot {
+        bv: Box<RzIL>,
+    },
+    #[serde(rename = "+")]
+    Add {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = "-")]
+    Sub {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = "*")]
+    Mul {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Div {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Sdiv {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Mod {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Smod {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = "&")]
+    LogAnd {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = "|")]
+    LogOr {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = "^")]
+    LogXor {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = ">>")]
+    ShiftRight {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+        fill_bit: Box<RzIL>,
+    },
+    #[serde(rename = "<<")]
+    ShiftLeft {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+        fill_bit: Box<RzIL>,
+    },
+    #[serde(rename = "==")]
+    Equal {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Sle {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Ule {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Cast {
+        value: Box<RzIL>,
+        length: u64,
+        fill: Box<RzIL>,
+    },
+    Append {
+        high: Box<RzIL>,
+        low: Box<RzIL>,
+    },
+    // Box<RzIL>OpFloat
+    Float {
+        format: u64,
+        bv: Box<RzIL>,
+    },
+    Fbits {
+        f: Box<RzIL>,
+    },
+    IsFinite {
+        f: Box<RzIL>,
+    },
+    IsNan {
+        f: Box<RzIL>,
+    },
+    IsInf {
+        f: Box<RzIL>,
+    },
+    IsFzero {
+        f: Box<RzIL>,
+    },
+    IsFneg {
+        f: Box<RzIL>,
+    },
+    IsFpos {
+        f: Box<RzIL>,
+    },
+    Fneg {
+        f: Box<RzIL>,
+    },
+    Fpos {
+        f: Box<RzIL>,
+    },
+    FcastInt {
+        length: u64,
+        rmode: String,
+        value: Box<RzIL>,
+    },
+    FcastSint {
+        length: u64,
+        rmode: String,
+        value: Box<RzIL>,
+    },
+    FcastFloat {
+        format: String,
+        rmode: String,
+        value: Box<RzIL>,
+    },
+    FcastSfloat {
+        format: String,
+        rmode: String,
+        value: Box<RzIL>,
+    },
+    Fconvert {
+        format: String,
+        rmode: String,
+        value: Box<RzIL>,
+    },
+    Fround {
+        rmode: String,
+        value: Box<RzIL>,
+    },
+    Frequal {
+        rmode_x: String,
+        rmode_y: String,
+        value: Box<RzIL>,
+    },
+    Fsucc {
+        f: Box<RzIL>,
+    },
+    Fpred {
+        f: Box<RzIL>,
+    },
+    #[serde(rename = "<")]
+    Forder {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Fsqrt {
+        rmode: String,
+        f: Box<RzIL>,
+    },
+    Frsqrt {
+        rmode: String,
+        f: Box<RzIL>,
+    },
+    #[serde(rename = "+.")]
+    Fadd {
+        rmode: String,
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = "-.")]
+    Fsub {
+        rmode: String,
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = "*.")]
+    Fmul {
+        rmode: String,
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = "/.")]
+    Fdiv {
+        rmode: String,
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    #[serde(rename = "%.")]
+    Fmod {
+        rmode: String,
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Hypot {
+        rmode: String,
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Pow {
+        rmode: String,
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Fmad {
+        rmode: String,
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+        z: Box<RzIL>,
+    },
+    Fpown {
+        rmode: String,
+        f: Box<RzIL>,
+        n: Box<RzIL>,
+    },
+    Frootn {
+        rmode: String,
+        f: Box<RzIL>,
+        n: Box<RzIL>,
+    },
+    Fcompound {
+        rmode: String,
+        f: Box<RzIL>,
+        n: Box<RzIL>,
+    },
+    // Box<RzIL>OpEffect
+    Load {
+        mem: String,
+        key: Box<RzIL>,
+    },
+    Loadw {
+        mem: u64,
+        key: Box<RzIL>,
+        bits: u64,
+    },
+    Store {
+        mem: u64,
+        key: Box<RzIL>,
+        value: Box<RzIL>,
+    },
+    Storew {
+        mem: u64,
+        key: Box<RzIL>,
+        value: Box<RzIL>,
+    },
+    Nop,
+    Set {
+        dst: String,
+        src: Box<RzIL>,
+    },
+    Jmp {
+        dst: Box<RzIL>,
+    },
+    Goto {
+        label: String,
+    },
+    Seq {
+        x: Box<RzIL>,
+        y: Box<RzIL>,
+    },
+    Blk {
+        label: String,
+        data: Box<RzIL>,
+        ctrl: Box<RzIL>,
+    },
+    Repeat {
+        condition: Box<RzIL>,
+        data_eff: Box<RzIL>,
+    },
+    Branch {
+        condition: Box<RzIL>,
+        true_eff: Box<RzIL>,
+        false_eff: Box<RzIL>,
+    },
+    #[default]
+    Empty,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct Disassembly {
+    pub offset: u64,
+    pub esil: String,
+    pub refptr: bool,
+    pub fcn_addr: u64,
+    pub fcn_last: u64,
+    pub size: u64,
+    pub opcode: String,
+    pub disasm: String,
+    pub bytes: String,
+    pub family: String,
+    pub r#type: String,
+    pub reloc: bool,
+    pub type_num: u64,
+    pub type2_num: u64,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct Instruction {
+    pub opcode: String,
+    pub disasm: String,
+    pub pseudo: String,
+    pub description: String,
+    pub mnemonic: String,
+    pub mask: String,
+    //pub esil: String,
+    pub rzil: RzIL,
+    pub sign: bool,
+    pub prefix: u64,
+    pub id: u64,
+    // pub opex : Value,
+    pub addr: u64,
+    pub bytes: String,
+    pub size: u64,
+    pub r#type: String,
+    pub esilcost: u64,
+    pub scale: u64,
+    pub refptr: u64,
+    pub cycles: u64,
+    pub failcycles: u64,
+    pub delay: u64,
+    pub stackptr: u64,
+    pub family: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CrossRef {
+    pub from: u64,
+    pub to: u64,
+    pub r#type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Storage {
+    pub r#type: String,
+    pub reg: String,
+    pub stack_off: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Variable {
+    pub name: String,
+    pub arg: bool,
+    pub r#type: String,
+    pub storage: Storage,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct FunctionInfo {
+    pub offset: u64,
+    pub name: String,
+    pub size: u64,
+    #[serde(rename = "is-pure")]
+    pub is_pure: bool,
+    pub realsz: u64,
+    pub noreturn: bool,
+    pub stackframe: u64,
+    pub calltype: String,
+    pub cost: u64,
+    pub cc: u64,
+    pub bits: u64,
+    pub r#type: String,
+    pub nbbs: u64, // number of basic blocks
+    pub edges: u64,
+    pub ebbs: u64,
+    pub signature: String,
+    pub minbound: u64,
+    pub maxbound: u64,
+    pub callrefs: Vec<CrossRef>,
+    pub datarefs: Vec<CrossRef>,
+    pub callxrefs: Vec<CrossRef>,
+    pub dataxrefs: Vec<CrossRef>,
+    pub indegree: u64,
+    pub outdegree: u64,
+    pub nlocals: u64,
+    pub nargs: u64,
+    pub stackvars: Vec<Variable>,
+    pub regvars: Vec<Variable>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct RegisterInfomation {
+    pub alias_info: Vec<AliasInfo>,
+    pub reg_info: Vec<RegInfo>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct AliasInfo {
+    pub reg: String,
+    pub role: u64,
+    pub role_str: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct RegInfo {
+    pub name: String,
+    pub offset: usize,
+    pub size: usize,
+    pub type_str: String,
+    pub r#type: usize,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct FlagInfo {
+    pub offset: u64,
+    pub name: String,
+    pub realname: String,
+    pub size: u64,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct Information {
+    pub core: CoreInfo,
+    pub bin: BinInfo,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct CoreInfo {
+    pub file: String,
+    pub size: usize,
+    pub mode: String,
+    pub format: String,
+}
+
+#[derive(Debug, Copy, Default, Clone, Serialize, Deserialize)]
+#[serde(rename = "endian")]
+pub enum Endian {
+    #[serde(rename = "BE")]
+    Big,
+    #[serde(rename = "LE")]
+    #[default]
+    Little,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct BinInfo {
+    pub arch: String,
+    pub bits: usize,
+    pub endian: Endian,
+    pub os: String,
+    pub canary: bool,
+    #[serde(rename = "PIE")]
+    pub pie: bool,
+    #[serde(rename = "NX")]
+    pub nx: bool,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct SectionInfo {
+    pub flags: String,
+    pub name: String,
+    pub perm: String,
+    pub paddr: u64,
+    pub size: u64,
+    pub vaddr: u64,
+    pub vsize: u64,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct StringInfo {
+    pub length: u64,
+    pub ordinal: u64,
+    pub paddr: u64,
+    pub section: String,
+    pub size: u64,
+    pub string: String,
+    pub vaddr: u64,
+    #[serde(rename = "type")]
+    pub stype: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct VarInfo {
+    pub stack: Vec<Variable>,
+    pub reg: Vec<Variable>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct CallingConvention {
+    pub name: String,
+    pub ret: String,
+    pub args: Vec<String>,
+    //#[serde(rename = "float_args")]
+    //pub fargs: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+// Taken from ELF Spec
+pub enum SymbolType {
+    #[default]
+    Notype,
+    Obj,
+    Func,
+    Section,
+    File,
+    Common,
+    Loos,
+    Hios,
+    Loproc,
+    SparcRegister,
+    HiProc,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct SymbolInfo {
+    pub demname: String,
+    pub flagname: String,
+    pub name: String,
+    pub paddr: u64,
+    pub size: u64,
+    #[serde(rename = "type")]
+    pub stype: SymbolType,
+    pub vaddr: u64,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+// Taken from ELF Spec
+pub enum BindType {
+    #[default]
+    Global,
+    Local,
+    Weak,
+    Loos,
+    Hios,
+    Loproc,
+    Hiproc,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ImportInfo {
+    pub bind: BindType,
+    pub name: String,
+    pub ordinal: u64,
+    pub plt: u64,
+    #[serde(rename = "type")]
+    pub itype: SymbolType,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ExportInfo {
+    pub demname: String,
+    pub flagname: String,
+    pub name: String,
+    pub paddr: u64,
+    pub size: u64,
+    #[serde(rename = "type")]
+    pub etype: SymbolType,
+    pub vaddr: u64,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct RelocInfo {
+    pub is_ifunc: bool,
+    pub name: String,
+    pub paddr: u64,
+    #[serde(rename = "type")]
+    pub rtype: String,
+    pub vaddr: u64,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct EntryInfo {
+    pub vaddr: u64,
+    pub paddr: u64,
+    pub baddr: u64,
+    pub laddr: u64,
+    pub haddr: u64,
+    pub etype: String,
+}
+
+#[derive(Clone)]
+pub struct RzApi {
+    pub rzp: Arc<Mutex<RzPipe>>,
+    //pub instructions: HashMap<u64, Instruction>,
+    //pub permissions: HashMap<u64, Permission>,
+    pub info: Information,
+    do_cache: bool,
+    cache: HashMap<String, String>,
+}
+fn hex_encode(data: &[u8]) -> String {
+    data.iter()
+        .map(|d| format!("{:02x}", *d))
+        .collect::<Vec<_>>()
+        .join("")
+}
+
+fn hex_decode(data: &str) -> Vec<u8> {
+    let mut result = Vec::with_capacity(data.len());
+    for i in 0..data.len() / 2 {
+        result.push(u8::from_str_radix(&data[2 * i..2 * i + 2], 16).unwrap());
+    }
+    result
+}
+type RzResult<T> = std::result::Result<T, String>;
+fn rz_result<T, E: std::fmt::Display>(result: Result<T, E>) -> RzResult<T> {
+    match result {
+        Ok(res) => Ok(res),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+impl RzApi {
+    pub fn new<T: AsRef<str>>(path: Option<T>) -> RzResult<RzApi> {
+        if path.is_none() && !RzApi::in_session() {
+            let e = "No rizin session open. Please specify path.".to_owned();
+            return Err(e);
+        }
+
+        let pipe = match open_pipe!(path.as_ref()) {
+            Ok(p) => p,
+            Err(_) => {
+                // This means that path is `Some` or we have an open session.
+                return Err(
+                    "Path could not be resolved or we do not have an open session!".to_owned(),
+                );
+            }
+        };
+
+        let mut rzapi = RzApi {
+            rzp: Arc::new(Mutex::new(pipe)),
+            info: Information::default(),
+            do_cache: false,
+            cache: HashMap::new(),
+        };
+        rzapi.info = match rzapi.get_info() {
+            Ok(info) => info,
+            Err(e) => {
+                return Err(e.to_string());
+            }
+        };
+
+        rzapi.set_option("analysis.esil", "false")?;
+        rzapi.set_option("scr.color", "0")?;
+        Ok(rzapi)
     }
 
-    fn init(&mut self) {
-        self.send("e asm.esil = true");
-        self.send("e scr.color = false");
-        self.analyze()
+    pub fn in_session() -> bool {
+        RzPipe::in_session().is_some()
     }
 
-    fn function<T: AsRef<str>>(&mut self, func: T) -> Result<LFunctionInfo, RzPipeLangError> {
+    pub fn from(pipe: RzPipe) -> RzApi {
+        RzApi {
+            rzp: Arc::new(Mutex::new(pipe)),
+            info: Information::default(),
+            do_cache: false,
+            cache: HashMap::new(),
+        }
+    }
+
+    pub fn set_option(&mut self, key: &str, value: &str) -> RzResult<String> {
+        self.cmd(format!("e {}={}", key, value).as_str())
+    }
+
+    pub fn cmd(&mut self, cmd: &str) -> RzResult<String> {
+        rz_result(self.rzp.lock().unwrap().cmd(cmd))
+    }
+
+    pub fn ccmd(&mut self, cmd: &str) -> RzResult<String> {
+        if self.do_cache {
+            if let Some(result) = self.cache.get(cmd) {
+                Ok(result.to_owned())
+            } else {
+                let result = self.cmd(cmd)?;
+                self.cache.insert(cmd.to_owned(), result.clone());
+                Ok(result)
+            }
+        } else {
+            self.cmd(cmd)
+        }
+    }
+    pub fn close(&mut self) {
+        let _r = self.cmd("q!");
+    }
+
+    pub fn function<T: AsRef<str>>(&mut self, func: T) -> RzResult<FunctionInfo> {
         let func_name = func.as_ref();
         let cmd = format!("pdfj @ {}", func_name);
-        self.send(&cmd);
-        let raw_json = self.recv();
+        let raw_json = self.cmd(&cmd)?;
         // Handle errors here.
-        from_str(&raw_json).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&raw_json)) //(|e| Box::new(RzPipeLangError::ParsingJson(e.to_string())))
     }
 
-    fn disassemble_n_bytes(
+    pub fn disassemble_n_bytes(
         &mut self,
         n: u64,
         offset: Option<u64>,
-    ) -> Result<Vec<LOpInfo>, RzPipeLangError> {
-        self.send(&format!(
+    ) -> RzResult<Vec<Disassembly>> {
+        let raw_json = self.cmd(&format!(
             "pDj {} @ {}",
             n,
             offset
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| "".to_owned())
-        ));
-        let s = &self.recv();
-        from_str(s).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        ))?;
+        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn disassemble_n_insts(
+    pub fn disassemble_n_insts(
         &mut self,
         n: u64,
         offset: Option<u64>,
-    ) -> Result<Vec<LOpInfo>, RzPipeLangError> {
-        self.send(&format!(
+    ) -> RzResult<Vec<Disassembly>> {
+        let raw_json = self.cmd(&format!(
             "pdj {} @ {}",
             n,
             offset
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| "".to_owned())
-        ));
-        from_str(&self.recv()).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        ))?;
+        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
     // get 'n' (or 16) instructions at 'offset' (or current position if offset in
     // `None`)
-    fn insts<T: AsRef<str>>(
+    pub fn get_insts<T: AsRef<str>>(
         &mut self,
         n: Option<u64>,
         offset: Option<T>,
-    ) -> Result<Vec<LOpInfo>, RzPipeLangError> {
+    ) -> RzResult<Vec<Instruction>> {
         let n = n.unwrap_or(16);
-        let mut cmd = format!("pdj{}", n);
+        let mut cmd = format!("aoj {}", n);
         if let Some(o) = offset {
             cmd = format!("{} @ {}", cmd, o.as_ref());
         }
-        self.send(&cmd);
-        let raw_json = self.recv();
-        from_str(&raw_json).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        let raw_json = self.cmd(&cmd)?;
+        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn reg_info(&mut self) -> Result<LRegInfo, RzPipeLangError> {
-        self.send("drpj");
-        let raw_json = self.recv();
-        from_str(&raw_json).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    pub fn get_registers(&mut self) -> RzResult<RegisterInfomation> {
+        let raw_json = self.cmd("drpj")?;
+        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn flag_info(&mut self) -> Result<Vec<LFlagInfo>, RzPipeLangError> {
-        self.send("fj");
-        let raw_json = self.recv();
-        from_str(&raw_json).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    pub fn get_flags(&mut self) -> RzResult<Vec<FlagInfo>> {
+        let raw_json = self.cmd("flj")?;
+        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn bin_info(&mut self) -> Result<LBinInfo, RzPipeLangError> {
-        self.send("ij");
-        let raw_json = self.recv();
-        from_str(&raw_json).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    pub fn get_info(&mut self) -> RzResult<Information> {
+        let raw_json = self.cmd("ij")?;
+        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn cc_info_of(&mut self, location: u64) -> Result<LCCInfo, RzPipeLangError> {
-        self.send(&format!("afcrj @ {}", location));
-        let raw_json = self.recv();
-        from_str(&raw_json).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    pub fn get_shellcode(&mut self, cmd: &str) -> RzResult<Vec<u8>> {
+        let result = self.cmd(&format!("gr;gi exec;gc cmd={};g", cmd))?;
+        Ok(hex_decode(&result))
     }
 
-    fn locals_of(&mut self, location: u64) -> Result<Vec<LVarInfo>, RzPipeLangError> {
-        self.send(&format!("afvbj @ {}", location));
-        from_str(&self.recv()).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    /*
+        arch/ABI      arg1  arg2  arg3  arg4  arg5  arg6  arg7  Notes
+    ──────────────────────────────────────────────────────────────
+    alpha         a0    a1    a2    a3    a4    a5    -
+    arc           r0    r1    r2    r3    r4    r5    -
+    arm/OABI      a1    a2    a3    a4    v1    v2    v3
+    arm/EABI      r0    r1    r2    r3    r4    r5    r6
+    arm64         x0    x1    x2    x3    x4    x5    -
+    blackfin      R0    R1    R2    R3    R4    R5    -
+    i386          ebx   ecx   edx   esi   edi   ebp   -
+    ia64          out0  out1  out2  out3  out4  out5  -
+    m68k          d1    d2    d3    d4    d5    a0    -
+    microblaze    r5    r6    r7    r8    r9    r10   -
+    mips/o32      a0    a1    a2    a3    -     -     -     [1]
+    mips/n32,64   a0    a1    a2    a3    a4    a5    -
+    nios2         r4    r5    r6    r7    r8    r9    -
+    parisc        r26   r25   r24   r23   r22   r21   -
+    powerpc       r3    r4    r5    r6    r7    r8    r9
+    riscv         a0    a1    a2    a3    a4    a5    -
+    s390          r2    r3    r4    r5    r6    r7    -
+    s390x         r2    r3    r4    r5    r6    r7    -
+    superh        r4    r5    r6    r7    r0    r1    r2
+    sparc/32      o0    o1    o2    o3    o4    o5    -
+    sparc/64      o0    o1    o2    o3    o4    o5    -
+    tile          R00   R01   R02   R03   R04   R05   -
+    x86-64        rdi   rsi   rdx   r10   r8    r9    -
+    x32           rdi   rsi   rdx   r10   r8    r9    -
+    xtensa        a6    a3    a4    a5    a8    a9    -
+    */
+
+    pub fn get_cc(&mut self, location: u64) -> RzResult<Vec<CallingConvention>> {
+        let raw_json = self.cmd(&format!("afcrj {}", location))?;
+        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn fn_list(&mut self) -> Result<Vec<FunctionInfo>, RzPipeLangError> {
-        self.send("aflj");
-        let raw_json = self.recv();
-        let mut finfo = from_str::<Vec<FunctionInfo>>(&raw_json)
+    pub fn get_syscall_cc(&mut self) -> RzResult<CallingConvention> {
+        match (self.info.bin.arch.as_str(), self.info.bin.bits) {
+            ("x86", 32) => Ok(CallingConvention {
+                name: "x86syscall".to_owned(),
+                args: vec![
+                    "ebx".to_owned(),
+                    "ecx".to_owned(),
+                    "edx".to_owned(),
+                    "esi".to_owned(),
+                    "edi".to_owned(),
+                    "ebp".to_owned(),
+                ],
+                ret: "eax".to_owned(),
+            }),
+            ("x86", 64) => Ok(CallingConvention {
+                name: "amd64syscall".to_owned(),
+                args: vec![
+                    "rdi".to_owned(),
+                    "rsi".to_owned(),
+                    "rdx".to_owned(),
+                    "r10".to_owned(),
+                    "r8".to_owned(),
+                    "r9".to_owned(),
+                ],
+                ret: "rax".to_owned(),
+            }),
+            // 16 is thumb mode, need to handle better
+            ("arm", 16) | ("arm", 32) => Ok(CallingConvention {
+                name: "arm16syscall".to_owned(),
+                args: vec![
+                    "r0".to_owned(),
+                    "r1".to_owned(),
+                    "r2".to_owned(),
+                    "r3".to_owned(),
+                    "r4".to_owned(),
+                    "r5".to_owned(),
+                    "r6".to_owned(),
+                ],
+                ret: "r0".to_owned(),
+            }),
+            ("arm", 64) => Ok(CallingConvention {
+                name: "arm64syscall".to_owned(),
+                args: vec![
+                    "x0".to_owned(),
+                    "x1".to_owned(),
+                    "x2".to_owned(),
+                    "x3".to_owned(),
+                    "x4".to_owned(),
+                    "x5".to_owned(),
+                    "x6".to_owned(),
+                    "x7".to_owned(),
+                    "x8".to_owned(), // supposedly xnu/ios can have up 9 args
+                ],
+                ret: "x0".to_owned(),
+            }),
+            ("riscv", _) | ("mips", _) => Ok(CallingConvention {
+                name: "riscvsyscall".to_owned(),
+                args: vec![
+                    "a0".to_owned(),
+                    "a1".to_owned(),
+                    "a2".to_owned(),
+                    "a3".to_owned(),
+                    "a4".to_owned(),
+                    "a5".to_owned(),
+                ],
+                ret: "a0".to_owned(),
+            }),
+            ("sparc", _) => Ok(CallingConvention {
+                name: "sparcsyscall".to_owned(),
+                args: vec![
+                    "o0".to_owned(),
+                    "o1".to_owned(),
+                    "o2".to_owned(),
+                    "o3".to_owned(),
+                    "o4".to_owned(),
+                    "o5".to_owned(),
+                ],
+                ret: "o0".to_owned(),
+            }),
+            ("ppc", _) => Ok(CallingConvention {
+                name: "ppcsyscall".to_owned(),
+                args: vec![
+                    "r3".to_owned(),
+                    "r4".to_owned(),
+                    "r5".to_owned(),
+                    "r6".to_owned(),
+                    "r7".to_owned(),
+                    "r8".to_owned(),
+                    "r9".to_owned(),
+                ],
+                ret: "r3".to_owned(), // TODO errors are in r0
+            }),
+            ("xtensa", _) => Ok(CallingConvention {
+                name: "xtensasyscall".to_owned(),
+                args: vec![
+                    "a6".to_owned(),
+                    "a3".to_owned(),
+                    "a4".to_owned(),
+                    "a5".to_owned(),
+                    "a8".to_owned(),
+                    "a9".to_owned(),
+                ],
+                ret: "a2".to_owned(),
+            }),
+            _ => Err("calling convention not found".to_owned()),
+        }
+    }
+
+    pub fn get_variables(&mut self, location: u64) -> RzResult<VarInfo> {
+        let raw_json = self.cmd(&format!("afvj @ {}", location))?;
+        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    }
+
+    pub fn get_functions(&mut self) -> RzResult<Vec<FunctionInfo>> {
+        let raw_json = self.cmd("aflj")?;
+        let finfo = from_str::<Vec<FunctionInfo>>(&raw_json)
             .map_err(|e| RzPipeLangError::ParsingJson(e.to_string()));
+        /*
         if let Ok(ref mut fns) = finfo {
             for f in fns.iter_mut() {
                 let res = self.locals_of(f.offset.unwrap());
@@ -117,112 +982,124 @@ impl RzApi for Rz {
                     f.locals = Some(Vec::new());
                 }
             }
-        }
-        finfo
+        }*/
+        rz_result(finfo)
     }
 
-    fn sections(&mut self) -> Result<Vec<LSectionInfo>, RzPipeLangError> {
-        self.send("iSj");
-        from_str(&self.recv()).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    pub fn get_sections(&mut self) -> RzResult<Vec<SectionInfo>> {
+        rz_result(from_str(&self.cmd("iSj").unwrap())) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn strings(&mut self, data_only: bool) -> Result<Vec<LStringInfo>, RzPipeLangError> {
+    pub fn get_strings(&mut self, data_only: bool) -> RzResult<Vec<StringInfo>> {
         if data_only {
-            self.send("izj");
-            from_str(&self.recv()).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+            rz_result(from_str(&self.cmd("izj")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
         } else {
-            self.send("izzj");
-            from_str(&self.recv()).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+            rz_result(from_str(&self.cmd("izzj")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
         }
     }
 
-    fn imports(&mut self) -> Result<Vec<LImportInfo>, RzPipeLangError> {
-        self.send("iij");
-        from_str(&self.recv()).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    pub fn get_imports(&mut self) -> RzResult<Vec<ImportInfo>> {
+        rz_result(from_str(&self.cmd("iij")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn exports(&mut self) -> Result<Vec<LExportInfo>, RzPipeLangError> {
-        self.send("iej");
-        from_str(&self.recv()).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    pub fn get_exports(&mut self) -> RzResult<Vec<ExportInfo>> {
+        rz_result(from_str(&self.cmd("iej")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn symbols(&mut self) -> Result<Vec<LSymbolInfo>, RzPipeLangError> {
-        self.send("isj");
-        from_str(&self.recv()).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    pub fn get_symbols(&mut self) -> RzResult<Vec<SymbolInfo>> {
+        rz_result(from_str(&self.cmd("isj")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn relocs(&mut self) -> Result<Vec<LRelocInfo>, RzPipeLangError> {
-        self.send("irj");
-        from_str(&self.recv()).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    pub fn get_relocs(&mut self) -> RzResult<Vec<RelocInfo>> {
+        rz_result(from_str(&self.cmd("irj")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn entrypoint(&mut self) -> Result<Vec<LEntryInfo>, RzPipeLangError> {
-        self.send("iej");
-        from_str(&self.recv()).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    pub fn get_entrypoint(&mut self) -> RzResult<Vec<EntryInfo>> {
+        rz_result(from_str(&self.cmd("iej")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    fn libraries(&mut self) -> Result<Vec<String>, RzPipeLangError> {
-        self.send("ilj");
-        from_str(&self.recv()).map_err(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    pub fn get_libraries(&mut self) -> RzResult<Vec<String>> {
+        rz_result(from_str(&self.cmd("ilj")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    }
+
+    pub fn seek(&mut self, addr: u64) {
+        let _r = self.cmd(format!("s {}", addr).as_str());
     }
 
     // Send a raw command and recv output
-    fn raw(&mut self, cmd: String) -> Result<String, RzPipeLangError> {
-        self.send(&cmd);
-        Ok(self.recv())
+    pub fn raw(&mut self, cmd: String) -> RzResult<String> {
+        self.cmd(&cmd)
+    }
+
+    pub fn analyze_n_insts(&mut self, n: u64, offset: Option<u64>) -> RzResult<Vec<Instruction>> {
+        self.set_option("analysis.esil", "true")?;
+        let raw_json = self.cmd(&format!(
+            "aoj {} @ {}",
+            n,
+            offset
+                .map(|x| x.to_string())
+                .unwrap_or_else(|| "".to_owned())
+        ))?;
+        self.set_option("analysis.esil", "false")?;
+        rz_result(from_str(&raw_json))
     }
 
     /// All Analysis
-    fn analyze_all(&mut self) {
-        self.send("aa");
-        self.recv();
+    pub fn analyze_all(&mut self) {
+        let _r = self.cmd("aa");
     }
 
     /// Analyze and auto-name functions
-    fn analyze_and_autoname(&mut self) {
-        self.send("aaa");
-        self.recv();
+    pub fn analyze_and_autoname(&mut self) {
+        let _r = self.cmd("aaa");
     }
 
     /// Analyze function calls
-    fn analyze_function_calls(&mut self) {
-        self.send("aac");
-        self.recv();
+    pub fn analyze_function_calls(&mut self) {
+        let _r = self.cmd("aac");
     }
 
     /// Analyze data references
-    fn analyze_data_references(&mut self) {
-        self.send("aad");
-        self.recv();
+    pub fn analyze_data_references(&mut self) {
+        let _r = self.cmd("aad");
     }
 
     /// Analyze references esil
-    fn analyze_references_esil(&mut self) {
-        self.send("aae");
-        self.recv();
+    pub fn analyze_references_esil(&mut self) {
+        let _r = self.cmd("aae");
     }
 
     /// Find and analyze function preludes
-    fn analyze_function_preludes(&mut self) {
-        self.send("aap");
-        self.recv();
+    pub fn analyze_function_preludes(&mut self) {
+        let _r = self.cmd("aap");
     }
 
     /// Analyze instruction references
-    fn analyze_function_references(&mut self) {
-        self.send("aar");
-        self.recv();
+    pub fn analyze_function_references(&mut self) {
+        let _r = self.cmd("aar");
     }
 
     /// Analyze symbols
-    fn analyze_symbols(&mut self) {
-        self.send("aas");
-        self.recv();
+    pub fn analyze_symbols(&mut self) {
+        let _r = self.cmd("aas");
     }
 
     /// Analyze consecutive functions in section
-    fn analyze_consecutive_functions(&mut self) {
-        self.send("aat");
-        self.recv();
+    pub fn analyze_consecutive_functions(&mut self) {
+        let _r = self.cmd("aat");
     }
+}
+
+#[test]
+fn rzil() {
+    let mut rzapi = RzApi::new(Some("/bin/ls"))
+        .map_err(|e| println!("Error:{}", e))
+        .unwrap();
+    rzapi.analyze_all();
+    let rzil = &rzapi
+        .analyze_n_insts(1, Some(0x4e19))
+        .map_err(|e| println!("Error:{}", e))
+        .unwrap()[0]
+        .rzil;
+    println!("{:?}", rzil);
 }
