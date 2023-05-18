@@ -1,9 +1,6 @@
 [workspace]
 members = [
-	"rzapi",
-	"rzil2smt",
-	"rzil-rs",
-	"librz_il-sys",
+	"rz-sym",
 ]
 exclude = [
 ]

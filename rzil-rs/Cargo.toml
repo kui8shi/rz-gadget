@@ -1,8 +1,0 @@
-[package]
-name = "rzil"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-#libc="*"
-librz_il-sys = {path = "../librz_il-sys"}
