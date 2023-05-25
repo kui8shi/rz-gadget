@@ -9,341 +9,341 @@ use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(tag = "opcode", rename_all = "snake_case")]
-pub enum RzIL {
-    // RzILOpPure
+pub enum RzILInfo {
+    // RzILInfoOpPure
     Var {
         value: String,
     },
     Ite {
-        condition: Box<RzIL>,
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        condition: Box<RzILInfo>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Let {
         dst: String,
-        exp: Box<RzIL>,
-        body: Box<RzIL>,
+        exp: Box<RzILInfo>,
+        body: Box<RzILInfo>,
     },
-    // Box<RzIL>OpBool
+    // Box<RzILInfo>OpBool
     Bool {
         value: bool,
     },
 
     #[serde(rename = "!")]
     BoolInv {
-        x: Box<RzIL>,
+        x: Box<RzILInfo>,
     },
     #[serde(rename = "&&")]
     BoolAnd {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = "||")]
     BoolOr {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = "^^")]
     BoolXor {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
-    // Box<RzIL>OpBitvector
+    // Box<RzILInfo>OpBitvector
     Bitv {
         bits: String,
-        len: u64,
+        len: u32,
     },
     Msb {
-        bv: Box<RzIL>,
+        bv: Box<RzILInfo>,
     },
     Lsb {
-        bv: Box<RzIL>,
+        bv: Box<RzILInfo>,
     },
     IsZero {
-        bv: Box<RzIL>,
+        bv: Box<RzILInfo>,
     },
     #[serde(rename = "~-")]
     Neg {
-        bv: Box<RzIL>,
+        bv: Box<RzILInfo>,
     },
     #[serde(rename = "~")]
     LogNot {
-        bv: Box<RzIL>,
+        bv: Box<RzILInfo>,
     },
     #[serde(rename = "+")]
     Add {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = "-")]
     Sub {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = "*")]
     Mul {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Div {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Sdiv {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Mod {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Smod {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = "&")]
     LogAnd {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = "|")]
     LogOr {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = "^")]
     LogXor {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = ">>")]
     ShiftRight {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
-        fill_bit: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
+        fill_bit: Box<RzILInfo>,
     },
     #[serde(rename = "<<")]
     ShiftLeft {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
-        fill_bit: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
+        fill_bit: Box<RzILInfo>,
     },
     #[serde(rename = "==")]
     Equal {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Sle {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Ule {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Cast {
-        value: Box<RzIL>,
-        length: u64,
-        fill: Box<RzIL>,
+        value: Box<RzILInfo>,
+        length: u32,
+        fill: Box<RzILInfo>,
     },
     Append {
-        high: Box<RzIL>,
-        low: Box<RzIL>,
+        high: Box<RzILInfo>,
+        low: Box<RzILInfo>,
     },
-    // Box<RzIL>OpFloat
+    // Box<RzILInfo>OpFloat
     Float {
         format: u64,
-        bv: Box<RzIL>,
+        bv: Box<RzILInfo>,
     },
     Fbits {
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     IsFinite {
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     IsNan {
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     IsInf {
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     IsFzero {
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     IsFneg {
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     IsFpos {
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     Fneg {
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     Fpos {
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     FcastInt {
         length: u64,
         rmode: String,
-        value: Box<RzIL>,
+        value: Box<RzILInfo>,
     },
     FcastSint {
         length: u64,
         rmode: String,
-        value: Box<RzIL>,
+        value: Box<RzILInfo>,
     },
     FcastFloat {
         format: String,
         rmode: String,
-        value: Box<RzIL>,
+        value: Box<RzILInfo>,
     },
     FcastSfloat {
         format: String,
         rmode: String,
-        value: Box<RzIL>,
+        value: Box<RzILInfo>,
     },
     Fconvert {
         format: String,
         rmode: String,
-        value: Box<RzIL>,
+        value: Box<RzILInfo>,
     },
     Fround {
         rmode: String,
-        value: Box<RzIL>,
+        value: Box<RzILInfo>,
     },
     Frequal {
         rmode_x: String,
         rmode_y: String,
-        value: Box<RzIL>,
+        value: Box<RzILInfo>,
     },
     Fsucc {
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     Fpred {
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     #[serde(rename = "<")]
     Forder {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Fsqrt {
         rmode: String,
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     Frsqrt {
         rmode: String,
-        f: Box<RzIL>,
+        f: Box<RzILInfo>,
     },
     #[serde(rename = "+.")]
     Fadd {
         rmode: String,
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = "-.")]
     Fsub {
         rmode: String,
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = "*.")]
     Fmul {
         rmode: String,
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = "/.")]
     Fdiv {
         rmode: String,
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     #[serde(rename = "%.")]
     Fmod {
         rmode: String,
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Hypot {
         rmode: String,
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Pow {
         rmode: String,
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Fmad {
         rmode: String,
-        x: Box<RzIL>,
-        y: Box<RzIL>,
-        z: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
+        z: Box<RzILInfo>,
     },
     Fpown {
         rmode: String,
-        f: Box<RzIL>,
-        n: Box<RzIL>,
+        f: Box<RzILInfo>,
+        n: Box<RzILInfo>,
     },
     Frootn {
         rmode: String,
-        f: Box<RzIL>,
-        n: Box<RzIL>,
+        f: Box<RzILInfo>,
+        n: Box<RzILInfo>,
     },
     Fcompound {
         rmode: String,
-        f: Box<RzIL>,
-        n: Box<RzIL>,
+        f: Box<RzILInfo>,
+        n: Box<RzILInfo>,
     },
-    // Box<RzIL>OpEffect
+    // Box<RzILInfo>OpEffect
     Load {
         mem: String,
-        key: Box<RzIL>,
+        key: Box<RzILInfo>,
     },
     Loadw {
         mem: u64,
-        key: Box<RzIL>,
+        key: Box<RzILInfo>,
         bits: u64,
     },
     Store {
         mem: u64,
-        key: Box<RzIL>,
-        value: Box<RzIL>,
+        key: Box<RzILInfo>,
+        value: Box<RzILInfo>,
     },
     Storew {
         mem: u64,
-        key: Box<RzIL>,
-        value: Box<RzIL>,
+        key: Box<RzILInfo>,
+        value: Box<RzILInfo>,
     },
     Nop,
     Set {
         dst: String,
-        src: Box<RzIL>,
+        src: Box<RzILInfo>,
     },
     Jmp {
-        dst: Box<RzIL>,
+        dst: Box<RzILInfo>,
     },
     Goto {
         label: String,
     },
     Seq {
-        x: Box<RzIL>,
-        y: Box<RzIL>,
+        x: Box<RzILInfo>,
+        y: Box<RzILInfo>,
     },
     Blk {
         label: String,
-        data: Box<RzIL>,
-        ctrl: Box<RzIL>,
+        data: Box<RzILInfo>,
+        ctrl: Box<RzILInfo>,
     },
     Repeat {
-        condition: Box<RzIL>,
-        data_eff: Box<RzIL>,
+        condition: Box<RzILInfo>,
+        data_eff: Box<RzILInfo>,
     },
     Branch {
-        condition: Box<RzIL>,
-        true_eff: Box<RzIL>,
-        false_eff: Box<RzIL>,
+        condition: Box<RzILInfo>,
+        true_eff: Box<RzILInfo>,
+        false_eff: Box<RzILInfo>,
     },
     #[default]
     Empty,
@@ -375,8 +375,10 @@ pub struct Instruction {
     pub description: String,
     pub mnemonic: String,
     pub mask: String,
+    pub jump: Option<u64>,
+    pub fail: Option<u64>,
     //pub esil: String,
-    pub rzil: RzIL,
+    pub rzil: RzILInfo,
     pub sign: bool,
     pub prefix: u64,
     pub id: u64,
@@ -782,6 +784,17 @@ impl RzApi {
                 .unwrap_or_else(|| "".to_owned())
         ))?;
         rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    }
+
+    pub fn get_address(&mut self, symbol: &str) -> RzResult<u64> {
+        for prefix in &["", "sym.", "sym.imp.", "sym.unk."] {
+            let cmd = format!("%v {}{}", prefix, symbol);
+            let val = self.cmd(&cmd).unwrap_or_default();
+            if val != "" && val != "0x0\n" {
+                return rz_result(u64::from_str_radix(&val[2..val.len() - 1], 16));
+            }
+        }
+        Err(format!("symbol {} was not found", symbol))
     }
 
     // get 'n' (or 16) instructions at 'offset' (or current position if offset in
