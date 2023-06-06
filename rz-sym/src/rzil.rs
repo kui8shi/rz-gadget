@@ -1,6 +1,8 @@
 use bitflags::bitflags;
-use rzapi::api::RzILInfo;
-use std::collections::HashMap;
+use rzapi::api::RzApi;
+use rzapi::api::RzResult;
+use rzapi::api::{RzILInfo, RzILVMRegValue};
+use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::rc::Rc;
 use std::vec;
@@ -16,7 +18,7 @@ use thiserror::Error;
  * rzg.syscall("execve",[Str("/bin/bash"),NULL,NULL])
  * rzg.syscall("execve",[Str("/bin/bash"),NULL,NULL])
  * rzg.call("printf",[]);
- * let state = rzg.exec();
+ * let payload = rzg.build()?;
  * //rzg.call("execve", "/bin/bash", "NULL", "NULL" );
  * //rzg.call("write", "1", "\xfc\x6c", "0" );
  * */
@@ -27,10 +29,14 @@ pub enum RzILError {
     UnexpectedSort { expected: Sort, found: Sort },
     #[error("Sort {0} and {1} should be identical.")]
     SortIntegrity(Sort, Sort),
-    #[error("Unregistered variable {0} was rereferenced.")]
+    #[error("Unregistered variable {0} was referenced.")]
     UnregisteredVariableReferenced(String),
     #[error("Parse failed: {0}")]
     ParseError(#[from] std::num::ParseIntError),
+    #[error("RzApi failed: {0}")]
+    ApiError(String),
+    #[error("Optimized and Deleted RzIL Node")]
+    OptimizeOut,
     #[error("Unimplemented RzIL:{} detected", format!("{:?}",.0))]
     Unimplemented(Code),
 }
@@ -67,7 +73,7 @@ pub enum Label {
 
 #[derive(Debug)]
 pub enum PureCode {
-    Var,
+    Var(String),
     Ite,
     Let,
     Bool,
@@ -102,7 +108,7 @@ pub enum PureCode {
     Loadw,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum EffectCode {
     Nop,
     Set,
@@ -157,6 +163,9 @@ impl Pure {
     pub fn get_sort(&self) -> Sort {
         self.sort.clone()
     }
+    pub fn get_id(&self) -> u64 {
+        self.id
+    }
     pub fn get_size(&self) -> u32 {
         match self.sort {
             Sort::Bv(len) => len.min(64),
@@ -175,6 +184,13 @@ impl Pure {
     pub fn is_symbolized(&self) -> bool {
         self.symbolized
     }
+    pub fn is_concretized(&self) -> bool {
+        !self.symbolized
+    }
+    pub fn concretize(&mut self, eval: u64) {
+        self.symbolized = false;
+        self.eval = eval;
+    }
 }
 
 #[derive(Debug)]
@@ -183,8 +199,8 @@ pub enum EffectArgs {
     EffectArgs(Vec<Rc<Effect>>),
     BranchArgs {
         condition: Rc<Pure>,
-        then: Rc<Effect>,
-        else_: Rc<Effect>,
+        then_effect: Rc<Effect>,
+        else_effect: Rc<Effect>,
     },
     None,
 }
@@ -203,8 +219,13 @@ pub struct Effect {
     label: Option<String>,
     args: EffectArgs,
 }
+impl Effect {
+    fn is(&self, code: EffectCode) -> bool {
+        self.code == code
+    }
+}
 
-impl Effect {}
+#[derive(Debug)]
 pub struct Instruction {
     /*
      * //thread_id
@@ -213,7 +234,7 @@ pub struct Instruction {
      * expressions Vec<RzILEffect>
      * */
     address: u64,
-    expressions: Vec<Effect>,
+    expression: Rc<Effect>,
 }
 
 bitflags! {
@@ -224,7 +245,7 @@ bitflags! {
         const All = Self::OptimizeBranch.bits() | Self::AnalyzeDependencies.bits();
     }
 }
-struct RzILContext {
+pub struct RzILContext {
     /*
      * options Option
      * values HashMap<name, Pure>
@@ -237,6 +258,7 @@ struct RzILContext {
     tmp_vars: HashMap<String, Rc<Pure>>,
     labels: HashMap<String, Label>,
     uniq_id: u64,
+    in_branch: bool,
 }
 
 impl RzILContext {
@@ -247,6 +269,62 @@ impl RzILContext {
             tmp_vars: HashMap::new(),
             labels: HashMap::new(),
             uniq_id: 0,
+            in_branch: false,
+        }
+    }
+    pub fn bind_registers(&mut self, api: &mut RzApi) -> Result<()> {
+        let rzilvm_status = self.api_result(api.get_rzil_vm_status())?;
+        for (k, v) in &rzilvm_status {
+            let sort = match v {
+                RzILVMRegValue::String(string) => {
+                    let size = (string.len() as u32 - 2) * 4;
+                    Sort::Bv(size)
+                }
+                RzILVMRegValue::Bool(_) => Sort::Bool,
+                _ => {
+                    continue;
+                }
+            };
+            let id = self.get_uniq_id();
+            self.vars.insert(
+                k.to_owned(),
+                Rc::new(Pure {
+                    code: PureCode::Var(k.to_owned()),
+                    args: None,
+                    sort,
+                    eval: 0,
+                    id,
+                    symbolized: true,
+                }),
+            );
+        }
+        Ok(())
+    }
+
+    pub fn lift_inst(&mut self, api: &mut RzApi, addr: u64) -> Result<Instruction> {
+        let insts = self.api_result(api.get_n_insts(Some(1), Some(addr)))?;
+        let rzil = &insts[0].rzil;
+        Ok(Instruction {
+            address: addr,
+            expression: self.create_effect(rzil)?,
+        })
+    }
+    pub fn lift_n_insts(&mut self, api: &mut RzApi, addr: u64, n: u64) -> Result<Vec<Instruction>> {
+        let insts = self.api_result(api.get_n_insts(Some(n), Some(addr)))?;
+        let mut vec = Vec::new();
+        for inst in insts {
+            vec.push(Instruction {
+                address: inst.addr,
+                expression: self.create_effect(&inst.rzil)?,
+            });
+        }
+        Ok(vec)
+    }
+
+    fn api_result<T>(&self, result: RzResult<T>) -> Result<T> {
+        match result {
+            Ok(res) => Ok(res),
+            Err(e) => Err(RzILError::ApiError(e)),
         }
     }
 
@@ -280,18 +358,7 @@ impl RzILContext {
         match op {
             RzILInfo::Var { value } => match self.vars.get(value) {
                 Some(var) => Ok(var.clone()),
-                None => {
-                    let var = Rc::new(Pure {
-                        code: PureCode::Var,
-                        args: None,
-                        sort: Sort::Bv(64), //self.regs.get(args.value).unwrap().get_size()
-                        eval: 0,
-                        id: self.get_uniq_id(),
-                        symbolized: true,
-                    });
-                    self.vars.insert(value.to_owned(), var.clone());
-                    Ok(var)
-                }
+                None => return Err(RzILError::UnregisteredVariableReferenced(value.to_owned())),
             },
             RzILInfo::Ite { condition, x, y } => {
                 let condition = self.create_pure_bool(condition)?;
@@ -306,8 +373,10 @@ impl RzILContext {
                 } else {
                     y.evaluate()
                 };
+                let symbolized = condition.is_symbolized()
+                    || (condition.evaluate() != 0 && x.is_symbolized())
+                    || (condition.evaluate() == 0 && y.is_symbolized());
                 let id = self.get_uniq_id();
-                let symbolized = condition.is_symbolized() | x.is_symbolized() | y.is_symbolized();
                 Ok(Rc::new(Pure {
                     code: PureCode::Ite,
                     args: Some(vec![condition, x, y]),
@@ -878,22 +947,6 @@ impl RzILContext {
         }
     }
 
-    fn create_effect_seq(&mut self, op: &RzILInfo, vec: &mut Vec<Rc<Effect>>) -> Result<()> {
-        match op {
-            RzILInfo::Seq { x, y } => {
-                self.create_effect_seq(x, vec)?;
-                self.create_effect_seq(y, vec)?;
-            }
-            _ => {
-                match self.create_effect(op) {
-                    Ok(ret) => vec.push(ret),
-                    Err(err) => return Err(err),
-                };
-            }
-        };
-        Ok(())
-    }
-
     fn create_effect(&mut self, op: &RzILInfo) -> Result<Rc<Effect>> {
         match op {
             RzILInfo::Nop => Ok(Rc::new(Effect {
@@ -902,11 +955,38 @@ impl RzILContext {
                 args: EffectArgs::None,
             })),
             RzILInfo::Set { dst, src } => {
-                let dst = match self.vars.get(dst) {
-                    Some(var) => var.clone(),
-                    None => return Err(RzILError::UnregisteredVariableReferenced(dst.to_owned())),
-                };
+                let name = dst;
                 let src = self.create_pure_bv(src)?;
+                if self.in_branch && self.option.contains(RzILContextConfig::OptimizeBranch) {
+                    self.tmp_vars.insert(name.to_owned(), src);
+                    return Err(RzILError::OptimizeOut);
+                }
+                let dst = match self.vars.get(name) {
+                    Some(var) => {
+                        if src.get_sort() != var.get_sort() {
+                            return Err(RzILError::SortIntegrity(src.get_sort(), var.get_sort()));
+                        }
+                        Rc::new(Pure {
+                            code: PureCode::Var(name.to_owned()),
+                            args: None,
+                            sort: src.get_sort(), //self.regs.get(value)?.get_sort()
+                            eval: src.evaluate(),
+                            id: self.get_uniq_id(),
+                            symbolized: src.is_symbolized(),
+                        })
+                    }
+                    None => {
+                        Rc::new(Pure {
+                            code: PureCode::Var(name.to_owned()),
+                            args: None,
+                            sort: src.get_sort(), //self.regs.get(value)?.get_sort()
+                            eval: src.evaluate(),
+                            id: self.get_uniq_id(),
+                            symbolized: src.is_symbolized(),
+                        })
+                    }
+                };
+                self.vars.insert(name.to_owned(), dst.clone());
                 Ok(Rc::new(Effect {
                     code: EffectCode::Set,
                     label: None,
@@ -924,7 +1004,7 @@ impl RzILContext {
             }
 
             RzILInfo::Goto { label } => Ok(Rc::new(Effect {
-                code: EffectCode::Set,
+                code: EffectCode::Goto,
                 label: Some(label.to_owned()),
                 args: EffectArgs::None,
             })),
@@ -933,6 +1013,11 @@ impl RzILContext {
                 let mut args = Vec::new();
                 self.create_effect_seq(x, &mut args)?;
                 self.create_effect_seq(y, &mut args)?;
+                if args.len() == 0 {
+                    return Ok(self.create_effect_nop());
+                } else if args.len() == 1 {
+                    return Ok(args.pop().unwrap());
+                }
                 Ok(Rc::new(Effect {
                     code: EffectCode::Seq,
                     label: None,
@@ -945,16 +1030,77 @@ impl RzILContext {
                 false_eff,
             } => {
                 let condition = self.create_pure_bool(condition)?;
-                let true_eff = self.create_effect(true_eff)?;
-                let false_eff = self.create_effect(false_eff)?;
+
+                self.in_branch = true;
+                let then_effect = self.create_effect(true_eff)?;
+                let then_set: HashMap<String, Rc<Pure>> = self.tmp_vars.drain().collect();
+                let else_effect = self.create_effect(false_eff)?;
+                let else_set: HashMap<String, Rc<Pure>> = self.tmp_vars.drain().collect();
+                self.in_branch = false;
+
+                let mut args = Vec::new();
+                for k in HashSet::<&String>::from_iter(then_set.keys().chain(else_set.keys())) {
+                    let then_pure = then_set
+                        .get(k)
+                        .map(|v| v.clone())
+                        .unwrap_or(self.get_var(k)?);
+                    let else_pure = else_set
+                        .get(k)
+                        .map(|v| v.clone())
+                        .unwrap_or(self.get_var(k)?);
+                    if then_pure.get_sort() != else_pure.get_sort() {
+                        return Err(RzILError::SortIntegrity(
+                            then_pure.get_sort(),
+                            else_pure.get_sort(),
+                        ));
+                    }
+                    let sort = then_pure.get_sort();
+                    let eval = if condition.evaluate() != 0 {
+                        then_pure.evaluate()
+                    } else {
+                        else_pure.evaluate()
+                    };
+                    let symbolized = condition.is_symbolized()
+                        || (condition.evaluate() != 0 && then_pure.is_symbolized())
+                        || (condition.evaluate() == 0 && else_pure.is_symbolized());
+                    let id = self.get_uniq_id();
+                    let ite = Rc::new(Pure {
+                        code: PureCode::Ite,
+                        args: Some(vec![condition.clone(), then_pure, else_pure]),
+                        sort,
+                        eval,
+                        id,
+                        symbolized,
+                    });
+                    let dst = self.get_fresh_var(k)?;
+                    args.push(Rc::new(Effect {
+                        code: EffectCode::Set,
+                        label: None,
+                        args: EffectArgs::PureArgs(vec![dst, ite]),
+                    }));
+                }
+                let need_branch =
+                    !then_effect.is(EffectCode::Nop) || !else_effect.is(EffectCode::Nop);
+                if need_branch {
+                    args.push(Rc::new(Effect {
+                        code: EffectCode::Branch,
+                        label: None,
+                        args: EffectArgs::BranchArgs {
+                            condition,
+                            then_effect,
+                            else_effect,
+                        },
+                    }))
+                }
+                if args.len() == 0 {
+                    return Ok(self.create_effect_nop());
+                } else if args.len() == 1 {
+                    return Ok(args.pop().unwrap());
+                }
                 Ok(Rc::new(Effect {
-                    code: EffectCode::Branch,
+                    code: EffectCode::Seq,
                     label: None,
-                    args: EffectArgs::BranchArgs {
-                        condition,
-                        then: true_eff,
-                        else_: false_eff,
-                    },
+                    args: EffectArgs::EffectArgs(args),
                 }))
             }
             RzILInfo::Store { mem: _, key, value } => {
@@ -985,6 +1131,53 @@ impl RzILContext {
                 data_eff: _,
             } => Err(RzILError::Unimplemented(Code::Effect(EffectCode::Repeat))),
             _ => Err(RzILError::Unimplemented(Code::Unkown)),
+        }
+    }
+
+    fn create_effect_nop(&mut self) -> Rc<Effect> {
+        Rc::new(Effect {
+            code: EffectCode::Nop,
+            label: None,
+            args: EffectArgs::None,
+        })
+    }
+
+    fn create_effect_seq(&mut self, op: &RzILInfo, vec: &mut Vec<Rc<Effect>>) -> Result<()> {
+        match op {
+            RzILInfo::Seq { x, y } => {
+                self.create_effect_seq(x, vec)?;
+                self.create_effect_seq(y, vec)?;
+            }
+            _ => {
+                match self.create_effect(op) {
+                    Ok(ret) => vec.push(ret),
+                    Err(RzILError::OptimizeOut) => (),
+                    Err(err) => return Err(err),
+                };
+            }
+        };
+        Ok(())
+    }
+
+    fn get_var(&self, name: &str) -> Result<Rc<Pure>> {
+        match self.vars.get(name) {
+            Some(var) => Ok(var.clone()),
+            None => Err(RzILError::UnregisteredVariableReferenced(name.to_owned())),
+        }
+    }
+    fn get_fresh_var(&mut self, name: &str) -> Result<Rc<Pure>> {
+        match self.vars.get(name) {
+            Some(var) => {
+                Ok(Rc::new(Pure {
+                    code: PureCode::Var(name.to_owned()),
+                    args: None,
+                    sort: var.get_sort(), //self.regs.get(value)?.get_sort()
+                    eval: 0,
+                    id: self.get_uniq_id(),
+                    symbolized: true,
+                }))
+            }
+            None => Err(RzILError::UnregisteredVariableReferenced(name.to_owned())),
         }
     }
 }

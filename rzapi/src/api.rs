@@ -349,6 +349,9 @@ pub enum RzILInfo {
     Empty,
 }
 
+pub type RzILVMRegValue = serde_json::Value;
+pub type RzILVMStatus = std::collections::HashMap<String, RzILVMRegValue>;
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Disassembly {
     pub offset: u64,
@@ -453,25 +456,79 @@ pub struct FunctionInfo {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct RegisterInfomation {
+pub struct RegisterProfile {
     pub alias_info: Vec<AliasInfo>,
     pub reg_info: Vec<RegInfo>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum RegRole {
+    PC, // program counter
+    SP, // stack pointer
+    SR, // status register
+    BP, // base pointer
+    LR, // link register
+
+    A0, // arguments
+    A1,
+    A2,
+    A3,
+    A4,
+    A5,
+    A6,
+    A7,
+    A8,
+    A9,
+
+    R0, // return registers
+    R1,
+    R2,
+    R3,
+
+    ZF, // flags
+    SF,
+    CF,
+    OF,
+
+    SN, //syscall number (orig_eax,rax,r0,x0)
+    #[default]
+    LAST, // not used
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct AliasInfo {
     pub reg: String,
     pub role: u64,
-    pub role_str: String,
+    pub role_str: RegRole,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum RegType {
+    #[default]
+    Gpr,
+    Drx,
+    Fpu,
+    Mmx,
+    Xmm,
+    Ymm,
+    Flg,
+    Seg,
+    Sys,
+    Sec,
+    Vc,
+    Vcc,
+    Ctr,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct RegInfo {
     pub name: String,
-    pub offset: usize,
-    pub size: usize,
-    pub type_str: String,
-    pub r#type: usize,
+    pub offset: u64,
+    pub size: u32,
+    pub type_str: RegType,
+    pub r#type: u64,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -491,7 +548,7 @@ pub struct Information {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CoreInfo {
     pub file: String,
-    pub size: usize,
+    pub size: u64,
     pub mode: String,
     pub format: String,
 }
@@ -509,7 +566,7 @@ pub enum Endian {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct BinInfo {
     pub arch: String,
-    pub bits: usize,
+    pub bits: u32,
     pub endian: Endian,
     pub os: String,
     pub canary: bool,
@@ -667,7 +724,7 @@ fn hex_decode(data: &str) -> Vec<u8> {
     }
     result
 }
-type RzResult<T> = std::result::Result<T, String>;
+pub type RzResult<T> = std::result::Result<T, String>;
 fn rz_result<T, E: std::fmt::Display>(result: Result<T, E>) -> RzResult<T> {
     match result {
         Ok(res) => Ok(res),
@@ -799,21 +856,21 @@ impl RzApi {
 
     // get 'n' (or 16) instructions at 'offset' (or current position if offset in
     // `None`)
-    pub fn get_insts<T: AsRef<str>>(
+    pub fn get_n_insts(
         &mut self,
         n: Option<u64>,
-        offset: Option<T>,
+        offset: Option<u64>,
     ) -> RzResult<Vec<Instruction>> {
         let n = n.unwrap_or(16);
         let mut cmd = format!("aoj {}", n);
         if let Some(o) = offset {
-            cmd = format!("{} @ {}", cmd, o.as_ref());
+            cmd = format!("{} @ {}", cmd, o.to_string());
         }
         let raw_json = self.cmd(&cmd)?;
         rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    pub fn get_registers(&mut self) -> RzResult<RegisterInfomation> {
+    pub fn get_registers(&mut self) -> RzResult<RegisterProfile> {
         let raw_json = self.cmd("drpj")?;
         rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
@@ -1100,6 +1157,13 @@ impl RzApi {
     /// Analyze consecutive functions in section
     pub fn analyze_consecutive_functions(&mut self) {
         let _r = self.cmd("aat");
+    }
+
+    // Get RzILVM status
+    pub fn get_rzil_vm_status(&mut self) -> RzResult<RzILVMStatus> {
+        self.cmd("aezi")?;
+        let raw_json = self.cmd("aezvj")?;
+        rz_result(from_str(&raw_json))
     }
 }
 
