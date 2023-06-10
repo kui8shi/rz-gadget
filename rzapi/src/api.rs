@@ -1,7 +1,7 @@
 use rzpipe::errors::RzPipeLangError;
 use rzpipe::open_pipe;
 use rzpipe::rzpipe::RzPipe;
-use serde::{Deserialize, Serialize};
+use rzpipe::RzPipeSpawnOptions;
 use serde_json::from_str;
 use std::boxed::Box;
 use std::collections::HashMap;
@@ -733,7 +733,10 @@ fn rz_result<T, E: std::fmt::Display>(result: Result<T, E>) -> RzResult<T> {
 }
 
 impl RzApi {
-    pub fn new<T: AsRef<str>>(path: Option<T>) -> RzResult<RzApi> {
+    pub fn new<T: AsRef<str>>(
+        path: Option<T>,
+        opts: Option<RzPipeSpawnOptions>,
+    ) -> RzResult<RzApi> {
         if path.is_none() && !RzApi::in_session() {
             let e = "No rizin session open. Please specify path.".to_owned();
             return Err(e);
@@ -1169,7 +1172,7 @@ impl RzApi {
 
 #[test]
 fn rzil() {
-    let mut rzapi = RzApi::new(Some("/bin/ls"))
+    let mut rzapi = RzApi::new(Some("/bin/ls"), None)
         .map_err(|e| println!("Error:{}", e))
         .unwrap();
     rzapi.analyze_all();
