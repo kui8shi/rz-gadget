@@ -17,11 +17,15 @@ use thiserror::Error;
  * rzg.syscall("execve",[Str("/bin/bash"),NULL,NULL])
  * rzg.syscall("write",[Int(1),Str("Hello world!"),Int(0)])
  * rzg.syscall("execve",[Str("/bin/bash"),NULL,NULL])
- * rzg.syscall("execve",[Str("/bin/bash"),NULL,NULL])
+ * rzg.syscall("execve",["bin/bash",0,0])
  * rzg.call("printf",[]);
  * let payload = rzg.build()?;
  * //rzg.call("execve", "/bin/bash", "NULL", "NULL" );
  * //rzg.call("write", "1", "\xfc\x6c", "0" );
+ *
+ * impl rzg{
+ *      self.sym_engine.
+ * }
  * */
 type RzILResult<T> = std::result::Result<T, RzILError>;
 
@@ -33,10 +37,10 @@ pub enum RzILError {
     SortIntegrity(Sort, Sort),
     #[error("Undefined variable {0} was referenced.")]
     UndefinedVariableReferenced(String),
-    #[error("Parse failed: {0}")]
-    ParseIntError(#[from] std::num::ParseIntError),
-    #[error("Parse failed: {0}")]
-    ParseBitVectorError(String),
+    #[error("Parse Int failed")]
+    ParseInt(#[from] std::num::ParseIntError),
+    #[error("String: {0} was not hex-decimal")]
+    ParseFromStringToHexInt(String),
     #[error("RzApi failed: {0}")]
     ApiError(String),
     #[error("Optimized and Deleted RzIL Node")]
@@ -325,7 +329,7 @@ impl RzILContext {
             let sort = match v {
                 RzILVMRegValue::String(string) => {
                     if !string.starts_with("0x") {
-                        return Err(RzILError::ParseBitVectorError(string.to_owned()));
+                        return Err(RzILError::ParseFromStringToHexInt(string.to_owned()));
                     }
                     let size = (string.len() as u32 - 2) * 4;
                     Sort::Bv(size)
@@ -918,7 +922,7 @@ impl RzILContext {
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
+                let sort = Sort::Bool;
                 let symbolized = x.is_symbolized() | y.is_symbolized();
                 let eval = if !symbolized {
                     if x.evaluate() == y.evaluate() {
@@ -944,7 +948,7 @@ impl RzILContext {
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
+                let sort = Sort::Bool;
                 let symbolized = x.is_symbolized() | y.is_symbolized();
                 let eval = if !symbolized && x.evaluate() as i64 >= y.evaluate() as i64 {
                     1
@@ -966,7 +970,7 @@ impl RzILContext {
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
+                let sort = Sort::Bool;
                 let symbolized = x.is_symbolized() | y.is_symbolized();
                 let eval = if !symbolized && x.evaluate() >= y.evaluate() {
                     1
@@ -1083,7 +1087,7 @@ impl RzILContext {
                     }
                 };
                 let symbolized = dst.is_symbolized();
-                println!("Set {:?}", dst);
+                println!("Set: {:? }", &dst);
                 Ok(Rc::new(Effect {
                     code: EffectCode::Set,
                     label: None,
@@ -1304,5 +1308,34 @@ impl RzILContext {
             }
             None => Err(RzILError::UndefinedVariableReferenced(name.to_owned())),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests_x86 {
+    use super::*;
+    use rzapi::api;
+    fn init(rzapi: &mut api::RzApi) -> RzILContext {
+        let mut ctx = RzILContext::new();
+        ctx.bind_registers(rzapi).expect("failed to bind_registers");
+        ctx
+    }
+    #[test]
+    fn xor() {
+        let mut rzapi = api::RzApi::new(Some("/bin/ls"), None).unwrap();
+        let mut ctx = init(&mut rzapi);
+        dbg!(ctx.lift_inst(&mut rzapi, 0x67d4).unwrap());
+    }
+    #[test]
+    fn sub() {
+        let mut rzapi = api::RzApi::new(Some("/bin/ls"), None).unwrap();
+        let mut ctx = init(&mut rzapi);
+        dbg!(ctx.lift_inst(&mut rzapi, 0x4e04).unwrap());
+    }
+    #[test]
+    fn shl() {
+        let mut rzapi = api::RzApi::new(Some("/bin/ls"), None).unwrap();
+        let mut ctx = init(&mut rzapi);
+        dbg!(ctx.lift_inst(&mut rzapi, 0x6a44).unwrap());
     }
 }
