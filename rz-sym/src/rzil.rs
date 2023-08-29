@@ -9,6 +9,7 @@ use std::hash::Hash;
 use std::rc::Rc;
 use std::vec;
 use thiserror::Error;
+pub mod to_z3;
 /*
  * rzapi::RzILInfo -> rz-sym::RzIL(sorted, unrolled) -> Expr.add_solver
  * let rzg = RzGadget::new()
@@ -45,16 +46,22 @@ pub enum RzILError {
     ParseInt(#[from] std::num::ParseIntError),
 
     #[error("String: {0} was not hex-decimal")]
-    ParseFromStringToHexInt(String),
+    ParseStringToBv(String),
 
     #[error("RzApi failed: {0}")]
     ApiError(String),
 
     #[error("RzIL {0} is Unimplemented")]
-    UnimplementedRzIL(Code),
+    UnimplementedRzILPure(PureCode),
 
-    #[error("Lifter of {0} is Unimplemented")]
-    UnimplementedInstruction(String),
+    #[error("RzIL {0} is Unimplemented")]
+    UnimplementedRzILEffect(EffectCode),
+
+    #[error("Unkown (Unimplemented or Invalid) RzIL detected.")]
+    UnkownRzIL,
+
+    #[error("Empty detected. Unable to continue.")]
+    Empty,
 
     #[error("Invalid access to Effect Args")]
     InvalidAccessToArgs,
@@ -65,8 +72,8 @@ pub enum RzILError {
     #[error("Unable to handle Branch Set")]
     BranchSetHandle,
 
-    #[error("Unhandled Error : Optimized and Deleted RzIL Node")]
-    OptimizeOut,
+    #[error("Unhandled Error : Postponed RzIL Node")]
+    Postponed,
 
     #[error("Unhandled Error : Vector should have at least 1 element")]
     EmptyVector,
@@ -100,7 +107,7 @@ impl std::fmt::Display for Sort {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Scope {
     Global,    // represent registers
-    Local,     // inside a Instruction
+    Local,     // inside an Instruction
     LocalPure, // only inside a Let expression
 }
 
@@ -109,41 +116,75 @@ pub enum Label {
     Syscall,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug)]
 pub enum PureCode {
     Var(Scope, String),
-    Ite,
-    Let,
+    Ite(Rc<Pure>, Rc<Pure>, Rc<Pure>),
+    Let(Rc<Pure>, Rc<Pure>, Rc<Pure>),
     Bool,
-    BoolInv,
-    BoolAnd,
-    BoolOr,
-    BoolXor,
+    BoolInv(Rc<Pure>),
+    BoolAnd(Rc<Pure>, Rc<Pure>),
+    BoolOr(Rc<Pure>, Rc<Pure>),
+    BoolXor(Rc<Pure>, Rc<Pure>),
     Bitv,
-    Msb,
-    Lsb,
-    IsZero,
-    Neg,
-    LogNot,
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Sdiv,
-    Mod,
-    Smod,
-    LogAnd,
-    LogOr,
-    LogXor,
-    ShiftRight,
-    ShiftLeft,
-    Equal,
-    Sle,
-    Ule,
-    Cast,
-    Append,
-    Load,
-    Loadw,
+    Msb(Rc<Pure>),
+    Lsb(Rc<Pure>),
+    IsZero(Rc<Pure>),
+    Neg(Rc<Pure>),
+    LogNot(Rc<Pure>),
+    Add(Rc<Pure>, Rc<Pure>),
+    Sub(Rc<Pure>, Rc<Pure>),
+    Mul(Rc<Pure>, Rc<Pure>),
+    Div(Rc<Pure>, Rc<Pure>),
+    Sdiv(Rc<Pure>, Rc<Pure>),
+    Mod(Rc<Pure>, Rc<Pure>),
+    Smod(Rc<Pure>, Rc<Pure>),
+    LogAnd(Rc<Pure>, Rc<Pure>),
+    LogOr(Rc<Pure>, Rc<Pure>),
+    LogXor(Rc<Pure>, Rc<Pure>),
+    ShiftRight(Rc<Pure>, Rc<Pure>, Rc<Pure>),
+    ShiftLeft(Rc<Pure>, Rc<Pure>, Rc<Pure>),
+    Equal(Rc<Pure>, Rc<Pure>),
+    Sle(Rc<Pure>, Rc<Pure>),
+    Ule(Rc<Pure>, Rc<Pure>),
+    Cast(Rc<Pure>, Rc<Pure>),
+    Append(Rc<Pure>, Rc<Pure>),
+    Load(Rc<Pure>),
+    Loadw(Rc<Pure>),
+    // Float Instructions (Unimplemented yet)
+    Float,
+    Fbits,
+    IsFinite,
+    IsNan,
+    IsInf,
+    IsFzero,
+    IsFneg,
+    IsFpos,
+    Fneg,
+    Fpos,
+    FcastInt,
+    FcastSint,
+    FcastFloat,
+    FcastSfloat,
+    Fconvert,
+    Fround,
+    Frequal,
+    Fsucc,
+    Fpred,
+    Forder,
+    Fsqrt,
+    Frsqrt,
+    Fadd,
+    Fsub,
+    Fmul,
+    Fdiv,
+    Fmod,
+    Hypot,
+    Pow,
+    Fmad,
+    Fpown,
+    Frootn,
+    Fcompound,
 }
 
 impl Display for PureCode {
@@ -152,43 +193,6 @@ impl Display for PureCode {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum EffectCode {
-    Nop,
-    Set,
-    Jmp,
-    Goto,
-    Seq,
-    Blk,
-    Repeat,
-    Branch,
-    Store,
-    Storew,
-    Empty,
-}
-
-impl Display for EffectCode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-#[derive(Debug)]
-pub enum Code {
-    Pure(PureCode),
-    Effect(EffectCode),
-    Unkown,
-}
-
-impl Display for Code {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Code::Pure(code) => code.fmt(f),
-            Code::Effect(code) => code.fmt(f),
-            Code::Unkown => write!(f, "Unkown"),
-        }
-    }
-}
 
 #[derive(Debug)]
 pub struct Pure {
@@ -211,7 +215,6 @@ pub struct Pure {
      * }
      */
     code: PureCode,
-    args: Option<Vec<Rc<Pure>>>,
     sort: Sort,
     eval: u64,
     id: u64,
@@ -238,6 +241,13 @@ impl Pure {
     fn evaluate(&self) -> u64 {
         self.eval
     }
+    fn evaluate_bool(&self) -> bool {
+        if self.evaluate() != 0 {
+            true
+        } else {
+            false
+        }
+    }
     fn get_sort(&self) -> Sort {
         self.sort.clone()
     }
@@ -252,9 +262,6 @@ impl Pure {
     }
     fn get_bitmask(&self) -> u64 {
         u64::MAX >> (u64::BITS - self.get_size())
-    }
-    fn is(&self, code: PureCode) -> bool {
-        self.code == code
     }
     fn is_bv(&self) -> bool {
         self.get_sort().is_bv()
@@ -277,16 +284,25 @@ impl Pure {
     }
 }
 
-#[derive(Debug)]
-pub enum EffectArgs {
-    PureArgs(Vec<Rc<Pure>>),
-    EffectArgs(Vec<Rc<Effect>>),
-    BranchArgs {
-        condition: Rc<Pure>,
-        then: Rc<Effect>,
-        else_: Rc<Effect>,
-    },
-    None,
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum EffectCode {
+    Nop,
+    Set,
+    Jmp,
+    Goto,
+    Seq,
+    Blk,
+    Repeat,
+    Branch,
+    Store,
+    Storew,
+    Empty,
+}
+
+impl Display for EffectCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 #[derive(Debug)]
@@ -301,8 +317,9 @@ pub struct Effect {
     //context: Weak<RzILContext>,
     code: EffectCode,
     label: Option<String>,
-    args: EffectArgs,
     symbolized: bool,
+    pure_args: Option<Vec<Rc<Pure>>>,
+    effect_args: Option<Vec<Rc<Effect>>>,
 }
 
 impl Effect {
@@ -311,28 +328,6 @@ impl Effect {
     }
     fn is_symbolized(&self) -> bool {
         self.symbolized
-    }
-    fn get_pure_args(&self) -> RzILResult<&[Rc<Pure>]> {
-        match &self.args {
-            EffectArgs::PureArgs(vec) => Ok(&vec),
-            _ => Err(RzILError::InvalidAccessToArgs),
-        }
-    }
-    fn get_effect_args(&self) -> RzILResult<&[Rc<Effect>]> {
-        match &self.args {
-            EffectArgs::EffectArgs(vec) => Ok(&vec),
-            _ => Err(RzILError::InvalidAccessToArgs),
-        }
-    }
-    fn get_branch_args(&self) -> RzILResult<(Rc<Pure>, Rc<Effect>, Rc<Effect>)> {
-        match &self.args {
-            EffectArgs::BranchArgs {
-                condition,
-                then,
-                else_,
-            } => Ok((condition.clone(), then.clone(), else_.clone())),
-            _ => Err(RzILError::InvalidAccessToArgs),
-        }
     }
 }
 
@@ -351,14 +346,15 @@ pub struct Instruction {
 bitflags! {
     //#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct RzILContextConfig: u32 {
-        const OptimizeBranch      = 0b00000001;
+        const BranchToIte      = 0b00000001;
         const AnalyzeDependencies = 0b00000010;
-        const All = Self::OptimizeBranch.bits() | Self::AnalyzeDependencies.bits();
+        const All = Self::BranchToIte.bits() | Self::AnalyzeDependencies.bits();
     }
 }
 
 #[derive(Debug)]
-pub struct BranchToIteEntry {
+struct BranchToIteEntry {
+    name: String,
     dst: Rc<Pure>,
     condition: Rc<Pure>,
     then: Option<Rc<Pure>>,
@@ -367,10 +363,10 @@ pub struct BranchToIteEntry {
 }
 
 #[derive(Debug)]
-pub struct BranchToIteContext {
+struct BranchToIteContext {
     conditions: Vec<Rc<Pure>>,
-    taken: Vec<bool>,
-    entries: HashMap<String, BranchToIteEntry>,
+    taken_path: Vec<bool>,
+    entries: Vec<BranchToIteEntry>,
 }
 
 pub struct RzILContext {
@@ -384,10 +380,10 @@ pub struct RzILContext {
     option: RzILContextConfig,
     global_vars: HashMap<String, Rc<Pure>>,
     local_vars: HashMap<String, Rc<Pure>>,
-    tmp_vars: HashMap<String, Rc<Pure>>,
+    local_pure_vars: HashMap<String, Rc<Pure>>,
     labels: HashMap<String, Label>,
     uniq_id: Cell<u64>,
-    bso_ctx: BranchToIteContext,
+    branch_to_ite_ctx: BranchToIteContext,
 }
 
 impl RzILContext {
@@ -396,15 +392,22 @@ impl RzILContext {
             option: RzILContextConfig::All,
             global_vars: HashMap::new(),
             local_vars: HashMap::new(),
-            tmp_vars: HashMap::new(),
+            local_pure_vars: HashMap::new(),
             labels: HashMap::new(),
             uniq_id: Cell::new(0),
-            bso_ctx: BranchToIteContext {
+            branch_to_ite_ctx: BranchToIteContext {
                 conditions: Vec::new(),
-                taken: Vec::new(),
-                entries: HashMap::new(),
+                taken_path: Vec::new(),
+                entries: Vec::new(),
             },
         }
+    }
+    fn clear(&mut self) {
+       self.local_vars.clear();
+       self.local_pure_vars.clear();
+       self.branch_to_ite_ctx.conditions.clear();
+       self.branch_to_ite_ctx.taken_path.clear();
+       self.branch_to_ite_ctx.entries.clear();
     }
     pub fn bind_registers(&mut self, api: &mut RzApi) -> RzILResult<()> {
         let rzilvm_status = self.api_result(api.get_rzil_vm_status())?;
@@ -412,7 +415,7 @@ impl RzILContext {
             let sort = match v {
                 RzILVMRegValue::String(string) => {
                     if !string.starts_with("0x") {
-                        return Err(RzILError::ParseFromStringToHexInt(string.to_owned()));
+                        return Err(RzILError::ParseStringToBv(string.to_owned()));
                     }
                     let size = (string.len() as u32 - 2) * 4;
                     Sort::Bv(size)
@@ -453,13 +456,7 @@ impl RzILContext {
         let insts = self.api_result(api.get_n_insts(Some(n), Some(addr)))?;
         let mut vec = Vec::new();
         for inst in insts {
-            println!("addr:{:x}", inst.addr);
-            dbg!(&inst.rzil);
-            self.local_vars.clear();
-            self.tmp_vars.clear();
-            self.bso_ctx.conditions.clear();
-            self.bso_ctx.taken.clear();
-            self.bso_ctx.entries.clear();
+            self.clear();
             vec.push(Instruction {
                 address: inst.addr,
                 expression: self.create_effect(&inst.rzil)?,
@@ -497,16 +494,16 @@ impl RzILContext {
     }
     fn create_pure(&mut self, op: &RzILInfo) -> RzILResult<Rc<Pure>> {
         match op {
-            RzILInfo::Var { value } => match self.global_vars.get(value) {
-                Some(var) => Ok(var.clone()),
-                None => match self.local_vars.get(value) {
-                    Some(var) => Ok(var.clone()),
-                    None => match self.tmp_vars.get(value) {
-                        Some(var) => Ok(var.clone()),
-                        None => Err(RzILError::UndefinedVariableReferenced(value.to_owned())),
-                    },
-                },
-            },
+            RzILInfo::Var { value } => 
+                if let Some(var) = self.global_vars.get(value) {
+                    Ok(var.clone())
+                }else if let Some(var) = self.local_vars.get(value) {
+                    Ok(var.clone())
+                }else if let Some(var) = self.local_pure_vars.get(value) {
+                    Ok(var.clone())
+                }else{
+                    Err(RzILError::UndefinedVariableReferenced(value.to_owned()))
+                }
             RzILInfo::Ite { condition, x, y } => {
                 let condition = self.create_pure_bool(condition)?;
                 let x = self.create_pure(x)?;
@@ -525,8 +522,7 @@ impl RzILContext {
                     || (condition.evaluate() == 0 && y.is_symbolized());
                 let id = self.get_uniq_id();
                 Ok(Rc::new(Pure {
-                    code: PureCode::Ite,
-                    args: Some(vec![condition, x, y]),
+                    code: PureCode::Ite(condition, x, y),
                     sort,
                     eval,
                     id,
@@ -535,18 +531,17 @@ impl RzILContext {
             }
             RzILInfo::Let { dst, exp, body } => {
                 let binding = self.create_pure(exp)?;
-
-                self.tmp_vars.insert(dst.to_owned(), binding);
+                let var = self.fresh_var(dst, Scope::LocalPure, &binding);
+                self.local_pure_vars.insert(dst.to_owned(), var.clone());
                 let body = self.create_pure(body)?;
                 let sort = body.get_sort();
                 let eval = body.evaluate();
                 let id = self.get_uniq_id();
                 let symbolized = body.is_symbolized();
-                self.tmp_vars.remove(dst);
+                self.local_pure_vars.remove(dst);
 
                 Ok(Rc::new(Pure {
-                    code: PureCode::Let,
-                    args: Some(vec![body]),
+                    code: PureCode::Let(var, binding, body),
                     sort,
                     eval,
                     id,
@@ -555,7 +550,6 @@ impl RzILContext {
             }
             RzILInfo::Bool { value } => Ok(Rc::new(Pure {
                 code: PureCode::Bool,
-                args: None,
                 sort: Sort::Bool,
                 eval: if value.clone() { 1 } else { 0 },
                 id: self.get_uniq_id(),
@@ -566,8 +560,7 @@ impl RzILContext {
                 let eval = !(x.evaluate() != 0) as u64;
                 let symbolized = x.is_symbolized();
                 Ok(Rc::new(Pure {
-                    code: PureCode::BoolInv,
-                    args: Some(vec![x]),
+                    code: PureCode::BoolInv(x),
                     sort: Sort::Bool,
                     eval,
                     id: self.get_uniq_id(),
@@ -580,8 +573,7 @@ impl RzILContext {
                 let eval = x.evaluate() & y.evaluate();
                 let symbolized = x.is_symbolized() | y.is_symbolized();
                 Ok(Rc::new(Pure {
-                    code: PureCode::BoolAnd,
-                    args: Some(vec![x, y]),
+                    code: PureCode::BoolAnd(x, y),
                     sort: Sort::Bool,
                     eval,
                     id: self.get_uniq_id(),
@@ -594,8 +586,7 @@ impl RzILContext {
                 let eval = x.evaluate() | y.evaluate();
                 let symbolized = x.is_symbolized() | y.is_symbolized();
                 Ok(Rc::new(Pure {
-                    code: PureCode::BoolOr,
-                    args: Some(vec![x, y]),
+                    code: PureCode::BoolOr(x, y),
                     sort: Sort::Bool,
                     eval,
                     id: self.get_uniq_id(),
@@ -608,8 +599,7 @@ impl RzILContext {
                 let eval = x.evaluate() ^ y.evaluate();
                 let symbolized = x.is_symbolized() | y.is_symbolized();
                 Ok(Rc::new(Pure {
-                    code: PureCode::BoolXor,
-                    args: Some(vec![x, y]),
+                    code: PureCode::BoolXor(x, y),
                     sort: Sort::Bool,
                     eval,
                     id: self.get_uniq_id(),
@@ -618,7 +608,6 @@ impl RzILContext {
             }
             RzILInfo::Bitv { bits, len } => Ok(Rc::new(Pure {
                 code: PureCode::Bitv,
-                args: None,
                 sort: Sort::Bv(len.clone()),
                 eval: u64::from_str_radix(&bits[2..], 16)?,
                 id: self.get_uniq_id(),
@@ -630,8 +619,7 @@ impl RzILContext {
                 let eval = (bv.evaluate() >> (bv.get_size() - 1)) & 0x1;
                 let symbolized = bv.is_symbolized();
                 Ok(Rc::new(Pure {
-                    code: PureCode::Msb,
-                    args: Some(vec![bv]),
+                    code: PureCode::Msb(bv),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -644,8 +632,7 @@ impl RzILContext {
                 let eval = bv.evaluate() & 0x1;
                 let symbolized = bv.is_symbolized();
                 Ok(Rc::new(Pure {
-                    code: PureCode::Lsb,
-                    args: Some(vec![bv]),
+                    code: PureCode::Lsb(bv),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -658,8 +645,7 @@ impl RzILContext {
                 let eval = if bv.evaluate() != 0 { 1 } else { 0 };
                 let symbolized = bv.is_symbolized();
                 Ok(Rc::new(Pure {
-                    code: PureCode::IsZero,
-                    args: Some(vec![bv]),
+                    code: PureCode::IsZero(bv),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -672,8 +658,7 @@ impl RzILContext {
                 let eval = (bv.evaluate() as i64 * -1i64) as u64;
                 let symbolized = bv.is_symbolized();
                 Ok(Rc::new(Pure {
-                    code: PureCode::Neg,
-                    args: Some(vec![bv]),
+                    code: PureCode::Neg(bv),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -686,8 +671,7 @@ impl RzILContext {
                 let symbolized = bv.is_symbolized();
                 let eval = !bv.evaluate();
                 Ok(Rc::new(Pure {
-                    code: PureCode::LogNot,
-                    args: Some(vec![bv]),
+                    code: PureCode::LogNot(bv),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -713,8 +697,7 @@ impl RzILContext {
                     Ok(x)
                 } else {
                     Ok(Rc::new(Pure {
-                        code: PureCode::Add,
-                        args: Some(vec![x, y]),
+                        code: PureCode::Add(x, y),
                         sort,
                         eval,
                         id: self.get_uniq_id(),
@@ -741,8 +724,7 @@ impl RzILContext {
                     Ok(x)
                 } else {
                     Ok(Rc::new(Pure {
-                        code: PureCode::Sub,
-                        args: Some(vec![x, y]),
+                        code: PureCode::Sub(x, y),
                         sort,
                         eval,
                         id: self.get_uniq_id(),
@@ -764,8 +746,7 @@ impl RzILContext {
                     0
                 };
                 Ok(Rc::new(Pure {
-                    code: PureCode::Mul,
-                    args: Some(vec![x, y]),
+                    code: PureCode::Mul(x, y),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -786,8 +767,7 @@ impl RzILContext {
                     0
                 };
                 Ok(Rc::new(Pure {
-                    code: PureCode::Div,
-                    args: Some(vec![x, y]),
+                    code: PureCode::Div(x, y),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -808,8 +788,7 @@ impl RzILContext {
                     0
                 };
                 Ok(Rc::new(Pure {
-                    code: PureCode::Sdiv,
-                    args: Some(vec![x, y]),
+                    code: PureCode::Sdiv(x, y),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -830,8 +809,7 @@ impl RzILContext {
                     0
                 };
                 Ok(Rc::new(Pure {
-                    code: PureCode::Mod,
-                    args: Some(vec![x, y]),
+                    code: PureCode::Mod(x, y),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -852,8 +830,7 @@ impl RzILContext {
                     0
                 };
                 Ok(Rc::new(Pure {
-                    code: PureCode::Smod,
-                    args: Some(vec![x, y]),
+                    code: PureCode::Smod(x, y),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -876,7 +853,6 @@ impl RzILContext {
                 if x.is_zero() || y.is_zero() {
                     Ok(Rc::new(Pure {
                         code: PureCode::Bitv,
-                        args: None,
                         sort,
                         eval: 0,
                         id: self.get_uniq_id(),
@@ -884,8 +860,7 @@ impl RzILContext {
                     }))
                 } else {
                     Ok(Rc::new(Pure {
-                        code: PureCode::LogAnd,
-                        args: Some(vec![x, y]),
+                        code: PureCode::LogAnd(x, y),
                         sort,
                         eval,
                         id: self.get_uniq_id(),
@@ -912,8 +887,7 @@ impl RzILContext {
                     Ok(x)
                 } else {
                     Ok(Rc::new(Pure {
-                        code: PureCode::LogOr,
-                        args: Some(vec![x, y]),
+                        code: PureCode::LogOr(x, y),
                         sort,
                         eval,
                         id: self.get_uniq_id(),
@@ -940,8 +914,7 @@ impl RzILContext {
                     Ok(x)
                 } else {
                     Ok(Rc::new(Pure {
-                        code: PureCode::LogXor,
-                        args: Some(vec![x, y]),
+                        code: PureCode::LogXor(x, y),
                         sort,
                         eval,
                         id: self.get_uniq_id(),
@@ -954,10 +927,10 @@ impl RzILContext {
                 let x = self.create_pure_bv(x)?;
                 let y = self.create_pure_bv(y)?;
                 let sort = Sort::Bv(x.get_size());
-                let symbolized = x.is_symbolized() | y.is_symbolized();
+                let symbolized = fill_bit.is_symbolized() | x.is_symbolized() | y.is_symbolized();
                 let eval = if !symbolized {
                     ((x.evaluate() >> y.evaluate())
-                        | if fill_bit.evaluate() != 0 {
+                        | if fill_bit.evaluate_bool() {
                             u64::MAX & !(x.get_bitmask() >> y.evaluate())
                         } else {
                             0
@@ -967,8 +940,7 @@ impl RzILContext {
                     0
                 };
                 Ok(Rc::new(Pure {
-                    code: PureCode::ShiftRight,
-                    args: Some(vec![fill_bit, x, y]),
+                    code: PureCode::ShiftRight(fill_bit, x, y),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -980,10 +952,10 @@ impl RzILContext {
                 let x = self.create_pure_bv(x)?;
                 let y = self.create_pure_bv(y)?;
                 let sort = Sort::Bv(x.get_size());
-                let symbolized = x.is_symbolized() | y.is_symbolized();
+                let symbolized = fill_bit.is_symbolized() | x.is_symbolized() | y.is_symbolized();
                 let eval = if !symbolized {
                     ((x.evaluate() << y.evaluate())
-                        | if fill_bit.evaluate() != 0 {
+                        | if fill_bit.evaluate_bool() {
                             (1 << y.evaluate()) - 1
                         } else {
                             0
@@ -993,8 +965,7 @@ impl RzILContext {
                     0
                 };
                 Ok(Rc::new(Pure {
-                    code: PureCode::ShiftLeft,
-                    args: Some(vec![fill_bit, x, y]),
+                    code: PureCode::ShiftLeft(fill_bit, x, y),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -1019,8 +990,7 @@ impl RzILContext {
                     0
                 };
                 Ok(Rc::new(Pure {
-                    code: PureCode::Equal,
-                    args: Some(vec![x, y]),
+                    code: PureCode::Equal(x, y),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -1041,8 +1011,7 @@ impl RzILContext {
                     0
                 };
                 Ok(Rc::new(Pure {
-                    code: PureCode::Sle,
-                    args: Some(vec![x, y]),
+                    code: PureCode::Sle(x, y),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -1063,8 +1032,7 @@ impl RzILContext {
                     0
                 };
                 Ok(Rc::new(Pure {
-                    code: PureCode::Ule,
-                    args: Some(vec![x, y]),
+                    code: PureCode::Ule(x, y),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
@@ -1091,14 +1059,11 @@ impl RzILContext {
                 } else {
                     0
                 };
-                println!("Cast from {:?}", &value);
                 if value.get_sort() == sort {
                     Ok(value)
                 } else {
-                    println!("Cast to {:?}", &sort);
                     Ok(Rc::new(Pure {
-                        code: PureCode::Cast,
-                        args: Some(vec![value, fill]),
+                        code: PureCode::Cast(value, fill),
                         sort,
                         eval,
                         id: self.get_uniq_id(),
@@ -1117,15 +1082,175 @@ impl RzILContext {
                     0
                 };
                 Ok(Rc::new(Pure {
-                    code: PureCode::Append,
-                    args: Some(vec![high, low]),
+                    code: PureCode::Append(high, low),
                     sort,
                     eval,
                     id: self.get_uniq_id(),
                     symbolized,
                 }))
             }
-            _ => Err(RzILError::UnimplementedRzIL(Code::Unkown)),
+            RzILInfo::Load { mem: _, key } => {
+                let key = self.create_pure_bv(key)?;
+                let sort = Sort::Bv(8);
+                Ok(Rc::new(Pure {
+                    code: PureCode::Load(key),
+                    sort,
+                    eval: 0,
+                    id: self.get_uniq_id(),
+                    symbolized: true,
+                }))
+            }
+            RzILInfo::Loadw { mem: _, key, bits } => {
+                let key = self.create_pure_bv(key)?;
+                let sort = Sort::Bv(bits.to_owned() as u32);
+                Ok(Rc::new(Pure {
+                    code: PureCode::Loadw(key),
+                    sort,
+                    eval: 0,
+                    id: self.get_uniq_id(),
+                    symbolized: true,
+                }))
+            },
+            RzILInfo::Float {
+                format: _,
+                bv: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Float)),
+            RzILInfo::Fbits {
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fbits)),
+            RzILInfo::IsFinite {
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::IsFinite)),
+            RzILInfo::IsNan {
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::IsNan)),
+            RzILInfo::IsInf {
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::IsInf)),
+            RzILInfo::IsFzero {
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::IsFzero)),
+            RzILInfo::IsFneg {
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::IsFneg)),
+            RzILInfo::IsFpos {
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::IsFpos)),
+            RzILInfo::Fneg {
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fneg)),
+            RzILInfo::Fpos {
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fneg)),
+            RzILInfo::FcastInt {
+                length: _,
+                rmode: _,
+                value: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::FcastInt)),
+            RzILInfo::FcastSint {
+                length: _,
+                rmode: _,
+                value: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::FcastSint)),
+            RzILInfo::FcastFloat {
+                format: _,
+                rmode: _,
+                value: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::FcastFloat)),
+            RzILInfo::FcastSfloat {
+                format: _,
+                rmode: _,
+                value: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::FcastSfloat)),
+            RzILInfo::Fconvert {
+                format: _,
+                rmode: _,
+                value: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fconvert)),
+            RzILInfo::Fround {
+                rmode: _,
+                value: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fround)),
+            RzILInfo::Frequal {
+                rmode_x: _,
+                rmode_y: _,
+                value: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Frequal)),
+            RzILInfo::Fsucc {
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fsucc)),
+            RzILInfo::Fpred {
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fpred)),
+            RzILInfo::Forder {
+                x: _,
+                y: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Forder)),
+            RzILInfo::Fsqrt {
+                rmode: _,
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fsqrt)),
+            RzILInfo::Frsqrt {
+                rmode: _,
+                f: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Frsqrt)),
+            RzILInfo::Fadd {
+                rmode: _,
+                x: _,
+                y: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fadd)),
+            RzILInfo::Fsub {
+                rmode: _,
+                x: _,
+                y: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fsub)),
+            RzILInfo::Fmul {
+                rmode: _,
+                x: _,
+                y: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fmul)),
+            RzILInfo::Fdiv {
+                rmode: _,
+                x: _,
+                y: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fdiv)),
+            RzILInfo::Fmod {
+                rmode: _,
+                x: _,
+                y: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fmod)),
+            RzILInfo::Hypot {
+                rmode: _,
+                x: _,
+                y: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Hypot)),
+            RzILInfo::Pow {
+                rmode: _,
+                x: _,
+                y: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Pow)),
+            RzILInfo::Fmad {
+                rmode: _,
+                x: _,
+                y: _,
+                z: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fmad)),
+            RzILInfo::Fpown {
+                rmode: _,
+                f: _,
+                n: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fpown)),
+            RzILInfo::Frootn {
+                rmode: _,
+                f: _,
+                n: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Frootn)),
+            RzILInfo::Fcompound {
+                rmode: _,
+                f: _,
+                n: _,
+            } => Err(RzILError::UnimplementedRzILPure(PureCode::Fcompound)),
+            _ => Err(RzILError::UnkownRzIL),
         }
     }
 
@@ -1134,8 +1259,9 @@ impl RzILContext {
             RzILInfo::Nop => Ok(Rc::new(Effect {
                 code: EffectCode::Nop,
                 label: None,
-                args: EffectArgs::None,
                 symbolized: false,
+                pure_args: None,
+                effect_args: None,
             })),
             RzILInfo::Set { dst, src } => {
                 let name = dst;
@@ -1148,91 +1274,27 @@ impl RzILContext {
                         self.fresh_var(
                             name,
                             Scope::Global,
-                            src.get_sort(),
-                            src.evaluate(),
-                            src.is_symbolized(),
+                            &src,
                         )
                     }
                     None => self.fresh_var(
                         name,
                         Scope::Local,
-                        src.get_sort(),
-                        src.evaluate(),
-                        src.is_symbolized(),
+                        &src,
                     ),
                 };
-                if self.in_branch() && self.option.contains(RzILContextConfig::OptimizeBranch) {
-                    let condition =
-                        self.connect_condition(&self.bso_ctx.conditions, &self.bso_ctx.taken)?;
-                    let taken = self.bso_ctx.taken.first().unwrap().clone();
-                    match self.bso_ctx.entries.get_mut(name) {
-                        Some(entry) => {
-                            if taken {
-                                if let Some(_) = entry.then {
-                                    return Err(RzILError::BranchSetHandle);
-                                }
-                                entry.then = Some(src);
-                            } else {
-                                if let Some(_) = entry.else_ {
-                                    return Err(RzILError::BranchSetHandle);
-                                }
-                                entry.else_ = Some(src);
-                            }
-                        }
-                        None => {
-                            let default = match self.global_vars.get(name) {
-                                Some(var) => var.clone(),
-                                None => {
-                                    let code = match dst.get_sort() {
-                                        Sort::Bv(_) => PureCode::Bitv,
-                                        Sort::Bool => PureCode::Bool,
-                                    };
-                                    Rc::new(Pure {
-                                        code,
-                                        args: None,
-                                        sort: dst.get_sort(),
-                                        eval: 0,
-                                        id: self.get_uniq_id(),
-                                        symbolized: false,
-                                    })
-                                }
-                            };
-                            if taken {
-                                self.bso_ctx.entries.insert(
-                                    name.to_owned(),
-                                    BranchToIteEntry {
-                                        dst: dst.clone(),
-                                        condition,
-                                        then: Some(src),
-                                        else_: None,
-                                        default,
-                                    },
-                                );
-                            } else {
-                                self.bso_ctx.entries.insert(
-                                    name.to_owned(),
-                                    BranchToIteEntry {
-                                        dst: dst.clone(),
-                                        condition,
-                                        then: None,
-                                        else_: Some(src),
-                                        default,
-                                    },
-                                );
-                            }
-                        }
-                    }
-                    self.update_var(dst)?;
-                    return Err(RzILError::OptimizeOut);
+                if self.in_branch() && self.option.contains(RzILContextConfig::BranchToIte) {
+                    self.branch_to_ite_add_entry(name,src,dst)?;
+                    return Err(RzILError::Postponed);
                 }
                 self.update_var(dst.clone())?;
-                println!("Set: {:? }", &dst);
                 let symbolized = dst.is_symbolized();
                 Ok(Rc::new(Effect {
                     code: EffectCode::Set,
                     label: None,
-                    args: EffectArgs::PureArgs(vec![dst, src]),
                     symbolized,
+                    pure_args: Some(vec![dst, src]),
+                    effect_args: None,
                 }))
             }
 
@@ -1242,16 +1304,18 @@ impl RzILContext {
                 Ok(Rc::new(Effect {
                     code: EffectCode::Jmp,
                     label: None,
-                    args: EffectArgs::PureArgs(vec![dst]),
                     symbolized,
+                    pure_args: Some(vec![dst]),
+                    effect_args: None,
                 }))
             }
 
             RzILInfo::Goto { label } => Ok(Rc::new(Effect {
                 code: EffectCode::Goto,
                 label: Some(label.to_owned()),
-                args: EffectArgs::None,
                 symbolized: false,
+                pure_args: None,
+                effect_args: None,
             })),
 
             RzILInfo::Seq { x, y } => {
@@ -1270,8 +1334,9 @@ impl RzILContext {
                 Ok(Rc::new(Effect {
                     code: EffectCode::Seq,
                     label: None,
-                    args: EffectArgs::EffectArgs(args),
                     symbolized,
+                    pure_args: None,
+                    effect_args: Some(args),
                 }))
             }
             RzILInfo::Branch {
@@ -1281,28 +1346,26 @@ impl RzILContext {
             } => {
                 let condition = self.create_pure_bool(condition)?;
 
-                // Branch Set Optimization begin
-                self.bso_ctx.conditions.push(condition.clone());
+                self.branch_to_ite_ctx.conditions.push(condition.clone());
 
-                self.bso_ctx.taken.push(true);
+                self.branch_to_ite_ctx.taken_path.push(true);
                 let then_effect = self.create_effect(true_eff)?;
-                self.bso_ctx.taken.pop();
+                self.branch_to_ite_ctx.taken_path.pop();
 
-                self.bso_ctx.taken.push(false);
+                self.branch_to_ite_ctx.taken_path.push(false);
                 let else_effect = self.create_effect(false_eff)?;
-                self.bso_ctx.taken.pop();
+                self.branch_to_ite_ctx.taken_path.pop();
 
-                self.bso_ctx.conditions.pop();
+                self.branch_to_ite_ctx.conditions.pop();
 
                 let mut args = Vec::new();
                 if !self.in_branch() {
                     let mut ids = Vec::new();
-                    for i in 0..self.bso_ctx.entries.len() {
+                    for i in 0..self.branch_to_ite_ctx.entries.len() {
                         ids.push(self.get_uniq_id());
                     }
                     ids.reverse();
-                    for (_, entry) in self.bso_ctx.entries.drain() {
-                        dbg!(&entry);
+                    for entry in self.branch_to_ite_ctx.entries.drain(..) {
                         let then = entry.then.unwrap_or(entry.default.clone());
                         let else_ = entry.else_.unwrap_or(entry.default.clone());
                         if then.get_sort() != else_.get_sort() {
@@ -1322,8 +1385,7 @@ impl RzILContext {
                             || (condition.evaluate() == 0 && else_.is_symbolized());
                         let id = ids.pop().unwrap();
                         let ite = Rc::new(Pure {
-                            code: PureCode::Ite,
-                            args: Some(vec![condition.clone(), then, else_]),
+                            code: PureCode::Ite(entry.condition.clone(), then, else_),
                             sort,
                             eval,
                             id,
@@ -1332,12 +1394,12 @@ impl RzILContext {
                         args.push(Rc::new(Effect {
                             code: EffectCode::Set,
                             label: None,
-                            args: EffectArgs::PureArgs(vec![entry.dst, ite]),
                             symbolized,
+                            pure_args: Some(vec![entry.dst, ite]),
+                            effect_args: None,
                         }));
                     }
                 }
-                // Branch Set Optimization end
                 let need_branch =
                     !then_effect.is(EffectCode::Nop) || !else_effect.is(EffectCode::Nop);
                 let symbolized = condition.is_symbolized()
@@ -1347,12 +1409,9 @@ impl RzILContext {
                     args.push(Rc::new(Effect {
                         code: EffectCode::Branch,
                         label: None,
-                        args: EffectArgs::BranchArgs {
-                            condition: condition,
-                            then: then_effect,
-                            else_: else_effect,
-                        },
                         symbolized,
+                        pure_args: Some(vec![condition]),
+                        effect_args: Some(vec![then_effect, else_effect]),
                     }))
                 }
                 if args.len() == 0 {
@@ -1367,8 +1426,9 @@ impl RzILContext {
                     Ok(Rc::new(Effect {
                         code: EffectCode::Seq,
                         label: None,
-                        args: EffectArgs::EffectArgs(args),
                         symbolized,
+                        pure_args: None,
+                        effect_args: Some(args),
                     }))
                 }
             }
@@ -1379,8 +1439,9 @@ impl RzILContext {
                 Ok(Rc::new(Effect {
                     code: EffectCode::Store,
                     label: None,
-                    args: EffectArgs::PureArgs(vec![key, value]),
                     symbolized,
+                    pure_args: Some(vec![key, value]),
+                    effect_args: None,
                 }))
             }
             RzILInfo::Storew { mem: _, key, value } => {
@@ -1390,21 +1451,22 @@ impl RzILContext {
                 Ok(Rc::new(Effect {
                     code: EffectCode::Storew,
                     label: None,
-                    args: EffectArgs::PureArgs(vec![key, value]),
                     symbolized,
+                    pure_args: Some(vec![key, value]),
+                    effect_args: None,
                 }))
             }
             RzILInfo::Blk {
                 label: _,
                 data: _,
                 ctrl: _,
-            } => Err(RzILError::UnimplementedRzIL(Code::Effect(EffectCode::Blk))),
+            } => Err(RzILError::UnimplementedRzILEffect(EffectCode::Blk)),
             RzILInfo::Repeat {
                 condition: _,
                 data_eff: _,
-            } => Ok(self.create_nop()), //Err(RzILError::Unimplemented(Code::Effect(EffectCode::Repeat))),
-            RzILInfo::Empty => Err(RzILError::UnimplementedInstruction("unkown".to_owned())),
-            _ => Err(RzILError::UnimplementedRzIL(Code::Unkown)),
+            } => Err(RzILError::UnimplementedRzILEffect(EffectCode::Repeat)),//Ok(self.create_nop()), //
+            RzILInfo::Empty => Err(RzILError::Empty),
+            _ => Err(RzILError::UnkownRzIL),
         }
     }
 
@@ -1412,8 +1474,9 @@ impl RzILContext {
         Rc::new(Effect {
             code: EffectCode::Nop,
             label: None,
-            args: EffectArgs::None,
             symbolized: false,
+            pure_args: None,
+            effect_args: None,
         })
     }
 
@@ -1425,8 +1488,18 @@ impl RzILContext {
             }
             _ => {
                 match self.create_effect(op) {
-                    Ok(ret) => vec.push(ret),
-                    Err(RzILError::OptimizeOut) => (),
+                    Ok(ret) => {
+                        if ret.is(EffectCode::Seq) {
+                            if let Some(args) = ret.effect_args {
+                                for e in args {
+                                    vec.push(e.clone())
+                                }
+                            }
+                        }else{
+                            vec.push(ret)
+                        }
+                    },
+                    Err(RzILError::Postponed) => (),
                     Err(err) => return Err(err),
                 };
             }
@@ -1434,36 +1507,19 @@ impl RzILContext {
         Ok(())
     }
 
-    fn get_var(&self, name: &str) -> RzILResult<Rc<Pure>> {
-        match self.global_vars.get(name) {
-            Some(var) => Ok(var.clone()),
-            None => Err(RzILError::UndefinedVariableReferenced(name.to_owned())),
-        }
-    }
-
-    fn validate_sorts(&self, x: Sort, y: Sort) -> RzILResult<()> {
-        if x != y {
-            Err(RzILError::SortIntegrity(x, y))
-        } else {
-            Ok(())
-        }
-    }
-
     fn fresh_var(
         &mut self,
         name: &str,
         scope: Scope,
-        sort: Sort,
-        eval: u64,
-        symbolized: bool,
+        src: &Rc<Pure>,
     ) -> Rc<Pure> {
         Rc::new(Pure {
             code: PureCode::Var(scope, name.to_owned()),
             args: None,
-            sort, //self.regs.get(value)?.get_sort()
-            eval,
+            sort: src.get_sort(), //self.regs.get(value)?.get_sort()
+            eval: src.evaluate(),
             id: self.get_uniq_id(),
-            symbolized,
+            symbolized: src.is_symbolized(),
         })
     }
     fn update_var(&mut self, new_var: Rc<Pure>) -> RzILResult<()> {
@@ -1496,7 +1552,7 @@ impl RzILContext {
     }
 
     fn in_branch(&self) -> bool {
-        !self.bso_ctx.conditions.is_empty() && !self.bso_ctx.taken.is_empty()
+        !self.branch_to_ite_ctx.conditions.is_empty() && !self.branch_to_ite_ctx.taken_path.is_empty()
     }
 
     fn connect_condition(&self, conditions: &[Rc<Pure>], taken: &[bool]) -> RzILResult<Rc<Pure>> {
@@ -1513,8 +1569,7 @@ impl RzILContext {
                 let eval = !(x.evaluate() != 0) as u64;
                 let symbolized = x.is_symbolized();
                 x = Rc::new(Pure {
-                    code: PureCode::BoolInv,
-                    args: Some(vec![x]),
+                    code: PureCode::BoolInv(x),
                     sort: Sort::Bool,
                     eval,
                     id: self.get_uniq_id(),
@@ -1527,8 +1582,7 @@ impl RzILContext {
                 let eval = x.evaluate() & y.evaluate();
                 let symbolized = x.is_symbolized() | y.is_symbolized();
                 Ok(Rc::new(Pure {
-                    code: PureCode::BoolAnd,
-                    args: Some(vec![x, y]),
+                    code: PureCode::BoolAnd(x,y),
                     sort: Sort::Bool,
                     eval,
                     id: self.get_uniq_id(),
@@ -1538,6 +1592,76 @@ impl RzILContext {
             Err(RzILError::EmptyVector) => Ok(x),
             Err(e) => Err(e),
         }
+    }
+    fn branch_to_ite_add_entry(&mut self, name: &str, src: Rc<Pure>, dst: Rc<Pure> ) -> RzILResult<()> {
+        let condition =
+            self.connect_condition(&self.branch_to_ite_ctx.conditions, &self.branch_to_ite_ctx.taken_path)?;
+        let taken = self.branch_to_ite_ctx.taken_path.first().unwrap().clone();
+        let mut entry = None;
+        for e in self.branch_to_ite_ctx.entries.iter_mut() {
+            if e.name.eq(name) {
+                entry = Some(e);
+            }
+        }
+        match entry {
+            Some(e) => {
+                if taken {
+                    if let Some(_) = e.then {
+                        return Err(RzILError::BranchSetHandle);
+                    }
+                    e.then = Some(src);
+                } else {
+                    if let Some(_) = e.else_ {
+                        return Err(RzILError::BranchSetHandle);
+                    }
+                    e.else_ = Some(src);
+                }
+            }
+            None=>{
+                let default = match self.global_vars.get(name) {
+                    Some(var) => var.clone(),
+                    None => {
+                        let code = match dst.get_sort() {
+                            Sort::Bv(_) => PureCode::Bitv,
+                            Sort::Bool => PureCode::Bool,
+                        };
+                        Rc::new(Pure {
+                            code,
+                            args: None,
+                            sort: dst.get_sort(),
+                            eval: 0,
+                            id: self.get_uniq_id(),
+                            symbolized: false,
+                        })
+                    }
+                };
+                if taken {
+                    self.branch_to_ite_ctx.entries.push(
+                        BranchToIteEntry {
+                            name:name.to_owned(),
+                            dst: dst.clone(),
+                            condition,
+                            then: Some(src),
+                            else_: None,
+                            default,
+                        },
+                    );
+                } else {
+                    self.branch_to_ite_ctx.entries.push(
+                        BranchToIteEntry {
+                            name: name.to_owned(),
+                            dst: dst.clone(),
+                            condition,
+                            then: None,
+                            else_: Some(src),
+                            default,
+                        },
+                    );
+                }
+            }
+        };
+        self.update_var(dst)?;
+        Ok(())
     }
 }
 

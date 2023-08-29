@@ -375,7 +375,7 @@ pub struct Instruction {
     pub opcode: String,
     pub disasm: String,
     pub pseudo: String,
-    pub description: String,
+    pub description: Option<String>,
     pub mnemonic: String,
     pub mask: String,
     pub jump: Option<u64>,

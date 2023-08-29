@@ -9,4 +9,6 @@ edition = "2021"
 anyhow = "1.0.71"
 bitflags = "2.3.1"
 rzapi = { path = "../rzapi" }
+smtlib = { version = "0.1.6", features = ["z3"] }
 thiserror = "1.0.40"
+

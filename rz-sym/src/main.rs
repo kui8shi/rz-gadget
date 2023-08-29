@@ -1,4 +1,4 @@
-pub mod rzil;
+mod rzil;
 use anyhow::Result;
 use rzapi::api;
 fn main() -> Result<()> {
@@ -6,7 +6,7 @@ fn main() -> Result<()> {
     let mut rzapi = api::RzApi::new(Some("/bin/ls"), None).unwrap();
     let mut rzil_ctx = rzil::RzILContext::new();
     rzil_ctx.bind_registers(&mut rzapi)?;
-    let inst = rzil_ctx.lift_n_insts(&mut rzapi, 0x6a44, 1)?;
+    let inst = rzil_ctx.lift_n_insts(&mut rzapi, 0x67d4, 1)?;
     dbg!(inst);
     Ok(())
 }
