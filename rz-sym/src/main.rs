@@ -1,4 +1,15 @@
-mod rzil;
+/*
+pub mod regstore {
+    pub mod regstore;
+    pub mod regfile;
+}
+pub mod explorer {
+    //pub mod explorer;
+}
+pub mod context;
+*/
+pub mod memory;
+pub mod rzil;
 use anyhow::Result;
 use rzapi::api;
 fn main() -> Result<()> {

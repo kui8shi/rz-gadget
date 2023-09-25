@@ -1,6 +1,6 @@
 .cache
 build
-
+*.txt
 
 # Added by cargo
 

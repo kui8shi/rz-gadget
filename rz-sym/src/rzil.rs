@@ -1,15 +1,16 @@
 use bitflags::bitflags;
 use rzapi::api::RzApi;
 use rzapi::api::RzResult;
-use rzapi::api::{RzILInfo, RzILVMRegValue};
-use std::cell::{Cell, RefCell};
-use std::collections::HashMap;
+use rzapi::structs::{RzILInfo,RzILVMRegValue};
+use std::cell::Cell;
+use std::collections::hash_map::{HashMap,DefaultHasher};
+use std::collections::hash_set::HashSet;
 use std::fmt::Display;
-use std::hash::Hash;
+use std::hash::Hasher;
 use std::rc::Rc;
 use std::vec;
+use std::hash::Hash;
 use thiserror::Error;
-pub mod to_z3;
 /*
  * rzapi::RzILInfo -> rz-sym::RzIL(sorted, unrolled) -> Expr.add_solver
  * let rzg = RzGadget::new()
@@ -42,6 +43,9 @@ pub enum RzILError {
     #[error("Undefined variable {0} was referenced.")]
     UndefinedVariableReferenced(String),
 
+    #[error("Code {0} was unexpected.")]
+    UnexpectedCode(Code),
+
     #[error("Parse Int failed")]
     ParseInt(#[from] std::num::ParseIntError),
 
@@ -69,32 +73,39 @@ pub enum RzILError {
     #[error("Variable {0} is immutable but changed")]
     ImmutableVariable(String),
 
-    #[error("Unable to handle Branch Set")]
-    BranchSetHandle,
+    #[error("Unable to convert Set in Branch to Set with Ite")]
+    BranchSetToSetIteFailed,
 
-    #[error("Unhandled Error : Postponed RzIL Node")]
-    Postponed,
-
-    #[error("Unhandled Error : Vector should have at least 1 element")]
-    EmptyVector,
+    #[error("Unhandled Error : RzIL Node no need or postponed to evaluate")]
+    EmptyNode,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Copy, Debug, Hash)]
 pub enum Sort {
-    Bv(u32),
+    Bitv(usize),
     Bool,
+    None,
 }
 impl Sort {
-    pub fn is_bv(&self) -> bool {
+    fn is_bv(&self) -> bool {
         match self {
-            Sort::Bv(_) => true,
+            Sort::Bitv(_) => true,
             Sort::Bool => false,
+            Sort::None => false,
         }
     }
-    pub fn is_bool(&self) -> bool {
+    fn is_bool(&self) -> bool {
         match self {
-            Sort::Bv(_) => false,
+            Sort::Bitv(_) => false,
             Sort::Bool => true,
+            Sort::None => false,
+        }
+    }
+    fn get_size(&self) -> usize {
+        match self {
+            Sort::Bitv(len) => len.clone(),
+            Sort::Bool => 1,
+            Sort::None => 0,
         }
     }
 }
@@ -104,53 +115,48 @@ impl std::fmt::Display for Sort {
     }
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Copy, Debug, Hash)]
 pub enum Scope {
     Global,    // represent registers
     Local,     // inside an Instruction
     LocalPure, // only inside a Let expression
 }
 
-pub enum Label {
-    Address(u64),
-    Syscall,
-}
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum PureCode {
-    Var(Scope, String),
-    Ite(Rc<Pure>, Rc<Pure>, Rc<Pure>),
-    Let(Rc<Pure>, Rc<Pure>, Rc<Pure>),
+    Var(Scope, u64), // (scope, var_id)
+    Ite,
+    Let,
     Bool,
-    BoolInv(Rc<Pure>),
-    BoolAnd(Rc<Pure>, Rc<Pure>),
-    BoolOr(Rc<Pure>, Rc<Pure>),
-    BoolXor(Rc<Pure>, Rc<Pure>),
+    BoolInv,
+    BoolAnd,
+    BoolOr,
+    BoolXor,
     Bitv,
-    Msb(Rc<Pure>),
-    Lsb(Rc<Pure>),
-    IsZero(Rc<Pure>),
-    Neg(Rc<Pure>),
-    LogNot(Rc<Pure>),
-    Add(Rc<Pure>, Rc<Pure>),
-    Sub(Rc<Pure>, Rc<Pure>),
-    Mul(Rc<Pure>, Rc<Pure>),
-    Div(Rc<Pure>, Rc<Pure>),
-    Sdiv(Rc<Pure>, Rc<Pure>),
-    Mod(Rc<Pure>, Rc<Pure>),
-    Smod(Rc<Pure>, Rc<Pure>),
-    LogAnd(Rc<Pure>, Rc<Pure>),
-    LogOr(Rc<Pure>, Rc<Pure>),
-    LogXor(Rc<Pure>, Rc<Pure>),
-    ShiftRight(Rc<Pure>, Rc<Pure>, Rc<Pure>),
-    ShiftLeft(Rc<Pure>, Rc<Pure>, Rc<Pure>),
-    Equal(Rc<Pure>, Rc<Pure>),
-    Sle(Rc<Pure>, Rc<Pure>),
-    Ule(Rc<Pure>, Rc<Pure>),
-    Cast(Rc<Pure>, Rc<Pure>),
-    Append(Rc<Pure>, Rc<Pure>),
-    Load(Rc<Pure>),
-    Loadw(Rc<Pure>),
+    Msb,
+    Lsb,
+    IsZero,
+    Neg,
+    LogNot,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Sdiv,
+    Mod,
+    Smod,
+    LogAnd,
+    LogOr,
+    LogXor,
+    ShiftRight,
+    ShiftLeft,
+    Equal,
+    Sle,
+    Ule,
+    Cast(bool), // expand(true) or shrink(false)
+    Append,
+    Load,
+    LoadW,
     // Float Instructions (Unimplemented yet)
     Float,
     Fbits,
@@ -187,82 +193,110 @@ pub enum PureCode {
     Fcompound,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub enum EffectCode {
+    Nop,
+    Set,
+    Jmp,
+    Goto,
+    Seq,
+    Blk,
+    Repeat,
+    Branch,
+    Store,
+    StoreW,
+    Empty,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum Code {
+    Pure(PureCode),
+    Effect(EffectCode),
+}
+
+impl Display for EffectCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 impl Display for PureCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
-
-#[derive(Debug)]
-pub struct Pure {
-    /*
-     * context
-     * id // uniq
-     * eval
-     * sort(BV(size),BOOL)
-     * symbolized
-     * args Vec<Pure>
-     *
-     * * fn get_size(&self){
-     * match self.sort{
-     * BV(size)=>size,
-     * BOOL=>1,
-     * }
-     * }
-     * fn get_bitmask(&self){
-     * constants::max_size(=64)
-     * }
-     */
-    code: PureCode,
-    sort: Sort,
-    eval: u64,
-    id: u64,
-    symbolized: bool,
-}
-
-/*
-impl Display for Pure {
+impl Display for Code {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.code)?;
-        if let Some(args) = &self.args {
-            write!(f, "(")?;
-            for arg in args {
-                write!(f, "{}", arg)?;
-            }
-            write!(f, ")")?;
-        }
-        Ok(())
+        write!(f, "{:?}", self)
     }
 }
-*/
 
-impl Pure {
-    fn evaluate(&self) -> u64 {
+#[derive(Debug, Eq, PartialEq)]
+pub struct RzIL {
+    code: Code,
+    symbolized: bool,
+    sort: Sort,             // if code is not Pure, it has Sort::None.
+    eval: u64,              // if symbolized or code is not Pure, it has 0.
+    label: Option<String>,  // if code is not Effect, is has None
+    args: Vec<Rc<RzIL>>,
+    hash: u64,              // special for the semantics of the code and its children
+}
+
+impl Hash for RzIL {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.code.hash(state);
+        for arg in &self.args {
+            arg.hash.hash(state);
+        }
+        self.symbolized.hash(state);
+        self.sort.hash(state);
+        self.eval.hash(state);
+        self.label.hash(state);
+    }
+}
+
+impl RzIL {
+    fn is_pure(&self) -> bool {
+        match self.code {
+            Code::Pure(_) => true,
+            Code::Effect(_) => false,
+        }
+    }
+    fn is_effect(&self) -> bool {
+        match self.code {
+            Code::Pure(_) => false,
+            Code::Effect(_) => true,
+        }
+    }
+    fn is_nop(&self) -> bool {
+        if let Code::Effect(EffectCode::Nop) = self.code {
+            true
+        } else {
+            false
+        }
+    }
+    pub fn evaluate(&self) -> u64 {
         self.eval
     }
-    fn evaluate_bool(&self) -> bool {
+    pub fn evaluate_bool(&self) -> bool {
         if self.evaluate() != 0 {
             true
         } else {
             false
         }
     }
-    fn get_sort(&self) -> Sort {
+    pub fn get_sort(&self) -> Sort {
         self.sort.clone()
     }
-    fn get_id(&self) -> u64 {
-        self.id
-    }
-    fn get_size(&self) -> u32 {
-        match self.sort {
-            Sort::Bv(len) => len,
-            Sort::Bool => 1,
-        }
+    pub fn get_size(&self) -> usize {
+        self.sort.get_size()
+        
     }
     fn get_bitmask(&self) -> u64 {
-        u64::MAX >> (u64::BITS - self.get_size())
+        u64::MAX >> (u64::BITS as usize - self.get_size())
     }
+
     fn is_bv(&self) -> bool {
         self.get_sort().is_bv()
     }
@@ -284,164 +318,151 @@ impl Pure {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum EffectCode {
-    Nop,
-    Set,
-    Jmp,
-    Goto,
-    Seq,
-    Blk,
-    Repeat,
-    Branch,
-    Store,
-    Storew,
-    Empty,
-}
-
-impl Display for EffectCode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-#[derive(Debug)]
-pub struct Effect {
-    /*
-     * context
-     * //comment
-     * hash
-     * effects
-     * args Vec<Pure>
-     * */
-    //context: Weak<RzILContext>,
-    code: EffectCode,
-    label: Option<String>,
-    symbolized: bool,
-    pure_args: Option<Vec<Rc<Pure>>>,
-    effect_args: Option<Vec<Rc<Effect>>>,
-}
-
-impl Effect {
-    fn is(&self, code: EffectCode) -> bool {
-        self.code == code
-    }
-    fn is_symbolized(&self) -> bool {
-        self.symbolized
-    }
-}
-
-#[derive(Debug)]
-pub struct Instruction {
-    /*
-     * //thread_id
-     * address
-     * events
-     * expressions Vec<RzILEffect>
-     * */
-    address: u64,
-    expression: Rc<Effect>,
-}
-
 bitflags! {
     //#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-    pub struct RzILContextConfig: u32 {
-        const BranchToIte      = 0b00000001;
+    struct RzILContextConfig: u64 {
+        const ConvertBranchSetToSetIte      = 0b00000001;
         const AnalyzeDependencies = 0b00000010;
-        const All = Self::BranchToIte.bits() | Self::AnalyzeDependencies.bits();
+        const All = Self::ConvertBranchSetToSetIte.bits() | Self::AnalyzeDependencies.bits();
     }
 }
 
 #[derive(Debug)]
-struct BranchToIteEntry {
+struct BranchSetToSetIteEntry {
     name: String,
-    dst: Rc<Pure>,
-    condition: Rc<Pure>,
-    then: Option<Rc<Pure>>,
-    else_: Option<Rc<Pure>>,
-    default: Rc<Pure>,
+    dst: Rc<RzIL>,
+    condition: Rc<RzIL>,
+    then: Option<Rc<RzIL>>,
+    otherwise: Option<Rc<RzIL>>,
+    default: Rc<RzIL>,
 }
 
 #[derive(Debug)]
-struct BranchToIteContext {
-    conditions: Vec<Rc<Pure>>,
-    taken_path: Vec<bool>,
-    entries: Vec<BranchToIteEntry>,
+struct BranchSetToSetIte {
+    conditions: Vec<Rc<RzIL>>,
+    taken: Vec<bool>,
+    entries: Vec<BranchSetToSetIteEntry>,
 }
 
 pub struct RzILContext {
     /*
      * options Option
      * values HashMap<name, Pure>
-     * labels HashMap<label, Label>
      * cache HashMap<hash, Pure>
      * uniq_id
      * */
     option: RzILContextConfig,
-    global_vars: HashMap<String, Rc<Pure>>,
-    local_vars: HashMap<String, Rc<Pure>>,
-    local_pure_vars: HashMap<String, Rc<Pure>>,
-    labels: HashMap<String, Label>,
-    uniq_id: Cell<u64>,
-    branch_to_ite_ctx: BranchToIteContext,
+    var_ids: HashMap<(String,Scope), u64>,
+    vars: HashMap<u64, Rc<RzIL>>,
+    cache: HashSet<Rc<RzIL>>,
+    uniq_var_id: Cell<u64>,
+    bs_to_si: BranchSetToSetIte,
+}
+
+impl BranchSetToSetIte {
+    fn clear(&mut self) {
+        self.conditions.clear();
+        self.taken.clear();
+        self.entries.clear();
+    }
 }
 
 impl RzILContext {
     pub fn new() -> Self {
         RzILContext {
             option: RzILContextConfig::All,
-            global_vars: HashMap::new(),
-            local_vars: HashMap::new(),
-            local_pure_vars: HashMap::new(),
-            labels: HashMap::new(),
-            uniq_id: Cell::new(0),
-            branch_to_ite_ctx: BranchToIteContext {
+            var_ids: HashMap::new(),
+            vars: HashMap::new(),
+            cache: HashSet::new(),
+            uniq_var_id: Cell::new(0),
+            bs_to_si: BranchSetToSetIte {
                 conditions: Vec::new(),
-                taken_path: Vec::new(),
+                taken: Vec::new(),
                 entries: Vec::new(),
             },
         }
     }
-    fn clear(&mut self) {
-       self.local_vars.clear();
-       self.local_pure_vars.clear();
-       self.branch_to_ite_ctx.conditions.clear();
-       self.branch_to_ite_ctx.taken_path.clear();
-       self.branch_to_ite_ctx.entries.clear();
+    fn full_clear(&mut self) {
+        self.partial_clear();
+        self.var_ids.clear();
+        self.vars.clear();
     }
+
+    fn partial_clear(&mut self) {
+        let ids_to_remove: Vec<Option<u64>> = 
+            self.var_ids.iter().map(
+                |(k, v)| if k.1 != Scope::Global {Some(v.clone())} else {None}
+            ).collect();
+        for id in ids_to_remove {
+            if let Some(ref id) = id {
+                self.vars.remove(id);
+            }
+        }
+        self.var_ids.retain(|k,_| k.1 == Scope::Global);
+        self.bs_to_si.clear();
+    }
+
+    fn set_var(&mut self, name: &str, value: Rc<RzIL>) -> RzILResult<()> {
+        if let Code::Pure(PureCode::Var(scope, id)) = value.code {
+            match scope {
+                Scope::Global | Scope::Local => (),
+                Scope::LocalPure => {
+                    if self.var_ids.contains_key(&(name.to_owned(), scope)) {
+                        return Err(RzILError::ImmutableVariable(name.to_owned()));
+                    }
+                }
+            }
+            self.var_ids.insert((name.to_owned(), scope), id);
+            self.vars.insert(id, value);
+            Ok(())
+        } else {
+            Err(RzILError::UnexpectedCode(value.code.clone()))
+        }
+    }
+
+    fn get_var(&self, name: &str, scope: Scope) -> Option<Rc<RzIL>> {
+        if let Some(id) = self.var_ids.get(&(name.to_owned(), scope)) {
+            if let Some(var) = self.vars.get(id) {
+                return Some(var.clone())
+            }
+        }
+        None
+    }
+
+    fn remove_var(&mut self, name: &str, scope: Scope) -> Option<Rc<RzIL>> {
+        if let Some(id) = self.var_ids.remove(&(name.to_owned(), scope)) {
+            return self.vars.remove(&id);
+        }
+        None
+    }
+
     pub fn bind_registers(&mut self, api: &mut RzApi) -> RzILResult<()> {
         let rzilvm_status = self.api_result(api.get_rzil_vm_status())?;
-        for (k, v) in &rzilvm_status {
-            let sort = match v {
+        for (key, val) in &rzilvm_status {
+            let sort = match val {
                 RzILVMRegValue::String(string) => {
                     if !string.starts_with("0x") {
-                        return Err(RzILError::ParseStringToBv(string.to_owned()));
+                        return Err(RzILError::ParseStringToBv(string.clone()));
                     }
-                    let size = (string.len() as u32 - 2) * 4;
-                    Sort::Bv(size)
+                    let size = (string.len() - 2) * 4;
+                    Sort::Bitv(size)
                 }
                 RzILVMRegValue::Bool(_) => Sort::Bool,
                 _ => {
                     continue;
                 }
             };
-            let id = self.get_uniq_id();
-            self.global_vars.insert(
-                k.to_owned(),
-                Rc::new(Pure {
-                    code: PureCode::Var(Scope::Global, k.to_owned()),
-                    args: None,
-                    sort,
-                    eval: 0,
-                    id,
-                    symbolized: true,
-                }),
-            );
+            let scope = Scope::Global;
+            let symbolized = true;
+            let eval = 0;
+            let id = self.get_uniq_var_id();
+            let reg = self.new_pure(PureCode::Var(scope, id), vec![], symbolized, sort, eval);
+            self.set_var(key, reg)?;
         }
         Ok(())
     }
 
-    pub fn lift_inst(&mut self, api: &mut RzApi, addr: u64) -> RzILResult<Instruction> {
+    pub fn lift_inst(&mut self, api: &mut RzApi, addr: u64) -> RzILResult<Rc<RzIL>> {
         match self.lift_n_insts(api, addr, 1) {
             Ok(vec) => Ok(vec.into_iter().nth(0).unwrap()),
             Err(e) => Err(e),
@@ -452,15 +473,12 @@ impl RzILContext {
         api: &mut RzApi,
         addr: u64,
         n: u64,
-    ) -> RzILResult<Vec<Instruction>> {
+    ) -> RzILResult<Vec<Rc<RzIL>>> {
         let insts = self.api_result(api.get_n_insts(Some(n), Some(addr)))?;
         let mut vec = Vec::new();
         for inst in insts {
-            self.clear();
-            vec.push(Instruction {
-                address: inst.addr,
-                expression: self.create_effect(&inst.rzil)?,
-            });
+            self.partial_clear();
+            vec.push(self.create_effect(&inst.rzil)?);
         }
         Ok(vec)
     }
@@ -472,465 +490,519 @@ impl RzILContext {
         }
     }
 
-    fn get_uniq_id(&self) -> u64 {
-        self.uniq_id.set(self.uniq_id.get() + 1);
-        self.uniq_id.get()
+    fn get_uniq_var_id(&self) -> u64 {
+        self.uniq_var_id.set(self.uniq_var_id.get() + 1);
+        self.uniq_var_id.get()
     }
-    fn create_pure_bv(&mut self, op: &RzILInfo) -> RzILResult<Rc<Pure>> {
-        let bitvector = self.create_pure(op)?;
+
+    fn new_pure(&mut self, code: PureCode, args: Vec<Rc<RzIL>>, symbolized: bool, sort: Sort, eval: u64) -> Rc<RzIL> {
+        let mut rzil = RzIL {
+                code: Code::Pure(code), 
+                args, 
+                symbolized, 
+                sort, 
+                eval,
+                label: None,
+                hash: 0,
+        };
+        let mut hasher = DefaultHasher::new();
+        rzil.hash(&mut hasher);
+        rzil.hash = hasher.finish();
+        if let Some(cached) = self.cache.get(&rzil) {
+            cached.clone()
+        } else {
+            let rzil = Rc::new(rzil);
+            self.cache.insert(rzil.clone());
+            rzil
+        }
+    }
+
+    fn new_effect(&mut self, code: EffectCode, args: Vec<Rc<RzIL>>, symbolized: bool, label: Option<String>) -> Rc<RzIL> {
+        let mut rzil = RzIL {
+                code: Code::Effect(code), 
+                args, 
+                symbolized, 
+                sort: Sort::None, 
+                eval: 0,
+                label,
+                hash: 0,
+        };
+        let mut hasher = DefaultHasher::new();
+        rzil.hash(&mut hasher);
+        rzil.hash = hasher.finish();
+        if let Some(cached) = self.cache.get(&rzil) {
+            cached.clone()
+        } else {
+            let rzil = Rc::new(rzil);
+            self.cache.insert(rzil.clone());
+            rzil
+        }
+    }
+
+    pub fn new_ite(&mut self, condition: Rc<RzIL>, then: Rc<RzIL>, otherwise: Rc<RzIL>) -> Rc<RzIL> {
+        // this function is assuming that the sort integrity between then and otherwise holds.
+        // please make sure that before call this.
+        let sort = then.get_sort();
+        let eval = if condition.evaluate() != 0 {
+            then.evaluate()
+        } else {
+            otherwise.evaluate()
+        };
+        let symbolized = condition.is_symbolized()
+            || (condition.evaluate() != 0 && then.is_symbolized())
+            || (condition.evaluate() == 0 && otherwise.is_symbolized());
+        if !symbolized{
+            match sort {
+                Sort::Bool => 
+                    self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval),
+                Sort::Bitv(_) => 
+                    self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval),
+                Sort::None => unreachable!(),
+            }
+        } else if condition.is_concretized() {
+            if condition.evaluate_bool() {
+                then
+            } else {
+                otherwise
+            }
+        } else {
+            self.new_pure(PureCode::Ite, vec![condition, then, otherwise], symbolized, sort, eval)
+        }
+    }
+
+    pub fn new_const(&mut self, sort: Sort, val: u64) -> Rc<RzIL> {
+        match sort {
+            Sort::Bitv(_) => self.new_pure(PureCode::Bitv, vec![], false, sort, val),
+            Sort::Bool => self.new_pure(PureCode::Bool, vec![], false, sort, val),
+            Sort::None => unreachable!(),
+        }
+    }
+
+    pub fn new_add(&mut self, x: Rc<RzIL>, y: Rc<RzIL>) -> Rc<RzIL> {
+        let symbolized = x.is_symbolized() | y.is_symbolized();
+        let sort = Sort::Bitv(x.get_size());
+        let eval = if !symbolized { (x.evaluate() + y.evaluate()) & x.get_bitmask() } else { 0 };
+        if !symbolized{
+            self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval)
+        } else if x.is_zero() {
+            y
+        } else if y.is_zero() {
+            x
+        } else {
+            self.new_pure(PureCode::Add, vec![x, y], symbolized, sort, eval)
+        }
+    }
+
+    pub fn new_cast(&mut self, value: Rc<RzIL>, fill_bit: Rc<RzIL>, length: usize) -> Rc<RzIL> {
+        let symbolized = fill_bit.is_symbolized() | value.is_symbolized() | fill_bit.is_symbolized();
+        let sort = Sort::Bitv(length);
+        let eval = if !symbolized {
+            if value.get_size() >= length {
+                value.evaluate() & (1 << length - 1)
+            } else {
+                let fill_bits = (fill_bit.evaluate() << length - 1) & !value.get_bitmask();
+                value.evaluate() | fill_bits
+            }
+        } else {
+            0
+        };
+        if !symbolized {
+            self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval)
+        } else if value.get_sort() == sort {
+            value
+        } else {
+            let expand = value.get_size() < sort.get_size();
+            self.new_pure(PureCode::Cast(expand), vec![fill_bit, value], symbolized, sort, eval)
+        }
+    }
+
+    fn pure_bv(&mut self, op: &RzILInfo) -> RzILResult<Rc<RzIL>> {
+        let bitvector = self.pure(op)?;
         if !bitvector.is_bv() {
-            Err(RzILError::UnexpectedSort(Sort::Bv(0), bitvector.get_sort()))
+            Err(RzILError::UnexpectedSort(Sort::Bitv(0), bitvector.get_sort()))
         } else {
             Ok(bitvector)
         }
     }
-    fn create_pure_bool(&mut self, op: &RzILInfo) -> RzILResult<Rc<Pure>> {
-        let boolean = self.create_pure(op)?;
+    fn pure_bool(&mut self, op: &RzILInfo) -> RzILResult<Rc<RzIL>> {
+        let boolean = self.pure(op)?;
         if !boolean.is_bool() {
             Err(RzILError::UnexpectedSort(Sort::Bool, boolean.get_sort()))
         } else {
             Ok(boolean)
         }
     }
-    fn create_pure(&mut self, op: &RzILInfo) -> RzILResult<Rc<Pure>> {
+    fn pure(&mut self, op: &RzILInfo) -> RzILResult<Rc<RzIL>> {
         match op {
             RzILInfo::Var { value } => 
-                if let Some(var) = self.global_vars.get(value) {
+                if let Some(var) = self.get_var(value, Scope::Global) {
                     Ok(var.clone())
-                }else if let Some(var) = self.local_vars.get(value) {
-                    Ok(var.clone())
-                }else if let Some(var) = self.local_pure_vars.get(value) {
-                    Ok(var.clone())
+                }else if let Some(var) = self.get_var(value, Scope::Local) {
+                    if !var.is_symbolized() {
+                        let sort = var.get_sort();
+                        Ok(match sort {
+                            Sort::Bool =>
+                                self.new_pure(PureCode::Bool, vec![], false, sort, var.evaluate()),
+                            Sort::Bitv(_) =>
+                                self.new_pure(PureCode::Bitv, vec![], false, sort, var.evaluate()),
+                            Sort::None => unreachable!()
+                        })
+                    } else {
+                        Ok(var.clone())
+                    }
+                }else if let Some(var) = self.get_var(value, Scope::LocalPure) {
+                    Ok(var.args[0].clone())
                 }else{
-                    Err(RzILError::UndefinedVariableReferenced(value.to_owned()))
+                    Err(RzILError::UndefinedVariableReferenced(value.clone()))
                 }
             RzILInfo::Ite { condition, x, y } => {
-                let condition = self.create_pure_bool(condition)?;
-                let x = self.create_pure(x)?;
-                let y = self.create_pure(y)?;
+                let condition = self.pure_bool(condition)?;
+                let x = self.pure(x)?;
+                let y = self.pure(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = x.get_sort();
-                let eval = if condition.evaluate() != 0 {
-                    x.evaluate()
-                } else {
-                    y.evaluate()
-                };
-                let symbolized = condition.is_symbolized()
-                    || (condition.evaluate() != 0 && x.is_symbolized())
-                    || (condition.evaluate() == 0 && y.is_symbolized());
-                let id = self.get_uniq_id();
-                Ok(Rc::new(Pure {
-                    code: PureCode::Ite(condition, x, y),
-                    sort,
-                    eval,
-                    id,
-                    symbolized,
-                }))
+                Ok(self.new_ite(condition, x, y))
             }
             RzILInfo::Let { dst, exp, body } => {
-                let binding = self.create_pure(exp)?;
-                let var = self.fresh_var(dst, Scope::LocalPure, &binding);
-                self.local_pure_vars.insert(dst.to_owned(), var.clone());
-                let body = self.create_pure(body)?;
-                let sort = body.get_sort();
-                let eval = body.evaluate();
-                let id = self.get_uniq_id();
-                let symbolized = body.is_symbolized();
-                self.local_pure_vars.remove(dst);
-
-                Ok(Rc::new(Pure {
-                    code: PureCode::Let(var, binding, body),
-                    sort,
-                    eval,
-                    id,
-                    symbolized,
-                }))
+                // currently we can't use let-expressions. 
+                // so exp is directly assigned to body.
+                let id = self.get_uniq_var_id();
+                let exp = self.pure(exp)?;
+                let symbolized = exp.is_symbolized();
+                let sort = exp.get_sort();
+                let eval = exp.evaluate();
+                let exp = self.new_pure(
+                    PureCode::Var(Scope::LocalPure, id), 
+                    vec![exp], 
+                    symbolized, sort, eval);
+                self.set_var(dst, exp.clone())?;
+                let body = self.pure(body)?;
+                self.remove_var(dst, Scope::LocalPure);
+                Ok(body)
             }
-            RzILInfo::Bool { value } => Ok(Rc::new(Pure {
-                code: PureCode::Bool,
-                sort: Sort::Bool,
-                eval: if value.clone() { 1 } else { 0 },
-                id: self.get_uniq_id(),
-                symbolized: false,
-            })),
+            RzILInfo::Bool { value } => {
+                let symbolized = false;
+                let sort = Sort::Bool;
+                let eval = if value.clone() { 1 } else { 0 };
+                Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
+            }
             RzILInfo::BoolInv { x } => {
-                let x = self.create_pure_bool(x)?;
-                let eval = !(x.evaluate() != 0) as u64;
+                let x = self.pure_bool(x)?;
                 let symbolized = x.is_symbolized();
-                Ok(Rc::new(Pure {
-                    code: PureCode::BoolInv(x),
-                    sort: Sort::Bool,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                let sort = Sort::Bool;
+                let eval = !(x.evaluate() != 0) as u64;
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::BoolInv, vec![x], symbolized, sort, eval))
+                }
             }
             RzILInfo::BoolAnd { x, y } => {
-                let x = self.create_pure_bool(x)?;
-                let y = self.create_pure_bool(y)?;
-                let eval = x.evaluate() & y.evaluate();
+                let x = self.pure_bool(x)?;
+                let y = self.pure_bool(y)?;
                 let symbolized = x.is_symbolized() | y.is_symbolized();
-                Ok(Rc::new(Pure {
-                    code: PureCode::BoolAnd(x, y),
-                    sort: Sort::Bool,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                let sort = Sort::Bool;
+                let eval = x.evaluate() & y.evaluate();
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::BoolAnd, vec![x, y], symbolized, sort, eval))
+                }
             }
             RzILInfo::BoolOr { x, y } => {
-                let x = self.create_pure_bool(x)?;
-                let y = self.create_pure_bool(y)?;
-                let eval = x.evaluate() | y.evaluate();
+                let x = self.pure_bool(x)?;
+                let y = self.pure_bool(y)?;
                 let symbolized = x.is_symbolized() | y.is_symbolized();
-                Ok(Rc::new(Pure {
-                    code: PureCode::BoolOr(x, y),
-                    sort: Sort::Bool,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                let sort = Sort::Bool;
+                let eval = x.evaluate() | y.evaluate();
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::BoolOr, vec![x, y], symbolized, sort, eval))
+                }
             }
             RzILInfo::BoolXor { x, y } => {
-                let x = self.create_pure_bool(x)?;
-                let y = self.create_pure_bool(y)?;
-                let eval = x.evaluate() ^ y.evaluate();
+                let x = self.pure_bool(x)?;
+                let y = self.pure_bool(y)?;
                 let symbolized = x.is_symbolized() | y.is_symbolized();
-                Ok(Rc::new(Pure {
-                    code: PureCode::BoolXor(x, y),
-                    sort: Sort::Bool,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                let sort = Sort::Bool;
+                let eval = x.evaluate() ^ y.evaluate();
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::BoolXor, vec![x, y], symbolized, sort, eval))
+                }
             }
-            RzILInfo::Bitv { bits, len } => Ok(Rc::new(Pure {
-                code: PureCode::Bitv,
-                sort: Sort::Bv(len.clone()),
-                eval: u64::from_str_radix(&bits[2..], 16)?,
-                id: self.get_uniq_id(),
-                symbolized: false,
-            })),
+            RzILInfo::Bitv { bits, len } => {
+                let symbolized = false;
+                let sort = Sort::Bitv(len.clone());
+                let eval = u64::from_str_radix(&bits[2..], 16)?;
+                Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+            }
             RzILInfo::Msb { bv } => {
-                let bv = self.create_pure_bv(bv)?;
+                let bv = self.pure_bv(bv)?;
+                let symbolized = bv.is_symbolized();
                 let sort = Sort::Bool;
                 let eval = (bv.evaluate() >> (bv.get_size() - 1)) & 0x1;
-                let symbolized = bv.is_symbolized();
-                Ok(Rc::new(Pure {
-                    code: PureCode::Msb(bv),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::Msb, vec![bv], symbolized, sort, eval))
+                }
             }
             RzILInfo::Lsb { bv } => {
-                let bv = self.create_pure_bv(bv)?;
+                let bv = self.pure_bv(bv)?;
+                let symbolized = bv.is_symbolized();
                 let sort = Sort::Bool;
                 let eval = bv.evaluate() & 0x1;
-                let symbolized = bv.is_symbolized();
-                Ok(Rc::new(Pure {
-                    code: PureCode::Lsb(bv),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::Lsb, vec![bv], symbolized, sort, eval))
+                }
             }
             RzILInfo::IsZero { bv } => {
-                let bv = self.create_pure_bv(bv)?;
-                let sort = Sort::Bool;
-                let eval = if bv.evaluate() != 0 { 1 } else { 0 };
+                let bv = self.pure_bv(bv)?;
                 let symbolized = bv.is_symbolized();
-                Ok(Rc::new(Pure {
-                    code: PureCode::IsZero(bv),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                let sort = Sort::Bool;
+                let eval = if bv.is_zero() { 1 } else { 0 };
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::IsZero, vec![bv], symbolized, sort, eval))
+                }
             }
             RzILInfo::Neg { bv } => {
-                let bv = self.create_pure_bv(bv)?;
-                let sort = Sort::Bv(bv.get_size());
-                let eval = (bv.evaluate() as i64 * -1i64) as u64;
+                let bv = self.pure_bv(bv)?;
                 let symbolized = bv.is_symbolized();
-                Ok(Rc::new(Pure {
-                    code: PureCode::Neg(bv),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                let sort = Sort::Bitv(bv.get_size());
+                let eval = (bv.evaluate() as i64 * -1i64) as u64;
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::Neg, vec![bv], symbolized, sort, eval))
+                }
             }
             RzILInfo::LogNot { bv } => {
-                let bv = self.create_pure_bv(bv)?;
-                let sort = Sort::Bv(bv.get_size());
+                let bv = self.pure_bv(bv)?;
                 let symbolized = bv.is_symbolized();
+                let sort = Sort::Bitv(bv.get_size());
                 let eval = !bv.evaluate();
-                Ok(Rc::new(Pure {
-                    code: PureCode::LogNot(bv),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::LogNot, vec![bv], symbolized, sort, eval))
+                }
             }
+
             RzILInfo::Add { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
-                if x.get_sort() != y.get_sort() {
-                    return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
-                }
-                let sort = Sort::Bv(x.get_size());
-                let symbolized = x.is_symbolized() | y.is_symbolized();
-                let eval = if !symbolized {
-                    (x.evaluate() + y.evaluate()) & x.get_bitmask()
-                } else {
-                    0
-                };
-                if x.is_zero() {
-                    Ok(y)
-                } else if y.is_zero() {
-                    Ok(x)
-                } else {
-                    Ok(Rc::new(Pure {
-                        code: PureCode::Add(x, y),
-                        sort,
-                        eval,
-                        id: self.get_uniq_id(),
-                        symbolized,
-                    }))
-                }
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
+                Ok(self.new_add(x, y))
             }
+
             RzILInfo::Sub { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
                 let symbolized = x.is_symbolized() | y.is_symbolized();
-                let eval = if !symbolized {
-                    (x.evaluate() - y.evaluate()) & x.get_bitmask()
-                } else {
-                    0
-                };
-                if x.is_zero() {
+                let sort = Sort::Bitv(x.get_size());
+                let eval = if !symbolized { (x.evaluate() - y.evaluate()) & x.get_bitmask() } else { 0 };
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else if x.is_zero() {
                     Ok(y)
                 } else if y.is_zero() {
                     Ok(x)
                 } else {
-                    Ok(Rc::new(Pure {
-                        code: PureCode::Sub(x, y),
-                        sort,
-                        eval,
-                        id: self.get_uniq_id(),
-                        symbolized,
-                    }))
+                    Ok(self.new_pure(PureCode::Sub, vec![x, y], symbolized, sort, eval))
                 }
             }
             RzILInfo::Mul { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
                 let symbolized = x.is_symbolized() | y.is_symbolized();
-                let eval = if !symbolized {
-                    (x.evaluate() * y.evaluate()) & x.get_bitmask()
+                let sort = Sort::Bitv(x.get_size());
+                let eval = if !symbolized { (x.evaluate() * y.evaluate()) & x.get_bitmask() } else { 0 };
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
                 } else {
-                    0
-                };
-                Ok(Rc::new(Pure {
-                    code: PureCode::Mul(x, y),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                    Ok(self.new_pure(PureCode::Mul, vec![x, y], symbolized, sort, eval))
+                }
             }
             RzILInfo::Div { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
                 let symbolized = x.is_symbolized() | y.is_symbolized();
+                let sort = Sort::Bitv(x.get_size());
                 let eval = if !symbolized && y.evaluate() != 0 {
-                    (x.evaluate() / y.evaluate()) & x.get_bitmask()
-                } else {
+                    (x.evaluate() / y.evaluate()) & x.get_bitmask() 
+                } else { 
                     0
                 };
-                Ok(Rc::new(Pure {
-                    code: PureCode::Div(x, y),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::Div, vec![x, y], symbolized, sort, eval))
+                }
             }
             RzILInfo::Sdiv { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
                 let symbolized = x.is_symbolized() | y.is_symbolized();
+                let sort = Sort::Bitv(x.get_size());
                 let eval = if !symbolized && y.evaluate() != 0 {
                     ((x.evaluate() as i64 / y.evaluate() as i64) as u64) & x.get_bitmask()
                 } else {
                     0
                 };
-                Ok(Rc::new(Pure {
-                    code: PureCode::Sdiv(x, y),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::Sdiv, vec![x, y], symbolized, sort, eval))
+                }
             }
             RzILInfo::Mod { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
                 let symbolized = x.is_symbolized() | y.is_symbolized();
+                let sort = Sort::Bitv(x.get_size());
                 let eval = if !symbolized && y.evaluate() != 0 {
                     (x.evaluate() % y.evaluate()) & x.get_bitmask()
                 } else {
                     0
                 };
-                Ok(Rc::new(Pure {
-                    code: PureCode::Mod(x, y),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::Mod, vec![x, y], symbolized, sort, eval))
+                }
             }
             RzILInfo::Smod { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
                 let symbolized = x.is_symbolized() | y.is_symbolized();
+                let sort = Sort::Bitv(x.get_size());
                 let eval = if !symbolized && y.evaluate() != 0 {
                     ((x.evaluate() as i64 % y.evaluate() as i64) as u64) & x.get_bitmask()
                 } else {
                     0
                 };
-                Ok(Rc::new(Pure {
-                    code: PureCode::Smod(x, y),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::Smod, vec![x, y], symbolized, sort, eval))
+                }
             }
             RzILInfo::LogAnd { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
+                let sort = Sort::Bitv(x.get_size());
                 let symbolized = x.is_symbolized() | y.is_symbolized();
                 let eval = if !symbolized {
                     x.evaluate() & y.evaluate()
                 } else {
                     0
                 };
-                if x.is_zero() || y.is_zero() {
-                    Ok(Rc::new(Pure {
-                        code: PureCode::Bitv,
-                        sort,
-                        eval: 0,
-                        id: self.get_uniq_id(),
-                        symbolized: false,
-                    }))
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else if x.is_zero() || y.is_zero() {
+                    // Bitv(0)
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
                 } else {
-                    Ok(Rc::new(Pure {
-                        code: PureCode::LogAnd(x, y),
-                        sort,
-                        eval,
-                        id: self.get_uniq_id(),
-                        symbolized,
-                    }))
+                    Ok(self.new_pure(PureCode::LogAnd, vec![x, y], symbolized, sort, eval))
                 }
             }
             RzILInfo::LogOr { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
                 let symbolized = x.is_symbolized() | y.is_symbolized();
+                let sort = Sort::Bitv(x.get_size());
                 let eval = if !symbolized {
                     x.evaluate() | y.evaluate()
                 } else {
                     0
                 };
-                if x.is_zero() {
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else if x.is_zero() {
                     Ok(y)
                 } else if y.is_zero() {
                     Ok(x)
                 } else {
-                    Ok(Rc::new(Pure {
-                        code: PureCode::LogOr(x, y),
-                        sort,
-                        eval,
-                        id: self.get_uniq_id(),
-                        symbolized,
-                    }))
+                    Ok(self.new_pure(PureCode::LogOr, vec![x, y], symbolized, sort, eval))
                 }
             }
             RzILInfo::LogXor { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bv(x.get_size());
                 let symbolized = x.is_symbolized() | y.is_symbolized();
+                let sort = Sort::Bitv(x.get_size());
                 let eval = if !symbolized {
                     x.evaluate() ^ y.evaluate()
                 } else {
                     0
                 };
-                if x.is_zero() {
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else if x.is_zero() {
                     Ok(y)
                 } else if y.is_zero() {
                     Ok(x)
+                } else if x.hash == y.hash {
+                    // xor eax, eax
+                    Ok(self.new_pure(PureCode::Bitv, vec![], false, sort, 0))
                 } else {
-                    Ok(Rc::new(Pure {
-                        code: PureCode::LogXor(x, y),
-                        sort,
-                        eval,
-                        id: self.get_uniq_id(),
-                        symbolized,
-                    }))
+                    Ok(self.new_pure(PureCode::LogXor, vec![x, y], symbolized, sort, eval))
                 }
             }
             RzILInfo::ShiftRight { fill_bit, x, y } => {
-                let fill_bit = self.create_pure_bool(fill_bit)?;
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
-                let sort = Sort::Bv(x.get_size());
+                let fill_bit = self.pure_bool(fill_bit)?;
+                // convert fill_bit's sort from Bool to Bv(1)
+                let fill_bit = if fill_bit.is_concretized() {
+                    self.new_const(Sort::Bitv(1), fill_bit.evaluate())
+                } else {
+                    let one = self.new_const(Sort::Bitv(1), 1);
+                    let zero = self.new_const(Sort::Bitv(1), 0);
+                    self.new_ite(fill_bit, one, zero)
+                };
+
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 let symbolized = fill_bit.is_symbolized() | x.is_symbolized() | y.is_symbolized();
+                let sort = Sort::Bitv(x.get_size());
                 let eval = if !symbolized {
                     ((x.evaluate() >> y.evaluate())
-                        | if fill_bit.evaluate_bool() {
+                        | if fill_bit.evaluate() != 0 {
                             u64::MAX & !(x.get_bitmask() >> y.evaluate())
                         } else {
                             0
@@ -939,23 +1011,30 @@ impl RzILContext {
                 } else {
                     0
                 };
-                Ok(Rc::new(Pure {
-                    code: PureCode::ShiftRight(fill_bit, x, y),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::ShiftRight, vec![fill_bit, x, y], symbolized, sort, eval))
+                }
             }
             RzILInfo::ShiftLeft { fill_bit, x, y } => {
-                let fill_bit = self.create_pure_bool(fill_bit)?;
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
-                let sort = Sort::Bv(x.get_size());
+                let fill_bit = self.pure_bool(fill_bit)?;
+                // convert fill_bit's sort from Bool to Bv(1)
+                let fill_bit = if fill_bit.is_concretized() {
+                    self.new_const(Sort::Bitv(1), fill_bit.evaluate())
+                } else {
+                    let one = self.new_const(Sort::Bitv(1), 1);
+                    let zero = self.new_const(Sort::Bitv(1), 0);
+                    self.new_ite(fill_bit, one, zero)
+                };
+
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 let symbolized = fill_bit.is_symbolized() | x.is_symbolized() | y.is_symbolized();
+                let sort = Sort::Bitv(x.get_size());
                 let eval = if !symbolized {
                     ((x.evaluate() << y.evaluate())
-                        | if fill_bit.evaluate_bool() {
+                        | if fill_bit.evaluate() != 0 {
                             (1 << y.evaluate()) - 1
                         } else {
                             0
@@ -964,22 +1043,20 @@ impl RzILContext {
                 } else {
                     0
                 };
-                Ok(Rc::new(Pure {
-                    code: PureCode::ShiftLeft(fill_bit, x, y),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::ShiftLeft, vec![fill_bit, x, y], symbolized, sort, eval))
+                }
             }
             RzILInfo::Equal { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bool;
                 let symbolized = x.is_symbolized() | y.is_symbolized();
+                let sort = Sort::Bool;
                 let eval = if !symbolized {
                     if x.evaluate() == y.evaluate() {
                         1
@@ -989,127 +1066,95 @@ impl RzILContext {
                 } else {
                     0
                 };
-                Ok(Rc::new(Pure {
-                    code: PureCode::Equal(x, y),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                Ok(self.new_pure(PureCode::Equal, vec![x, y], symbolized, sort, eval))
             }
             RzILInfo::Sle { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bool;
                 let symbolized = x.is_symbolized() | y.is_symbolized();
+                let sort = Sort::Bool;
                 let eval = if !symbolized && x.evaluate() as i64 >= y.evaluate() as i64 {
                     1
                 } else {
                     0
                 };
-                Ok(Rc::new(Pure {
-                    code: PureCode::Sle(x, y),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::Sle, vec![x, y], symbolized, sort, eval))
+                }
             }
             RzILInfo::Ule { x, y } => {
-                let x = self.create_pure_bv(x)?;
-                let y = self.create_pure_bv(y)?;
+                let x = self.pure_bv(x)?;
+                let y = self.pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let sort = Sort::Bool;
                 let symbolized = x.is_symbolized() | y.is_symbolized();
+                let sort = Sort::Bool;
                 let eval = if !symbolized && x.evaluate() >= y.evaluate() {
                     1
                 } else {
                     0
                 };
-                Ok(Rc::new(Pure {
-                    code: PureCode::Ule(x, y),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+
+                if !symbolized{
+                    Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::Ule, vec![x, y], symbolized, sort, eval))
+                }
             }
             RzILInfo::Cast {
                 value,
                 length,
                 fill,
             } => {
-                let value = self.create_pure_bv(value)?;
-                let length = length.clone();
-                let fill = self.create_pure_bool(fill)?;
-                let sort = Sort::Bv(length);
-                let symbolized = value.is_symbolized() | fill.is_symbolized();
-                let eval = if !symbolized {
-                    if value.get_size() >= length {
-                        value.evaluate() & (1 << length - 1)
-                    } else {
-                        let fill_bits = (fill.evaluate() << length - 1) & !value.get_bitmask();
-                        value.evaluate() | fill_bits
-                    }
+                let fill_bit = self.pure_bool(fill)?;
+                // convert fill's sort from Bool to Bv(1)
+                let fill_bit = if fill_bit.is_concretized() {
+                    self.new_const(Sort::Bitv(1), fill_bit.evaluate())
                 } else {
-                    0
+                    let one = self.new_const(Sort::Bitv(1), 1);
+                    let zero = self.new_const(Sort::Bitv(1), 0);
+                    self.new_ite(fill_bit, one, zero)
                 };
-                if value.get_sort() == sort {
-                    Ok(value)
-                } else {
-                    Ok(Rc::new(Pure {
-                        code: PureCode::Cast(value, fill),
-                        sort,
-                        eval,
-                        id: self.get_uniq_id(),
-                        symbolized,
-                    }))
-                }
+
+                let value = self.pure_bv(value)?;
+                let length = length.clone();
+                Ok(self.new_cast(value, fill_bit, length))
             }
             RzILInfo::Append { high, low } => {
-                let high = self.create_pure_bv(high)?;
-                let low = self.create_pure_bv(low)?;
-                let sort = Sort::Bv(high.get_size() + low.get_size());
+                let high = self.pure_bv(high)?;
+                let low = self.pure_bv(low)?;
                 let symbolized = high.is_symbolized() | low.is_symbolized();
+                let sort = Sort::Bitv(high.get_size() + low.get_size());
                 let eval = if !symbolized {
                     (high.evaluate() << low.get_size()) | low.evaluate()
                 } else {
                     0
                 };
-                Ok(Rc::new(Pure {
-                    code: PureCode::Append(high, low),
-                    sort,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
+                if !symbolized {
+                    Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
+                } else {
+                    Ok(self.new_pure(PureCode::Append, vec![high, low], symbolized, sort, eval))
+                }
             }
             RzILInfo::Load { mem: _, key } => {
-                let key = self.create_pure_bv(key)?;
-                let sort = Sort::Bv(8);
-                Ok(Rc::new(Pure {
-                    code: PureCode::Load(key),
-                    sort,
-                    eval: 0,
-                    id: self.get_uniq_id(),
-                    symbolized: true,
-                }))
+                let key = self.pure_bv(key)?;
+                let symbolized = true;
+                let sort = Sort::Bitv(8);
+                let eval = 0;
+                Ok(self.new_pure(PureCode::Load, vec![key], symbolized, sort, eval))
             }
             RzILInfo::Loadw { mem: _, key, bits } => {
-                let key = self.create_pure_bv(key)?;
-                let sort = Sort::Bv(bits.to_owned() as u32);
-                Ok(Rc::new(Pure {
-                    code: PureCode::Loadw(key),
-                    sort,
-                    eval: 0,
-                    id: self.get_uniq_id(),
-                    symbolized: true,
-                }))
+                let key = self.pure_bv(key)?;
+                let symbolized = true;
+                let sort = Sort::Bitv(bits.clone() as usize);
+                let eval = 0;
+                Ok(self.new_pure(PureCode::Load, vec![key], symbolized, sort, eval))
             },
             RzILInfo::Float {
                 format: _,
@@ -1254,70 +1299,51 @@ impl RzILContext {
         }
     }
 
-    fn create_effect(&mut self, op: &RzILInfo) -> RzILResult<Rc<Effect>> {
+    fn create_effect(&mut self, op: &RzILInfo) -> RzILResult<Rc<RzIL>> {
         match op {
-            RzILInfo::Nop => Ok(Rc::new(Effect {
-                code: EffectCode::Nop,
-                label: None,
-                symbolized: false,
-                pure_args: None,
-                effect_args: None,
-            })),
+            RzILInfo::Nop => Ok(self.create_nop()),
             RzILInfo::Set { dst, src } => {
                 let name = dst;
-                let src = self.create_pure(src)?;
-                let dst = match self.global_vars.get(name) {
+                let src = self.pure(src)?;
+                let dst = match self.get_var(name, Scope::Global) {
                     Some(var) => {
                         if src.get_sort() != var.get_sort() {
                             return Err(RzILError::SortIntegrity(src.get_sort(), var.get_sort()));
                         }
                         self.fresh_var(
-                            name,
                             Scope::Global,
                             &src,
                         )
                     }
-                    None => self.fresh_var(
-                        name,
-                        Scope::Local,
-                        &src,
-                    ),
+                    None => {
+                        let var = self.fresh_var(Scope::Local,&src);
+                        if src.is_concretized() {
+                            self.set_var(name, var)?;
+                            return Err(RzILError::EmptyNode);
+                        }
+                        var
+                    }
                 };
-                if self.in_branch() && self.option.contains(RzILContextConfig::BranchToIte) {
-                    self.branch_to_ite_add_entry(name,src,dst)?;
-                    return Err(RzILError::Postponed);
+                if self.in_branch() && self.option.contains(RzILContextConfig::ConvertBranchSetToSetIte) {
+                    self.branch_set_to_set_ite_add_entry(name,src,dst)?;
+                    return Err(RzILError::EmptyNode);
                 }
-                self.update_var(dst.clone())?;
                 let symbolized = dst.is_symbolized();
-                Ok(Rc::new(Effect {
-                    code: EffectCode::Set,
-                    label: None,
-                    symbolized,
-                    pure_args: Some(vec![dst, src]),
-                    effect_args: None,
-                }))
+                let label = None;
+                self.set_var(name, dst.clone())?;
+                Ok(self.new_effect(EffectCode::Set, vec![dst, src], symbolized, label))
             }
 
             RzILInfo::Jmp { dst } => {
-                let dst = self.create_pure_bv(dst)?;
+                let dst = self.pure_bv(dst)?;
                 let symbolized = dst.is_symbolized();
-                Ok(Rc::new(Effect {
-                    code: EffectCode::Jmp,
-                    label: None,
-                    symbolized,
-                    pure_args: Some(vec![dst]),
-                    effect_args: None,
-                }))
+                Ok(self.new_effect(EffectCode::Jmp, vec![dst], symbolized, None))
             }
 
-            RzILInfo::Goto { label } => Ok(Rc::new(Effect {
-                code: EffectCode::Goto,
-                label: Some(label.to_owned()),
-                symbolized: false,
-                pure_args: None,
-                effect_args: None,
-            })),
-
+            RzILInfo::Goto { label } => {
+                let symbolized = false;
+                Ok(self.new_effect(EffectCode::Goto, vec![], symbolized, Some(label.clone())))
+            }
             RzILInfo::Seq { x, y } => {
                 let mut args = Vec::new();
                 self.create_effect_seq(x, &mut args)?;
@@ -1331,88 +1357,53 @@ impl RzILContext {
                 for arg in &args {
                     symbolized |= arg.is_symbolized();
                 }
-                Ok(Rc::new(Effect {
-                    code: EffectCode::Seq,
-                    label: None,
-                    symbolized,
-                    pure_args: None,
-                    effect_args: Some(args),
-                }))
+                Ok(self.new_effect(EffectCode::Seq, args, symbolized, None))
             }
             RzILInfo::Branch {
                 condition,
                 true_eff,
                 false_eff,
             } => {
-                let condition = self.create_pure_bool(condition)?;
+                let condition = self.pure_bool(condition)?;
 
-                self.branch_to_ite_ctx.conditions.push(condition.clone());
+                self.bs_to_si.conditions.push(condition.clone());
 
-                self.branch_to_ite_ctx.taken_path.push(true);
-                let then_effect = self.create_effect(true_eff)?;
-                self.branch_to_ite_ctx.taken_path.pop();
+                self.bs_to_si.taken.push(true);
+                let then = self.create_effect(true_eff)?;
+                self.bs_to_si.taken.pop();
 
-                self.branch_to_ite_ctx.taken_path.push(false);
-                let else_effect = self.create_effect(false_eff)?;
-                self.branch_to_ite_ctx.taken_path.pop();
+                self.bs_to_si.taken.push(false);
+                let otherwise = self.create_effect(false_eff)?;
+                self.bs_to_si.taken.pop();
 
-                self.branch_to_ite_ctx.conditions.pop();
+                self.bs_to_si.conditions.pop();
 
                 let mut args = Vec::new();
                 if !self.in_branch() {
-                    let mut ids = Vec::new();
-                    for i in 0..self.branch_to_ite_ctx.entries.len() {
-                        ids.push(self.get_uniq_id());
-                    }
-                    ids.reverse();
-                    for entry in self.branch_to_ite_ctx.entries.drain(..) {
-                        let then = entry.then.unwrap_or(entry.default.clone());
-                        let else_ = entry.else_.unwrap_or(entry.default.clone());
-                        if then.get_sort() != else_.get_sort() {
+                    let entries: Vec<BranchSetToSetIteEntry> 
+                        = self.bs_to_si.entries.drain(..).collect();
+                    for entry in entries {
+                        let dst = entry.dst.clone();
+                        let condition = entry.condition.clone();
+                        let x = entry.then.clone().unwrap_or(entry.default.clone());
+                        let y = entry.otherwise.clone().unwrap_or(entry.default.clone());
+                        if x.get_sort() != y.get_sort() {
                             return Err(RzILError::SortIntegrity(
-                                then.get_sort(),
-                                else_.get_sort(),
+                                x.get_sort(),
+                                y.get_sort(),
                             ));
                         }
-                        let sort = then.get_sort();
-                        let eval = if condition.evaluate() != 0 {
-                            then.evaluate()
-                        } else {
-                            else_.evaluate()
-                        };
-                        let symbolized = condition.is_symbolized()
-                            || (condition.evaluate() != 0 && then.is_symbolized())
-                            || (condition.evaluate() == 0 && else_.is_symbolized());
-                        let id = ids.pop().unwrap();
-                        let ite = Rc::new(Pure {
-                            code: PureCode::Ite(entry.condition.clone(), then, else_),
-                            sort,
-                            eval,
-                            id,
-                            symbolized,
-                        });
-                        args.push(Rc::new(Effect {
-                            code: EffectCode::Set,
-                            label: None,
-                            symbolized,
-                            pure_args: Some(vec![entry.dst, ite]),
-                            effect_args: None,
-                        }));
+                        let ite = self.new_ite(condition, x, y);
+                        let symbolized = ite.is_symbolized();
+                        args.push(self.new_effect(EffectCode::Set, vec![dst, ite], symbolized, None));
                     }
+                    self.bs_to_si.clear();
                 }
                 let need_branch =
-                    !then_effect.is(EffectCode::Nop) || !else_effect.is(EffectCode::Nop);
-                let symbolized = condition.is_symbolized()
-                    || (condition.evaluate() != 0 && then_effect.is_symbolized())
-                    || (condition.evaluate() == 0 && else_effect.is_symbolized());
+                    !then.is_nop() || !otherwise.is_nop();
+                let symbolized = condition.is_symbolized();
                 if need_branch {
-                    args.push(Rc::new(Effect {
-                        code: EffectCode::Branch,
-                        label: None,
-                        symbolized,
-                        pure_args: Some(vec![condition]),
-                        effect_args: Some(vec![then_effect, else_effect]),
-                    }))
+                    args.push(self.new_effect(EffectCode::Branch, vec![condition, then, otherwise], symbolized, None));
                 }
                 if args.len() == 0 {
                     Ok(self.create_nop())
@@ -1423,38 +1414,20 @@ impl RzILContext {
                     for arg in &args {
                         symbolized |= arg.is_symbolized();
                     }
-                    Ok(Rc::new(Effect {
-                        code: EffectCode::Seq,
-                        label: None,
-                        symbolized,
-                        pure_args: None,
-                        effect_args: Some(args),
-                    }))
+                    Ok(self.new_effect(EffectCode::Seq, args, symbolized, None))
                 }
             }
             RzILInfo::Store { mem: _, key, value } => {
-                let key = self.create_pure_bv(key)?;
-                let value = self.create_pure_bv(value)?;
+                let key = self.pure_bv(key)?;
+                let value = self.pure_bv(value)?;
                 let symbolized = key.is_symbolized() || value.is_symbolized();
-                Ok(Rc::new(Effect {
-                    code: EffectCode::Store,
-                    label: None,
-                    symbolized,
-                    pure_args: Some(vec![key, value]),
-                    effect_args: None,
-                }))
+                Ok(self.new_effect(EffectCode::Store, vec![key, value], symbolized, None))
             }
             RzILInfo::Storew { mem: _, key, value } => {
-                let key = self.create_pure_bv(key)?;
-                let value = self.create_pure_bv(value)?;
+                let key = self.pure_bv(key)?;
+                let value = self.pure_bv(value)?;
                 let symbolized = key.is_symbolized() || value.is_symbolized();
-                Ok(Rc::new(Effect {
-                    code: EffectCode::Storew,
-                    label: None,
-                    symbolized,
-                    pure_args: Some(vec![key, value]),
-                    effect_args: None,
-                }))
+                Ok(self.new_effect(EffectCode::StoreW, vec![key, value], symbolized, None))
             }
             RzILInfo::Blk {
                 label: _,
@@ -1470,17 +1443,11 @@ impl RzILContext {
         }
     }
 
-    fn create_nop(&mut self) -> Rc<Effect> {
-        Rc::new(Effect {
-            code: EffectCode::Nop,
-            label: None,
-            symbolized: false,
-            pure_args: None,
-            effect_args: None,
-        })
+    fn create_nop(&mut self) -> Rc<RzIL> {
+        self.new_effect(EffectCode::Nop, vec![], false, None)
     }
 
-    fn create_effect_seq(&mut self, op: &RzILInfo, vec: &mut Vec<Rc<Effect>>) -> RzILResult<()> {
+    fn create_effect_seq(&mut self, op: &RzILInfo, vec: &mut Vec<Rc<RzIL>>) -> RzILResult<()> {
         match op {
             RzILInfo::Seq { x, y } => {
                 self.create_effect_seq(x, vec)?;
@@ -1489,17 +1456,15 @@ impl RzILContext {
             _ => {
                 match self.create_effect(op) {
                     Ok(ret) => {
-                        if ret.is(EffectCode::Seq) {
-                            if let Some(args) = ret.effect_args {
-                                for e in args {
-                                    vec.push(e.clone())
-                                }
+                        if Code::Effect(EffectCode::Seq) == ret.code {
+                            for e in &ret.args {
+                                vec.push(e.clone())
                             }
                         }else{
                             vec.push(ret)
                         }
                     },
-                    Err(RzILError::Postponed) => (),
+                    Err(RzILError::EmptyNode) => (),
                     Err(err) => return Err(err),
                 };
             }
@@ -1509,96 +1474,48 @@ impl RzILContext {
 
     fn fresh_var(
         &mut self,
-        name: &str,
         scope: Scope,
-        src: &Rc<Pure>,
-    ) -> Rc<Pure> {
-        Rc::new(Pure {
-            code: PureCode::Var(scope, name.to_owned()),
-            args: None,
-            sort: src.get_sort(), //self.regs.get(value)?.get_sort()
-            eval: src.evaluate(),
-            id: self.get_uniq_id(),
-            symbolized: src.is_symbolized(),
-        })
-    }
-    fn update_var(&mut self, new_var: Rc<Pure>) -> RzILResult<()> {
-        if let PureCode::Var(scope, name) = &new_var.code {
-            let sort = new_var.get_sort();
-            match scope {
-                Scope::Global => match self.global_vars.get(name) {
-                    Some(var) => {
-                        if var.get_sort() != sort {
-                            return Err(RzILError::SortIntegrity(var.get_sort(), sort));
-                        }
-                        self.global_vars.insert(name.to_owned(), new_var);
-                    }
-                    None => return Err(RzILError::UndefinedVariableReferenced(name.to_owned())),
-                },
-                Scope::Local => match self.local_vars.get(name) {
-                    None => {
-                        self.local_vars.insert(name.to_owned(), new_var);
-                    }
-                    Some(_) => return Err(RzILError::ImmutableVariable(name.to_owned())),
-                },
-                Scope::LocalPure => return Err(RzILError::ImmutableVariable(name.to_owned())),
-            }
-            Ok(())
-        } else {
-            Err(RzILError::UndefinedVariableReferenced(
-                "Not Variable".to_owned(),
-            ))
-        }
+        value: &Rc<RzIL>,
+    ) -> Rc<RzIL> {
+        let symbolized = value.is_symbolized();
+        let sort = value.get_sort();
+        let eval = value.evaluate();
+        let id = self.get_uniq_var_id();
+        self.new_pure(PureCode::Var(scope, id), vec![], symbolized, sort, eval)
     }
 
     fn in_branch(&self) -> bool {
-        !self.branch_to_ite_ctx.conditions.is_empty() && !self.branch_to_ite_ctx.taken_path.is_empty()
+        !self.bs_to_si.conditions.is_empty() && !self.bs_to_si.taken.is_empty()
     }
 
-    fn connect_condition(&self, conditions: &[Rc<Pure>], taken: &[bool]) -> RzILResult<Rc<Pure>> {
-        if conditions.is_empty() {
-            return Err(RzILError::EmptyVector);
-        }
-        let mut x = conditions.first().unwrap().clone();
-        if !x.is_bool() {
-            return Err(RzILError::UnexpectedSort(Sort::Bool, x.get_sort()));
-        }
-        if taken.len() > 1 {
-            let taken = taken.first().unwrap();
-            if !taken {
-                let eval = !(x.evaluate() != 0) as u64;
+    fn branch_set_to_set_ite_connect_condition(&mut self) -> RzILResult<Rc<RzIL>> {
+        let len = self.bs_to_si.conditions.len();
+        let mut x = self.bs_to_si.conditions.last().unwrap().clone();
+        for i in (0..len-1).rev() {
+            if !x.is_bool() {
+                return Err(RzILError::UnexpectedSort(Sort::Bool, x.get_sort()));
+            }
+            if i < len-2 && !self.bs_to_si.taken[i+1] {
                 let symbolized = x.is_symbolized();
-                x = Rc::new(Pure {
-                    code: PureCode::BoolInv(x),
-                    sort: Sort::Bool,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                });
+                let sort = Sort::Bool;
+                let eval = !(x.evaluate() != 0) as u64;
+                x = self.new_pure(PureCode::BoolInv, vec![], symbolized, sort, eval)
             }
+            let y = self.bs_to_si.conditions[i].clone();
+            let symbolized = x.is_symbolized() | y.is_symbolized();
+            let sort = Sort::Bool;
+            let eval = x.evaluate() & y.evaluate();
+            x = self.new_pure(PureCode::BoolAnd, vec![x, y], symbolized, sort, eval)
         }
-        match self.connect_condition(&conditions[1..], &taken[1..]) {
-            Ok(y) => {
-                let eval = x.evaluate() & y.evaluate();
-                let symbolized = x.is_symbolized() | y.is_symbolized();
-                Ok(Rc::new(Pure {
-                    code: PureCode::BoolAnd(x,y),
-                    sort: Sort::Bool,
-                    eval,
-                    id: self.get_uniq_id(),
-                    symbolized,
-                }))
-            }
-            Err(RzILError::EmptyVector) => Ok(x),
-            Err(e) => Err(e),
-        }
+        Ok(x)
     }
-    fn branch_to_ite_add_entry(&mut self, name: &str, src: Rc<Pure>, dst: Rc<Pure> ) -> RzILResult<()> {
+
+    fn branch_set_to_set_ite_add_entry(&mut self, name: &str, src: Rc<RzIL>, dst: Rc<RzIL> ) -> RzILResult<()> {
         let condition =
-            self.connect_condition(&self.branch_to_ite_ctx.conditions, &self.branch_to_ite_ctx.taken_path)?;
-        let taken = self.branch_to_ite_ctx.taken_path.first().unwrap().clone();
+            self.branch_set_to_set_ite_connect_condition()?;
+        let taken = self.bs_to_si.taken.first().unwrap().clone();
         let mut entry = None;
-        for e in self.branch_to_ite_ctx.entries.iter_mut() {
+        for e in self.bs_to_si.entries.iter_mut() {
             if e.name.eq(name) {
                 entry = Some(e);
             }
@@ -1606,67 +1523,57 @@ impl RzILContext {
         match entry {
             Some(e) => {
                 if taken {
-                    if let Some(_) = e.then {
-                        return Err(RzILError::BranchSetHandle);
+                    if e.then.is_some() {
+                        return Err(RzILError::BranchSetToSetIteFailed);
                     }
                     e.then = Some(src);
                 } else {
-                    if let Some(_) = e.else_ {
-                        return Err(RzILError::BranchSetHandle);
+                    if e.otherwise.is_some() {
+                        return Err(RzILError::BranchSetToSetIteFailed);
                     }
-                    e.else_ = Some(src);
+                    e.otherwise = Some(src);
                 }
             }
             None=>{
-                let default = match self.global_vars.get(name) {
+                let default = match self.get_var(name, Scope::Global) {
                     Some(var) => var.clone(),
                     None => {
                         let code = match dst.get_sort() {
-                            Sort::Bv(_) => PureCode::Bitv,
+                            Sort::Bitv(_) => PureCode::Bitv,
                             Sort::Bool => PureCode::Bool,
+                            Sort::None => return Err(RzILError::UnkownRzIL)
                         };
-                        Rc::new(Pure {
-                            code,
-                            args: None,
-                            sort: dst.get_sort(),
-                            eval: 0,
-                            id: self.get_uniq_id(),
-                            symbolized: false,
-                        })
+                        let symbolized = false;
+                        let sort = dst.get_sort();
+                        let eval = 0;
+                        self.new_pure(code, vec![], symbolized, sort, eval)
                     }
                 };
+                let (mut then, mut otherwise) = (None, None);
                 if taken {
-                    self.branch_to_ite_ctx.entries.push(
-                        BranchToIteEntry {
-                            name:name.to_owned(),
-                            dst: dst.clone(),
-                            condition,
-                            then: Some(src),
-                            else_: None,
-                            default,
-                        },
-                    );
+                    then = Some(src);
                 } else {
-                    self.branch_to_ite_ctx.entries.push(
-                        BranchToIteEntry {
-                            name: name.to_owned(),
-                            dst: dst.clone(),
-                            condition,
-                            then: None,
-                            else_: Some(src),
-                            default,
-                        },
-                    );
+                    otherwise = Some(src);
                 }
+                self.bs_to_si.entries.push(
+                    BranchSetToSetIteEntry {
+                        name:name.to_owned(),
+                        dst: dst.clone(),
+                        condition,
+                        then,
+                        otherwise,
+                        default,
+                    },
+                );
             }
         };
-        self.update_var(dst)?;
+        self.set_var(name, dst)?;
         Ok(())
     }
 }
 
 #[cfg(test)]
-mod tests_x86 {
+mod test {
     use super::*;
     use rzapi::api;
     fn init(rzapi: &mut api::RzApi) -> RzILContext {

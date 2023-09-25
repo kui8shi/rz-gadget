@@ -10,5 +10,6 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
+pub mod structs;
 #[macro_use]
 pub mod api;

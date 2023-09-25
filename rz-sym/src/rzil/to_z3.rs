@@ -1,19 +1,17 @@
-use super::{
-    Effect,
-    Pure,
-    EffectCode,
-    PureCode,
-    Scope,
-    Sort,
-    RzILError,
+use z3::{
+    ast::{Ast,Bool,BV,Dynamic},
+    Config,
+    Context
 };
 use std::rc::Rc;
 
+use crate::rzil::RzIL;
 type RzILResult<T> = std::result::Result<T, RzILError>;
 
 pub struct RzILToZ3 {
     ctx: z3::Context,
 }
+
 impl RzILToZ3 {
     pub fn new() -> Self {
         let cfg = Config::new();
@@ -22,217 +20,218 @@ impl RzILToZ3 {
         }
     }
     
-    pub fn convert_effect<T: z3::ast::Ast>(&self,op: Rc<Effect>) -> T {
-
-    }
-    pub fn convert_pure<'a>(&'a self, op: Rc<Pure>) -> RzILResult<Dynamic<'a>>{
+    pub fn convert_pure<'a>(&'a self, op: Rc<RzIL>) -> RzILResult<Dynamic<'a>>{
+        if op.is_concretized() 
         match op.code {
             PureCode::Var(scope,name) => {
                 match op.sort {
                     Sort::Bool => {
                         if op.is_concretized() {
-                            Ok(Dynamic::from_ast(&Bool::from_bool(&self.ctx, op.evaluate_bool())))
+                            Ok(Bool::from_bool(&self.ctx, op.evaluate_bool()).into())
                         } else {
-                            Ok(Dynamic::from_ast(&Bool::new_const(&self.ctx, name)))
+                            Ok(Bool::new_const(&self.ctx, name).into())
                         }
                     },
                     Sort::Bv(size) => {
                         if op.is_concretized() {
-                            Ok(Dynamic::from_ast(&BV::from_u64(&self.ctx, op.evaluate(), size)))
+                            Ok(BV::from_u64(&self.ctx, op.evaluate(), size).into())
                         } else {
-                            Ok(Dynamic::from_ast(&BV::new_const(&self.ctx,name,size)))
+                            Ok(BV::new_const(&self.ctx,name,size).into())
                         }
                     }
                 }
             }
-            PureCode::Ite(condition, then, else_) => {
-                let condition = self.convert_bool(condition)?;
-                let then = self.convert_pure(then)?;
-                let else_ = self.convert_pure(else_)?;
-                Ok(Dynamic::from_ast(&condition.ite(&then, &else_)))
+            PureCode::Ite => {
+                let condition = self.convert_bool(op.args[0])?;
+                let then = self.convert_pure(op.args[1])?;
+                let else_ = self.convert_pure(op.args[2])?;
+                Ok(condition.ite(&then, &else_).into())
             }
-            PureCode::Let(var, binding, body) => {
-                let var = self.convert_pure(var)?;
-                let binding = self.convert_pure(binding)?;
-                let body = self.convert_pure(body)?;
-                Ok(Dynamic::from_ast(&body.substitute(&[(&var, &binding)])))
+            PureCode::Let => {
+                let var = self.convert_pure(op.args[0])?;
+                let binding = self.convert_pure(op.args[1])?;
+                let body = self.convert_pure(op.args[2])?;
+                Ok(body.substitute(&[(&var, &binding)]).into())
             }
             PureCode::Bool => {
-                Ok(Dynamic::from_ast(&Bool::from_bool(&self.ctx, op.evaluate_bool())))
+                Ok(Bool::from_bool(&self.ctx, op.evaluate_bool()).into())
             }
-            PureCode::BoolInv(x) => {
-                let x = self.convert_bool(x)?;
+            PureCode::BoolInv => {
+                let x = self.convert_bool(op.args[0])?;
                 if op.is_concretized() {
-                    Ok(Dynamic::from_ast(&Bool::from_bool(&self.ctx, !op.evaluate_bool())))
+                    Ok(Bool::from_bool(&self.ctx, !op.evaluate_bool()).into())
                 } else {
-                    Ok(Dynamic::from_ast(&x.not()))
+                    Ok(x.not().into())
                 }
             }
-            PureCode::BoolAnd(x, y) => {
-                let x = self.convert_bool(x)?;
-                let y = self.convert_bool(y)?;
-                Ok(Dynamic::from_ast(&Bool::and(&self.ctx, &[&x,&y])))
+            PureCode::BoolAnd => {
+                let x = self.convert_bool(op.args[0])?;
+                let y = self.convert_bool(op.args[1])?;
+                Ok(Bool::and(&self.ctx, &[&x,&y]).into())
             }
-            PureCode::BoolOr(x, y) => {
-                let x = self.convert_bool(x)?;
-                let y = self.convert_bool(y)?;
-                Ok(Dynamic::from_ast(&Bool::or(&self.ctx, &[&x,&y])))
+            PureCode::BoolOr => {
+                let x = self.convert_bool(op.args[0])?;
+                let y = self.convert_bool(op.args[1])?;
+                Ok(Bool::or(&self.ctx, &[&x,&y]).into())
             }
-            PureCode::BoolXor(x, y) => {
-                let x = self.convert_bool(x)?;
-                let y = self.convert_bool(y)?;
-                Ok(Dynamic::from_ast(&x.xor(&y)))
+            PureCode::BoolXor => {
+                let x = self.convert_bool(op.args[0])?;
+                let y = self.convert_bool(op.args[1])?;
+                Ok(x.xor(&y).into())
             }
             PureCode::Bitv => {
-                Ok(Dynamic::from_ast(&BV::from_u64(&self.ctx, op.evaluate(), op.get_size())))
+                Ok(BV::from_u64(&self.ctx, op.evaluate(), op.get_size()).into())
             } 
-            PureCode::Msb(bv) => {
-                let bv = self.convert_bv(bv)?;
-                Ok(Dynamic::from_ast(&bv.extract(op.get_size()-1, op.get_size()-1)))
+            PureCode::Msb => {
+                let bv = self.convert_bv(op.args[0])?;
+                Ok(bv.extract(op.get_size()-1, op.get_size()-1).into())
             }
-            PureCode::Lsb(bv) => {
-                let bv = self.convert_bv(bv)?;
-                Ok(Dynamic::from_ast(&bv.extract(0, 0)))
+            PureCode::Lsb => {
+                let bv = self.convert_bv(op.args[0])?;
+                Ok(bv.extract(0, 0).into())
             }
-            PureCode::IsZero(bv) => {
-                let bv = self.convert_bv(bv)?;
+            PureCode::IsZero => {
+                let bv = self.convert_bv(op.args[0])?;
                 let zero = BV::from_u64(&self.ctx, 0, op.get_size());
-                Ok(Dynamic::from_ast(&bv._eq(&zero)))
+                Ok(bv._eq(&zero).into())
             }
-            PureCode::Neg(bv) => {
-                let bv = self.convert_bv(bv)?;
-                Ok(Dynamic::from_ast(&bv.bvneg()))
+            PureCode::Neg => {
+                let bv = self.convert_bv(op.args[0])?;
+                Ok(bv.bvneg().into())
             }
-            PureCode::LogNot(bv) => {
-                let bv = self.convert_bv(bv)?;
+            PureCode::LogNot => {
+                let bv = self.convert_bv(op.args[0])?;
                 Ok(Dynamic::from_ast(&!bv))
             }
-            PureCode::Add(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                Ok(Dynamic::from_ast(&(x.bvadd(&y))))
+            PureCode::Add => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                Ok((x.bvadd(&y)).into())
             }
-            PureCode::Sub(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                Ok(Dynamic::from_ast(&(x.bvsub(&y))))
+            PureCode::Sub => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                Ok((x.bvsub(&y)).into())
             }
-            PureCode::Mul(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                Ok(Dynamic::from_ast(&(x.bvmul(&y))))
+            PureCode::Mul => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                Ok((x.bvmul(&y)).into())
             }
-            PureCode::Div(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                Ok(Dynamic::from_ast(&x.bvudiv(&y)))
+            PureCode::Div => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                Ok(x.bvudiv(&y).into())
             }
-            PureCode::Sdiv(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                Ok(Dynamic::from_ast(&x.bvsdiv(&y)))
+            PureCode::Sdiv => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                Ok(x.bvsdiv(&y).into())
             }
-            PureCode::Mod(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                Ok(Dynamic::from_ast(&x.bvurem(&y)))
+            PureCode::Mod => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                Ok(x.bvurem(&y).into())
             }
-            PureCode::Smod(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                Ok(Dynamic::from_ast(&x.bvsmod(&y))) // ? The right one may be bvsrem but bvsmod.
+            PureCode::Smod => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                Ok(x.bvsmod(&y).into()) // ? The right one may be bvsrem but bvsmod.
             }
-            PureCode::LogAnd(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                Ok(Dynamic::from_ast(&x.bvand(&y)))
+            PureCode::LogAnd => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                Ok(x.bvand(&y).into())
             }
-            PureCode::LogOr(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                Ok(Dynamic::from_ast(&x.bvor(&y)))
+            PureCode::LogOr => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                Ok(x.bvor(&y).into())
             }
-            PureCode::LogXor(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                Ok(Dynamic::from_ast(&x.bvxor(&y)))
+            PureCode::LogXor => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                Ok(x.bvxor(&y).into())
             }
-            PureCode::ShiftRight(fill_bit, x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                if fill_bit.is_concretized() {
-                    if fill_bit.evaluate_bool() {
-                        Ok(Dynamic::from_ast(&x.bvashr(&y)))
-                    } else {
-                        Ok(Dynamic::from_ast(&x.bvlshr(&y)))
-                    }
+            PureCode::ShiftRight => {
+                let fill_bit = op.args[0];
+                let x = self.convert_bv(op.args[1])?;
+                let y = self.convert_bv(op.args[2])?;
+                if fill_bit.is_zero() {
+                    Ok(x.bvlshr(&y).into())
                 } else {
-                    let fill_bit = self.convert_bool(fill_bit)?;
-                    Ok(Dynamic::from_ast(&fill_bit.ite(&x.bvashr(&y), &x.bvlshr(&y))))
+                    let fill_bit = self.convert_bv(fill_bit)?;
+                    let expanded = BV::concat(&fill_bit, &x);
+                    let shifted = expanded.bvashr(&y);
+                    Ok(shifted.xtract(op.get_size() - 1, 0).into())
                 }
             }
             PureCode::ShiftLeft(fill_bit, x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                if fill_bit.is_concretized() {
-                    if fill_bit.evaluate_bool() {
-                        let one = BV::from_u64(&self.ctx, 1, op.get_size());
-                        Ok(Dynamic::from_ast(&x.bvshl(&y).bvor(&one.bvshl(&y).bvsub(&one))))
-                    } else {
-                        Ok(Dynamic::from_ast(&x.bvshl(&y)))
-                    }
+                let fill_bit = op.args[0];
+                let x = self.convert_bv(op.args[1])?;
+                let y = self.convert_bv(op.args[2])?;
+                if fill_bit.is_zero() {
+                    Ok(x.bvshl(&y).into())
                 } else {
-                    let one = BV::from_u64(&self.ctx, 1, op.get_size());
-                    let fill_bit = self.convert_bool(fill_bit)?;
-                    Ok(Dynamic::from_ast(&fill_bit.ite(
-                                &x.bvshl(&y).bvor(&one.bvshl(&y).bvsub(&one)),
-                                &x.bvshl(&y))))
+                    let size = op.get_size();
+                    let fill_bit = self.convert_bv(fill_bit)?;
+                    let least_bits = BV::repeat(&fill_bit, size);
+                    let expanded = BV::concat(&x, &least_bits);
+                    let shifted = expanded.bvshl(&y);
+                    // When fill_bit = 1 and the amount of shift is larger than the size, 
+                    // the result won't be correct (least bits should be 1111..., but 11..00..).                    // But ignored the case for now.
+                    Ok(shifted.extract(2*size - 1, size).into())
                 }
             }
-            PureCode::Equal(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                    Ok(Dynamic::from_ast(&x._eq(&y)))
+            PureCode::Equal => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                Ok(x._eq(&y).into())
             }
-            PureCode::Sle(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                    Ok(Dynamic::from_ast(&x.bvsle(&y)))
+            PureCode::Sle => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                    Ok(x.bvsle(&y).into())
             }
-            PureCode::Ule(x, y) => {
-                let x = self.convert_bv(x)?;
-                let y = self.convert_bv(y)?;
-                    Ok(Dynamic::from_ast(&x.bvule(&y)))
+            PureCode::Ule => {
+                let x = self.convert_bv(op.args[0])?;
+                let y = self.convert_bv(op.args[1])?;
+                    Ok(x.bvule(&y).into())
             }
-            PureCode::Cast(value, fill) => {
-                let size_before = value.get_size();
+            PureCode::Cast => {
+                let size_before = op.args[0].get_size();
                 let size_after = op.get_size();
-                let value = self.convert_bv(value)?;
+                let value = self.convert_bv(op.args[0])?;
                 if size_after >= size_before {
+                    let fill = op.args[1];
                     if fill.is_concretized() {
                         if fill.evaluate_bool() {
-                            // 1..1value
-                            Ok(Dynamic::from_ast(&BV::concat(&BV::from_i64(&self.ctx, -1, size_after - size_before), &value)))
+                            // fill significant bits with 1
+                            Ok(BV::concat(
+                                    &BV::from_i64(&self.ctx, -1, size_after - size_before),
+                                    &value).into())
                         } else {
-                            // 0..0value
-                            Ok(Dynamic::from_ast(&value.zero_ext(size_after - size_before)))
+                            // fill significant bits with 0
+                            Ok(value.zero_ext(size_after - size_before).into())
                         }
                     } else {
-                        // f..fvalue
-                        let fill = self.convert_bool(fill)?;
-                        Ok(Dynamic::from_ast(&fill.ite(
-                                    &BV::concat(&BV::from_i64(&self.ctx, -1, size_after - size_before), &value),
-                                    &value.zero_ext(size_after - size_before))))
+                        // fill significant bits with "fill"
+                        let fill = self.convert_bv(fill)?;
+                        Ok(&fill.ite(
+                                    &BV::concat(
+                                        &BV::from_i64(&self.ctx, -1, size_after - size_before), 
+                                        &value),
+                                    &value.zero_ext(size_after - size_before)))
                     }
                 } else {
-                    // extract(value)
-                    Ok(Dynamic::from_ast(&value.extract(size_after-1, 0)))
+                    // extract value
+                    Ok(value.extract(size_after-1, 0).into())
                 }
             }
-            PureCode::Append(high, low) => {
-                let high = self.convert_bv(high)?;
-                let low = self.convert_bv(low)?;
-                Ok(Dynamic::from_ast(&BV::concat(&high, &low)))
+            PureCode::Append => {
+                let high = self.convert_bv(op.arg[0])?;
+                let low = self.convert_bv(op.args[1])?;
+                Ok(BV::concat(&high, &low).into())
             }
             /*
             PureCode::Load(key) => {
@@ -271,8 +270,4 @@ impl RzILToZ3 {
             Err(RzILError::Empty)
         }
     }
-}
-
-impl Effect {
-
 }
