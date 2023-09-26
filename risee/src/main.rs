@@ -8,7 +8,8 @@ pub mod explorer {
 }
 pub mod context;
 */
-pub mod memory;
+pub mod solver;
+//pub mod memory;
 pub mod rzil;
 use anyhow::Result;
 use rzapi::api;

@@ -1,15 +1,23 @@
 
 use rzapi::structs::Endian;
 use std::rc::Rc;
-use crate::rzil::{RzIL, RzILContext, Sort};
+use crate::rzil::{Pure, RzILContext, Sort};
 use std::fmt::Debug;
 
 
+/*
+pub trait Memory {
+    fn new(addr_width: usize, endian: Endian) -> Self;
+    fn store(&mut self, ctx: &RzILContext, addr: Rc<Pure>, val: Rc<Pure>);
+    fn load(&self, ctx: &RzILContext, addr: Rc<Pure>) -> Rc<Pure>;
+}
+*/
+
 pub struct MemEntry {
-    addr: Rc<RzIL>,
-    val: Rc<RzIL>,
+    addr: Rc<Pure>,
+    val: Rc<Pure>,
     t: i64,
-    conditions: Vec<Rc<RzIL>>
+    conditions: Vec<Rc<Pure>>
 }
 
 pub struct Memory {
@@ -22,12 +30,12 @@ pub struct Memory {
 
 // ref: http://season-lab.github.io/papers/memsight-ase17.pdf
 // ref: https://github.com/season-lab/memsight/blob/master/docs/pseudocode/naive-v4/main.pdf
-impl Memory {
+impl MemSight {
     /// Create a new memory instance
     fn new(addr_width: usize, endian: Endian) -> Self;
     
     /// Write x bytes of memory from a certain location
-    fn store(&mut self, ctx: &mut RzILContext, addr: Rc<RzIL>, val: Rc<RzIL>) {
+    fn store(&mut self, ctx: &RzILContext, addr: Rc<Pure>, val: Rc<Pure>) {
         for k in 0..val.get_size() {
             let offset = ctx.new_const(Sort::Bitv(addr.get_size()), k as u64);
             let false_ = ctx.new_const(Sort::Bool, 0);
@@ -38,7 +46,7 @@ impl Memory {
     }
     
     /// Write a byte of memory at a certain location
-    fn _store(&mut self, addr: Rc<RzIL>, val: Rc<RzIL>) {
+    fn _store(&mut self, addr: Rc<Pure>, val: Rc<Pure>) {
         let min = self.solver.min(addr);
         let max = self.solver.max(addr);
         self.t_pos += 1;
@@ -46,6 +54,6 @@ impl Memory {
     }
 
     /// Read x bytes of memory at a certain location
-    fn load()
+    fn load(&self, ctx: &RzILContext, addr: Rc<Pure>) -> Rc<Pure>;
 }
 

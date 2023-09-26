@@ -4,15 +4,16 @@ use rzapi::api::RzResult;
 use rzapi::structs::{RzILInfo,RzILVMRegValue};
 use std::cell::Cell;
 use std::collections::hash_map::{HashMap,DefaultHasher};
-use std::collections::hash_set::HashSet;
+use quick_cache::sync::Cache;
 use std::fmt::Display;
 use std::hash::Hasher;
 use std::rc::Rc;
 use std::vec;
 use std::hash::Hash;
 use thiserror::Error;
+pub mod to_z3;
 /*
- * rzapi::RzILInfo -> rz-sym::RzIL(sorted, unrolled) -> Expr.add_solver
+ * rzapi::RzILInfo -> rz-sym::Pure(sorted, unrolled) -> Expr.add_solver
  * let rzg = RzGadget::new()
  * rzg.set_register("rax",10);
  * //rzg.call(r#"write(0, "String",)"#)
@@ -44,7 +45,7 @@ pub enum RzILError {
     UndefinedVariableReferenced(String),
 
     #[error("Code {0} was unexpected.")]
-    UnexpectedCode(Code),
+    UnexpectedPureCode(PureCode),
 
     #[error("Parse Int failed")]
     ParseInt(#[from] std::num::ParseIntError),
@@ -55,14 +56,14 @@ pub enum RzILError {
     #[error("RzApi failed: {0}")]
     ApiError(String),
 
-    #[error("RzIL {0} is Unimplemented")]
+    #[error("Pure {0} is Unimplemented")]
     UnimplementedRzILPure(PureCode),
 
-    #[error("RzIL {0} is Unimplemented")]
-    UnimplementedRzILEffect(EffectCode),
+    #[error("Effect {0} is Unimplemented")]
+    UnimplementedRzILEffect(String),
 
-    #[error("Unkown (Unimplemented or Invalid) RzIL detected.")]
-    UnkownRzIL,
+    #[error("Unkown (Unimplemented or Invalid) Pure detected.")]
+    UnkownPure,
 
     #[error("Empty detected. Unable to continue.")]
     Empty,
@@ -76,7 +77,7 @@ pub enum RzILError {
     #[error("Unable to convert Set in Branch to Set with Ite")]
     BranchSetToSetIteFailed,
 
-    #[error("Unhandled Error : RzIL Node no need or postponed to evaluate")]
+    #[error("Unhandled Error : Pure Node no need or postponed to evaluate")]
     EmptyNode,
 }
 
@@ -84,28 +85,24 @@ pub enum RzILError {
 pub enum Sort {
     Bitv(usize),
     Bool,
-    None,
 }
 impl Sort {
     fn is_bv(&self) -> bool {
         match self {
             Sort::Bitv(_) => true,
             Sort::Bool => false,
-            Sort::None => false,
         }
     }
     fn is_bool(&self) -> bool {
         match self {
             Sort::Bitv(_) => false,
             Sort::Bool => true,
-            Sort::None => false,
         }
     }
     fn get_size(&self) -> usize {
         match self {
             Sort::Bitv(len) => len.clone(),
             Sort::Bool => 1,
-            Sort::None => 0,
         }
     }
 }
@@ -193,30 +190,37 @@ pub enum PureCode {
     Fcompound,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
-pub enum EffectCode {
+#[derive(Clone, Debug)]
+pub enum Effect {
     Nop,
-    Set,
-    Jmp,
-    Goto,
-    Seq,
+    Set{dst: Rc<Pure>, src: Rc<Pure>},
+    Jmp{dst: Rc<Pure>},
+    Goto{label: String},
+    Seq{args: Vec<Rc<Effect>>},
     Blk,
     Repeat,
-    Branch,
-    Store,
-    StoreW,
+    Branch{condition: Rc<Pure>, then: Rc<Effect>, otherwise: Rc<Effect>},
+    Store{key: Rc<Pure>, value: Rc<Pure>},
+    StoreW{key: Rc<Pure>, value: Rc<Pure>},
     Empty,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum Code {
-    Pure(PureCode),
-    Effect(EffectCode),
-}
-
-impl Display for EffectCode {
+impl Display for Effect {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        let code = match self {
+            Effect::Nop => "Nop".to_string(),
+            Effect::Set{ .. } => "Set".to_string(),
+            Effect::Jmp{ .. } => "Jmp".to_string(),
+            Effect::Goto{ .. } => "Goto".to_string(),
+            Effect::Seq{ .. } => "Seq".to_string(),
+            Effect::Blk => "Blk".to_string(),
+            Effect::Repeat => "Repeat".to_string(),
+            Effect::Branch{ .. } => "Branch".to_string(),
+            Effect::Store{ .. } => "Store".to_string(),
+            Effect::StoreW{ .. } => "StoreW".to_string(),
+            Effect::Empty => "Empty".to_string(),
+        };
+        write!(f, "{}", code)
     }
 }
 
@@ -226,24 +230,17 @@ impl Display for PureCode {
     }
 }
 
-impl Display for Code {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
 #[derive(Debug, Eq, PartialEq)]
-pub struct RzIL {
-    code: Code,
+pub struct Pure {
+    code: PureCode,
     symbolized: bool,
-    sort: Sort,             // if code is not Pure, it has Sort::None.
-    eval: u64,              // if symbolized or code is not Pure, it has 0.
-    label: Option<String>,  // if code is not Effect, is has None
-    args: Vec<Rc<RzIL>>,
-    hash: u64,              // special for the semantics of the code and its children
+    sort: Sort,
+    eval: u64,              // if symbolized, it has 0.
+    args: Vec<Rc<Pure>>,
+    hash: u64,              // unique for the semantics
 }
 
-impl Hash for RzIL {
+impl Hash for Pure {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.code.hash(state);
         for arg in &self.args {
@@ -252,30 +249,10 @@ impl Hash for RzIL {
         self.symbolized.hash(state);
         self.sort.hash(state);
         self.eval.hash(state);
-        self.label.hash(state);
     }
 }
 
-impl RzIL {
-    fn is_pure(&self) -> bool {
-        match self.code {
-            Code::Pure(_) => true,
-            Code::Effect(_) => false,
-        }
-    }
-    fn is_effect(&self) -> bool {
-        match self.code {
-            Code::Pure(_) => false,
-            Code::Effect(_) => true,
-        }
-    }
-    fn is_nop(&self) -> bool {
-        if let Code::Effect(EffectCode::Nop) = self.code {
-            true
-        } else {
-            false
-        }
-    }
+impl Pure {
     pub fn evaluate(&self) -> u64 {
         self.eval
     }
@@ -293,28 +270,38 @@ impl RzIL {
         self.sort.get_size()
         
     }
-    fn get_bitmask(&self) -> u64 {
+    pub fn get_bitmask(&self) -> u64 {
         u64::MAX >> (u64::BITS as usize - self.get_size())
     }
 
-    fn is_bv(&self) -> bool {
+    pub fn is_bv(&self) -> bool {
         self.get_sort().is_bv()
     }
-    fn is_bool(&self) -> bool {
+    pub fn is_bool(&self) -> bool {
         self.get_sort().is_bool()
     }
-    fn is_symbolized(&self) -> bool {
+    pub fn is_symbolized(&self) -> bool {
         self.symbolized
     }
-    fn is_concretized(&self) -> bool {
+    pub fn is_concretized(&self) -> bool {
         !self.symbolized
     }
-    fn is_zero(&self) -> bool {
+    pub fn is_zero(&self) -> bool {
         self.is_bv() && self.is_concretized() && self.evaluate() == 0
     }
-    fn concretize(&mut self, eval: u64) {
+    pub fn concretize(&mut self, eval: u64) {
         self.symbolized = false;
         self.eval = eval;
+    }
+}
+
+impl Effect {
+    fn is_nop(&self) -> bool {
+        if let Effect::Nop = self {
+            true
+        } else {
+            false
+        }
     }
 }
 
@@ -330,31 +317,34 @@ bitflags! {
 #[derive(Debug)]
 struct BranchSetToSetIteEntry {
     name: String,
-    dst: Rc<RzIL>,
-    condition: Rc<RzIL>,
-    then: Option<Rc<RzIL>>,
-    otherwise: Option<Rc<RzIL>>,
-    default: Rc<RzIL>,
+    dst: Rc<Pure>,
+    condition: Rc<Pure>,
+    then: Option<Rc<Pure>>,
+    otherwise: Option<Rc<Pure>>,
+    default: Rc<Pure>,
 }
 
 #[derive(Debug)]
 struct BranchSetToSetIte {
-    conditions: Vec<Rc<RzIL>>,
+    conditions: Vec<Rc<Pure>>,
     taken: Vec<bool>,
     entries: Vec<BranchSetToSetIteEntry>,
 }
 
 pub struct RzILContext {
     /*
-     * options Option
-     * values HashMap<name, Pure>
-     * cache HashMap<hash, Pure>
-     * uniq_id
+     * This struct and its impl mainly has four objectives.
+     * 1. Parse RzILInfo from RzApi
+     * 2. Add supplemental information.
+     *      (e.g. type information of every node, symbolized or not)
+     * 3. Convert the syntax desired for symbolic execution.
+     *      (e.g. Branch and Set -> Set and Ite)
+     * 4. Provide Pure struct generation API for other modules.
      * */
     option: RzILContextConfig,
     var_ids: HashMap<(String,Scope), u64>,
-    vars: HashMap<u64, Rc<RzIL>>,
-    cache: HashSet<Rc<RzIL>>,
+    vars: HashMap<u64, Rc<Pure>>,
+    cache: Cache<Rc<Pure>, Rc<Pure>>,
     uniq_var_id: Cell<u64>,
     bs_to_si: BranchSetToSetIte,
 }
@@ -373,7 +363,7 @@ impl RzILContext {
             option: RzILContextConfig::All,
             var_ids: HashMap::new(),
             vars: HashMap::new(),
-            cache: HashSet::new(),
+            cache: Cache::new(10000),
             uniq_var_id: Cell::new(0),
             bs_to_si: BranchSetToSetIte {
                 conditions: Vec::new(),
@@ -402,8 +392,8 @@ impl RzILContext {
         self.bs_to_si.clear();
     }
 
-    fn set_var(&mut self, name: &str, value: Rc<RzIL>) -> RzILResult<()> {
-        if let Code::Pure(PureCode::Var(scope, id)) = value.code {
+    fn set_var(&mut self, name: &str, var: Rc<Pure>) -> RzILResult<()> {
+        if let PureCode::Var(scope, id) = var.code {
             match scope {
                 Scope::Global | Scope::Local => (),
                 Scope::LocalPure => {
@@ -413,14 +403,14 @@ impl RzILContext {
                 }
             }
             self.var_ids.insert((name.to_owned(), scope), id);
-            self.vars.insert(id, value);
+            self.vars.insert(id, var);
             Ok(())
         } else {
-            Err(RzILError::UnexpectedCode(value.code.clone()))
+            Err(RzILError::UnexpectedPureCode(var.code.clone()))
         }
     }
 
-    fn get_var(&self, name: &str, scope: Scope) -> Option<Rc<RzIL>> {
+    fn get_var(&self, name: &str, scope: Scope) -> Option<Rc<Pure>> {
         if let Some(id) = self.var_ids.get(&(name.to_owned(), scope)) {
             if let Some(var) = self.vars.get(id) {
                 return Some(var.clone())
@@ -429,7 +419,7 @@ impl RzILContext {
         None
     }
 
-    fn remove_var(&mut self, name: &str, scope: Scope) -> Option<Rc<RzIL>> {
+    fn remove_var(&mut self, name: &str, scope: Scope) -> Option<Rc<Pure>> {
         if let Some(id) = self.var_ids.remove(&(name.to_owned(), scope)) {
             return self.vars.remove(&id);
         }
@@ -462,7 +452,7 @@ impl RzILContext {
         Ok(())
     }
 
-    pub fn lift_inst(&mut self, api: &mut RzApi, addr: u64) -> RzILResult<Rc<RzIL>> {
+    pub fn lift_inst(&mut self, api: &mut RzApi, addr: u64) -> RzILResult<Rc<Effect>> {
         match self.lift_n_insts(api, addr, 1) {
             Ok(vec) => Ok(vec.into_iter().nth(0).unwrap()),
             Err(e) => Err(e),
@@ -473,12 +463,12 @@ impl RzILContext {
         api: &mut RzApi,
         addr: u64,
         n: u64,
-    ) -> RzILResult<Vec<Rc<RzIL>>> {
+    ) -> RzILResult<Vec<Rc<Effect>>> {
         let insts = self.api_result(api.get_n_insts(Some(n), Some(addr)))?;
         let mut vec = Vec::new();
         for inst in insts {
             self.partial_clear();
-            vec.push(self.create_effect(&inst.rzil)?);
+            vec.push(self.parse_effect(&inst.rzil)?);
         }
         Ok(vec)
     }
@@ -495,53 +485,35 @@ impl RzILContext {
         self.uniq_var_id.get()
     }
 
-    fn new_pure(&mut self, code: PureCode, args: Vec<Rc<RzIL>>, symbolized: bool, sort: Sort, eval: u64) -> Rc<RzIL> {
-        let mut rzil = RzIL {
-                code: Code::Pure(code), 
+    fn new_pure(&self, code: PureCode, args: Vec<Rc<Pure>>, symbolized: bool, sort: Sort, eval: u64) -> Rc<Pure> {
+        let mut op = Pure {
+                code, 
                 args, 
                 symbolized, 
                 sort, 
                 eval,
-                label: None,
                 hash: 0,
         };
         let mut hasher = DefaultHasher::new();
-        rzil.hash(&mut hasher);
-        rzil.hash = hasher.finish();
-        if let Some(cached) = self.cache.get(&rzil) {
+        op.hash(&mut hasher);
+        op.hash = hasher.finish();
+        if let Some(cached) = self.cache.get(&op) {
             cached.clone()
         } else {
-            let rzil = Rc::new(rzil);
-            self.cache.insert(rzil.clone());
-            rzil
+            let op = Rc::new(op);
+            self.cache.insert(op.clone(), op.clone());
+            op
         }
     }
 
-    fn new_effect(&mut self, code: EffectCode, args: Vec<Rc<RzIL>>, symbolized: bool, label: Option<String>) -> Rc<RzIL> {
-        let mut rzil = RzIL {
-                code: Code::Effect(code), 
-                args, 
-                symbolized, 
-                sort: Sort::None, 
-                eval: 0,
-                label,
-                hash: 0,
-        };
-        let mut hasher = DefaultHasher::new();
-        rzil.hash(&mut hasher);
-        rzil.hash = hasher.finish();
-        if let Some(cached) = self.cache.get(&rzil) {
-            cached.clone()
-        } else {
-            let rzil = Rc::new(rzil);
-            self.cache.insert(rzil.clone());
-            rzil
-        }
+    fn new_effect(&self, effect: Effect) -> Rc<Effect> {
+        Rc::new(effect)
     }
 
-    pub fn new_ite(&mut self, condition: Rc<RzIL>, then: Rc<RzIL>, otherwise: Rc<RzIL>) -> Rc<RzIL> {
-        // this function is assuming that the sort integrity between then and otherwise holds.
-        // please make sure that before call this.
+    pub fn new_ite(&self, condition: Rc<Pure>, then: Rc<Pure>, otherwise: Rc<Pure>) -> Rc<Pure> {
+        // this function is assuming the sort integrity between then and otherwise.
+        // please make sure it before call this.
+        assert!(then.get_sort() == otherwise.get_sort());
         let sort = then.get_sort();
         let eval = if condition.evaluate() != 0 {
             then.evaluate()
@@ -557,7 +529,6 @@ impl RzILContext {
                     self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval),
                 Sort::Bitv(_) => 
                     self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval),
-                Sort::None => unreachable!(),
             }
         } else if condition.is_concretized() {
             if condition.evaluate_bool() {
@@ -570,15 +541,63 @@ impl RzILContext {
         }
     }
 
-    pub fn new_const(&mut self, sort: Sort, val: u64) -> Rc<RzIL> {
+    pub fn new_const(&self, sort: Sort, val: u64) -> Rc<Pure> {
         match sort {
             Sort::Bitv(_) => self.new_pure(PureCode::Bitv, vec![], false, sort, val),
             Sort::Bool => self.new_pure(PureCode::Bool, vec![], false, sort, val),
-            Sort::None => unreachable!(),
         }
     }
 
-    pub fn new_add(&mut self, x: Rc<RzIL>, y: Rc<RzIL>) -> Rc<RzIL> {
+    pub fn new_eq(&self, x: Rc<Pure>, y: Rc<Pure>) -> Rc<Pure> {
+        // this function is assuming the sort integrity between x and y.
+        // please make sure it before call this.
+        assert!(x.get_sort() == y.get_sort());
+        let symbolized = x.is_symbolized() | y.is_symbolized();
+        let sort = Sort::Bool;
+        let eval = if !symbolized {
+            if x.evaluate() == y.evaluate() {
+                1
+            } else {
+                0
+            }
+        } else {
+            0
+        };
+        self.new_pure(PureCode::Equal, vec![x, y], symbolized, sort, eval)
+    }
+
+    pub fn new_boolinv(&self, x: Rc<Pure>) -> Rc<Pure> {
+        // this function is assuming that the sort of x is Bool.
+        // please make sure it before call this.
+        assert!(x.is_bool());
+        let symbolized = x.is_symbolized();
+        let sort = Sort::Bool;
+        let eval = !(x.evaluate() != 0) as u64;
+        if !symbolized{
+            self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval)
+        } else {
+            self.new_pure(PureCode::BoolInv, vec![x], symbolized, sort, eval)
+        }
+    }
+
+    pub fn new_booland(&self, x: Rc<Pure>, y: Rc<Pure>) -> Rc<Pure> {
+        // this function is assuming that the sort of x and y are Bool.
+        // please make sure it before call this.
+        assert!(x.is_bool() && y.is_bool());
+        let symbolized = x.is_symbolized() | y.is_symbolized();
+        let sort = Sort::Bool;
+        let eval = x.evaluate() & y.evaluate();
+        if !symbolized{
+            self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval)
+        } else {
+            self.new_pure(PureCode::BoolAnd, vec![x, y], symbolized, sort, eval)
+        }
+    }
+
+    pub fn new_bvadd(&self, x: Rc<Pure>, y: Rc<Pure>) -> Rc<Pure> {
+        // this function is assuming that the sort of x and y are Bitv.
+        // please make sure it before call this.
+        assert!(x.is_bv() && y.is_bv());
         let symbolized = x.is_symbolized() | y.is_symbolized();
         let sort = Sort::Bitv(x.get_size());
         let eval = if !symbolized { (x.evaluate() + y.evaluate()) & x.get_bitmask() } else { 0 };
@@ -593,7 +612,10 @@ impl RzILContext {
         }
     }
 
-    pub fn new_cast(&mut self, value: Rc<RzIL>, fill_bit: Rc<RzIL>, length: usize) -> Rc<RzIL> {
+    pub fn new_cast(&self, value: Rc<Pure>, fill_bit: Rc<Pure>, length: usize) -> Rc<Pure> {
+        // this function is assuming that the sort of value is Bitv, and that of fill_bit is Bool.
+        // please make sure it before call this.
+        assert!(value.is_bv() && fill_bit.is_bool());
         let symbolized = fill_bit.is_symbolized() | value.is_symbolized() | fill_bit.is_symbolized();
         let sort = Sort::Bitv(length);
         let eval = if !symbolized {
@@ -616,23 +638,27 @@ impl RzILContext {
         }
     }
 
-    fn pure_bv(&mut self, op: &RzILInfo) -> RzILResult<Rc<RzIL>> {
-        let bitvector = self.pure(op)?;
+    fn new_nop(&self) -> Rc<Effect> {
+        self.new_effect(Effect::Nop)
+    }
+
+    fn parse_pure_bv(&mut self, op: &RzILInfo) -> RzILResult<Rc<Pure>> {
+        let bitvector = self.parse_pure(op)?;
         if !bitvector.is_bv() {
             Err(RzILError::UnexpectedSort(Sort::Bitv(0), bitvector.get_sort()))
         } else {
             Ok(bitvector)
         }
     }
-    fn pure_bool(&mut self, op: &RzILInfo) -> RzILResult<Rc<RzIL>> {
-        let boolean = self.pure(op)?;
+    fn parse_pure_bool(&mut self, op: &RzILInfo) -> RzILResult<Rc<Pure>> {
+        let boolean = self.parse_pure(op)?;
         if !boolean.is_bool() {
             Err(RzILError::UnexpectedSort(Sort::Bool, boolean.get_sort()))
         } else {
             Ok(boolean)
         }
     }
-    fn pure(&mut self, op: &RzILInfo) -> RzILResult<Rc<RzIL>> {
+    fn parse_pure(&mut self, op: &RzILInfo) -> RzILResult<Rc<Pure>> {
         match op {
             RzILInfo::Var { value } => 
                 if let Some(var) = self.get_var(value, Scope::Global) {
@@ -645,7 +671,6 @@ impl RzILContext {
                                 self.new_pure(PureCode::Bool, vec![], false, sort, var.evaluate()),
                             Sort::Bitv(_) =>
                                 self.new_pure(PureCode::Bitv, vec![], false, sort, var.evaluate()),
-                            Sort::None => unreachable!()
                         })
                     } else {
                         Ok(var.clone())
@@ -656,9 +681,9 @@ impl RzILContext {
                     Err(RzILError::UndefinedVariableReferenced(value.clone()))
                 }
             RzILInfo::Ite { condition, x, y } => {
-                let condition = self.pure_bool(condition)?;
-                let x = self.pure(x)?;
-                let y = self.pure(y)?;
+                let condition = self.parse_pure_bool(condition)?;
+                let x = self.parse_pure(x)?;
+                let y = self.parse_pure(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -668,7 +693,7 @@ impl RzILContext {
                 // currently we can't use let-expressions. 
                 // so exp is directly assigned to body.
                 let id = self.get_uniq_var_id();
-                let exp = self.pure(exp)?;
+                let exp = self.parse_pure(exp)?;
                 let symbolized = exp.is_symbolized();
                 let sort = exp.get_sort();
                 let eval = exp.evaluate();
@@ -677,7 +702,7 @@ impl RzILContext {
                     vec![exp], 
                     symbolized, sort, eval);
                 self.set_var(dst, exp.clone())?;
-                let body = self.pure(body)?;
+                let body = self.parse_pure(body)?;
                 self.remove_var(dst, Scope::LocalPure);
                 Ok(body)
             }
@@ -688,31 +713,17 @@ impl RzILContext {
                 Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
             }
             RzILInfo::BoolInv { x } => {
-                let x = self.pure_bool(x)?;
-                let symbolized = x.is_symbolized();
-                let sort = Sort::Bool;
-                let eval = !(x.evaluate() != 0) as u64;
-                if !symbolized{
-                    Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
-                } else {
-                    Ok(self.new_pure(PureCode::BoolInv, vec![x], symbolized, sort, eval))
-                }
+                let x = self.parse_pure_bool(x)?;
+                Ok(self.new_boolinv(x))
             }
             RzILInfo::BoolAnd { x, y } => {
-                let x = self.pure_bool(x)?;
-                let y = self.pure_bool(y)?;
-                let symbolized = x.is_symbolized() | y.is_symbolized();
-                let sort = Sort::Bool;
-                let eval = x.evaluate() & y.evaluate();
-                if !symbolized{
-                    Ok(self.new_pure(PureCode::Bool, vec![], symbolized, sort, eval))
-                } else {
-                    Ok(self.new_pure(PureCode::BoolAnd, vec![x, y], symbolized, sort, eval))
-                }
+                let x = self.parse_pure_bool(x)?;
+                let y = self.parse_pure_bool(y)?;
+                Ok(self.new_booland(x, y))
             }
             RzILInfo::BoolOr { x, y } => {
-                let x = self.pure_bool(x)?;
-                let y = self.pure_bool(y)?;
+                let x = self.parse_pure_bool(x)?;
+                let y = self.parse_pure_bool(y)?;
                 let symbolized = x.is_symbolized() | y.is_symbolized();
                 let sort = Sort::Bool;
                 let eval = x.evaluate() | y.evaluate();
@@ -723,8 +734,8 @@ impl RzILContext {
                 }
             }
             RzILInfo::BoolXor { x, y } => {
-                let x = self.pure_bool(x)?;
-                let y = self.pure_bool(y)?;
+                let x = self.parse_pure_bool(x)?;
+                let y = self.parse_pure_bool(y)?;
                 let symbolized = x.is_symbolized() | y.is_symbolized();
                 let sort = Sort::Bool;
                 let eval = x.evaluate() ^ y.evaluate();
@@ -741,7 +752,7 @@ impl RzILContext {
                 Ok(self.new_pure(PureCode::Bitv, vec![], symbolized, sort, eval))
             }
             RzILInfo::Msb { bv } => {
-                let bv = self.pure_bv(bv)?;
+                let bv = self.parse_pure_bv(bv)?;
                 let symbolized = bv.is_symbolized();
                 let sort = Sort::Bool;
                 let eval = (bv.evaluate() >> (bv.get_size() - 1)) & 0x1;
@@ -752,7 +763,7 @@ impl RzILContext {
                 }
             }
             RzILInfo::Lsb { bv } => {
-                let bv = self.pure_bv(bv)?;
+                let bv = self.parse_pure_bv(bv)?;
                 let symbolized = bv.is_symbolized();
                 let sort = Sort::Bool;
                 let eval = bv.evaluate() & 0x1;
@@ -763,7 +774,7 @@ impl RzILContext {
                 }
             }
             RzILInfo::IsZero { bv } => {
-                let bv = self.pure_bv(bv)?;
+                let bv = self.parse_pure_bv(bv)?;
                 let symbolized = bv.is_symbolized();
                 let sort = Sort::Bool;
                 let eval = if bv.is_zero() { 1 } else { 0 };
@@ -774,7 +785,7 @@ impl RzILContext {
                 }
             }
             RzILInfo::Neg { bv } => {
-                let bv = self.pure_bv(bv)?;
+                let bv = self.parse_pure_bv(bv)?;
                 let symbolized = bv.is_symbolized();
                 let sort = Sort::Bitv(bv.get_size());
                 let eval = (bv.evaluate() as i64 * -1i64) as u64;
@@ -785,7 +796,7 @@ impl RzILContext {
                 }
             }
             RzILInfo::LogNot { bv } => {
-                let bv = self.pure_bv(bv)?;
+                let bv = self.parse_pure_bv(bv)?;
                 let symbolized = bv.is_symbolized();
                 let sort = Sort::Bitv(bv.get_size());
                 let eval = !bv.evaluate();
@@ -797,14 +808,14 @@ impl RzILContext {
             }
 
             RzILInfo::Add { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
-                Ok(self.new_add(x, y))
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
+                Ok(self.new_bvadd(x, y))
             }
 
             RzILInfo::Sub { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -822,8 +833,8 @@ impl RzILContext {
                 }
             }
             RzILInfo::Mul { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -837,8 +848,8 @@ impl RzILContext {
                 }
             }
             RzILInfo::Div { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -857,8 +868,8 @@ impl RzILContext {
                 }
             }
             RzILInfo::Sdiv { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -876,8 +887,8 @@ impl RzILContext {
                 }
             }
             RzILInfo::Mod { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -895,8 +906,8 @@ impl RzILContext {
                 }
             }
             RzILInfo::Smod { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -915,8 +926,8 @@ impl RzILContext {
                 }
             }
             RzILInfo::LogAnd { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -937,8 +948,8 @@ impl RzILContext {
                 }
             }
             RzILInfo::LogOr { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -960,8 +971,8 @@ impl RzILContext {
                 }
             }
             RzILInfo::LogXor { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -986,7 +997,7 @@ impl RzILContext {
                 }
             }
             RzILInfo::ShiftRight { fill_bit, x, y } => {
-                let fill_bit = self.pure_bool(fill_bit)?;
+                let fill_bit = self.parse_pure_bool(fill_bit)?;
                 // convert fill_bit's sort from Bool to Bv(1)
                 let fill_bit = if fill_bit.is_concretized() {
                     self.new_const(Sort::Bitv(1), fill_bit.evaluate())
@@ -996,8 +1007,8 @@ impl RzILContext {
                     self.new_ite(fill_bit, one, zero)
                 };
 
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 let symbolized = fill_bit.is_symbolized() | x.is_symbolized() | y.is_symbolized();
                 let sort = Sort::Bitv(x.get_size());
                 let eval = if !symbolized {
@@ -1018,7 +1029,7 @@ impl RzILContext {
                 }
             }
             RzILInfo::ShiftLeft { fill_bit, x, y } => {
-                let fill_bit = self.pure_bool(fill_bit)?;
+                let fill_bit = self.parse_pure_bool(fill_bit)?;
                 // convert fill_bit's sort from Bool to Bv(1)
                 let fill_bit = if fill_bit.is_concretized() {
                     self.new_const(Sort::Bitv(1), fill_bit.evaluate())
@@ -1028,8 +1039,8 @@ impl RzILContext {
                     self.new_ite(fill_bit, one, zero)
                 };
 
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 let symbolized = fill_bit.is_symbolized() | x.is_symbolized() | y.is_symbolized();
                 let sort = Sort::Bitv(x.get_size());
                 let eval = if !symbolized {
@@ -1050,27 +1061,16 @@ impl RzILContext {
                 }
             }
             RzILInfo::Equal { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
-                let symbolized = x.is_symbolized() | y.is_symbolized();
-                let sort = Sort::Bool;
-                let eval = if !symbolized {
-                    if x.evaluate() == y.evaluate() {
-                        1
-                    } else {
-                        0
-                    }
-                } else {
-                    0
-                };
-                Ok(self.new_pure(PureCode::Equal, vec![x, y], symbolized, sort, eval))
+                Ok(self.new_eq(x, y))
             }
             RzILInfo::Sle { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -1088,8 +1088,8 @@ impl RzILContext {
                 }
             }
             RzILInfo::Ule { x, y } => {
-                let x = self.pure_bv(x)?;
-                let y = self.pure_bv(y)?;
+                let x = self.parse_pure_bv(x)?;
+                let y = self.parse_pure_bv(y)?;
                 if x.get_sort() != y.get_sort() {
                     return Err(RzILError::SortIntegrity(x.get_sort(), y.get_sort()));
                 }
@@ -1112,7 +1112,7 @@ impl RzILContext {
                 length,
                 fill,
             } => {
-                let fill_bit = self.pure_bool(fill)?;
+                let fill_bit = self.parse_pure_bool(fill)?;
                 // convert fill's sort from Bool to Bv(1)
                 let fill_bit = if fill_bit.is_concretized() {
                     self.new_const(Sort::Bitv(1), fill_bit.evaluate())
@@ -1122,13 +1122,13 @@ impl RzILContext {
                     self.new_ite(fill_bit, one, zero)
                 };
 
-                let value = self.pure_bv(value)?;
+                let value = self.parse_pure_bv(value)?;
                 let length = length.clone();
                 Ok(self.new_cast(value, fill_bit, length))
             }
             RzILInfo::Append { high, low } => {
-                let high = self.pure_bv(high)?;
-                let low = self.pure_bv(low)?;
+                let high = self.parse_pure_bv(high)?;
+                let low = self.parse_pure_bv(low)?;
                 let symbolized = high.is_symbolized() | low.is_symbolized();
                 let sort = Sort::Bitv(high.get_size() + low.get_size());
                 let eval = if !symbolized {
@@ -1143,14 +1143,14 @@ impl RzILContext {
                 }
             }
             RzILInfo::Load { mem: _, key } => {
-                let key = self.pure_bv(key)?;
+                let key = self.parse_pure_bv(key)?;
                 let symbolized = true;
                 let sort = Sort::Bitv(8);
                 let eval = 0;
                 Ok(self.new_pure(PureCode::Load, vec![key], symbolized, sort, eval))
             }
             RzILInfo::Loadw { mem: _, key, bits } => {
-                let key = self.pure_bv(key)?;
+                let key = self.parse_pure_bv(key)?;
                 let symbolized = true;
                 let sort = Sort::Bitv(bits.clone() as usize);
                 let eval = 0;
@@ -1295,16 +1295,16 @@ impl RzILContext {
                 f: _,
                 n: _,
             } => Err(RzILError::UnimplementedRzILPure(PureCode::Fcompound)),
-            _ => Err(RzILError::UnkownRzIL),
+            _ => Err(RzILError::UnkownPure),
         }
     }
 
-    fn create_effect(&mut self, op: &RzILInfo) -> RzILResult<Rc<RzIL>> {
+    fn parse_effect(&mut self, op: &RzILInfo) -> RzILResult<Rc<Effect>> {
         match op {
-            RzILInfo::Nop => Ok(self.create_nop()),
+            RzILInfo::Nop => Ok(self.new_nop()),
             RzILInfo::Set { dst, src } => {
                 let name = dst;
-                let src = self.pure(src)?;
+                let src = self.parse_pure(src)?;
                 let dst = match self.get_var(name, Scope::Global) {
                     Some(var) => {
                         if src.get_sort() != var.get_sort() {
@@ -1328,52 +1328,44 @@ impl RzILContext {
                     self.branch_set_to_set_ite_add_entry(name,src,dst)?;
                     return Err(RzILError::EmptyNode);
                 }
-                let symbolized = dst.is_symbolized();
-                let label = None;
                 self.set_var(name, dst.clone())?;
-                Ok(self.new_effect(EffectCode::Set, vec![dst, src], symbolized, label))
+                Ok(self.new_effect(Effect::Set{dst, src}))
             }
 
             RzILInfo::Jmp { dst } => {
-                let dst = self.pure_bv(dst)?;
-                let symbolized = dst.is_symbolized();
-                Ok(self.new_effect(EffectCode::Jmp, vec![dst], symbolized, None))
+                let dst = self.parse_pure_bv(dst)?;
+                Ok(self.new_effect(Effect::Jmp{dst}))
             }
 
             RzILInfo::Goto { label } => {
-                let symbolized = false;
-                Ok(self.new_effect(EffectCode::Goto, vec![], symbolized, Some(label.clone())))
+                Ok(self.new_effect(Effect::Goto{ label: label.to_owned() }))
             }
             RzILInfo::Seq { x, y } => {
                 let mut args = Vec::new();
-                self.create_effect_seq(x, &mut args)?;
-                self.create_effect_seq(y, &mut args)?;
+                self.parse_effect_seq(x, &mut args)?;
+                self.parse_effect_seq(y, &mut args)?;
                 if args.len() == 0 {
-                    return Ok(self.create_nop());
+                    return Ok(self.new_nop());
                 } else if args.len() == 1 {
                     return Ok(args.pop().unwrap());
                 }
-                let mut symbolized = false;
-                for arg in &args {
-                    symbolized |= arg.is_symbolized();
-                }
-                Ok(self.new_effect(EffectCode::Seq, args, symbolized, None))
+                Ok(self.new_effect(Effect::Seq{args}))
             }
             RzILInfo::Branch {
                 condition,
                 true_eff,
                 false_eff,
             } => {
-                let condition = self.pure_bool(condition)?;
+                let condition = self.parse_pure_bool(condition)?;
 
                 self.bs_to_si.conditions.push(condition.clone());
 
                 self.bs_to_si.taken.push(true);
-                let then = self.create_effect(true_eff)?;
+                let then = self.parse_effect(true_eff)?;
                 self.bs_to_si.taken.pop();
 
                 self.bs_to_si.taken.push(false);
-                let otherwise = self.create_effect(false_eff)?;
+                let otherwise = self.parse_effect(false_eff)?;
                 self.bs_to_si.taken.pop();
 
                 self.bs_to_si.conditions.pop();
@@ -1394,75 +1386,60 @@ impl RzILContext {
                             ));
                         }
                         let ite = self.new_ite(condition, x, y);
-                        let symbolized = ite.is_symbolized();
-                        args.push(self.new_effect(EffectCode::Set, vec![dst, ite], symbolized, None));
+                        args.push(self.new_effect(Effect::Set{dst, src:ite}));
                     }
                     self.bs_to_si.clear();
                 }
                 let need_branch =
                     !then.is_nop() || !otherwise.is_nop();
-                let symbolized = condition.is_symbolized();
                 if need_branch {
-                    args.push(self.new_effect(EffectCode::Branch, vec![condition, then, otherwise], symbolized, None));
+                    args.push(self.new_effect(Effect::Branch{condition, then, otherwise}));
                 }
                 if args.len() == 0 {
-                    Ok(self.create_nop())
+                    Ok(self.new_nop())
                 } else if args.len() == 1 {
                     Ok(args.pop().unwrap())
                 } else {
-                    let mut symbolized = false;
-                    for arg in &args {
-                        symbolized |= arg.is_symbolized();
-                    }
-                    Ok(self.new_effect(EffectCode::Seq, args, symbolized, None))
+                    Ok(self.new_effect(Effect::Seq{args}))
                 }
             }
             RzILInfo::Store { mem: _, key, value } => {
-                let key = self.pure_bv(key)?;
-                let value = self.pure_bv(value)?;
-                let symbolized = key.is_symbolized() || value.is_symbolized();
-                Ok(self.new_effect(EffectCode::Store, vec![key, value], symbolized, None))
+                let key = self.parse_pure_bv(key)?;
+                let value = self.parse_pure_bv(value)?;
+                Ok(self.new_effect(Effect::Store{key, value}))
             }
             RzILInfo::Storew { mem: _, key, value } => {
-                let key = self.pure_bv(key)?;
-                let value = self.pure_bv(value)?;
-                let symbolized = key.is_symbolized() || value.is_symbolized();
-                Ok(self.new_effect(EffectCode::StoreW, vec![key, value], symbolized, None))
+                let key = self.parse_pure_bv(key)?;
+                let value = self.parse_pure_bv(value)?;
+                Ok(self.new_effect(Effect::StoreW{key, value}))
             }
             RzILInfo::Blk {
                 label: _,
                 data: _,
                 ctrl: _,
-            } => Err(RzILError::UnimplementedRzILEffect(EffectCode::Blk)),
+            } => Err(RzILError::UnimplementedRzILEffect("Blk".to_string())),
             RzILInfo::Repeat {
                 condition: _,
                 data_eff: _,
-            } => Err(RzILError::UnimplementedRzILEffect(EffectCode::Repeat)),//Ok(self.create_nop()), //
+            } => Err(RzILError::UnimplementedRzILEffect("Repeat".to_string())),//Ok(self.new_nop()), //
             RzILInfo::Empty => Err(RzILError::Empty),
-            _ => Err(RzILError::UnkownRzIL),
+            _ => Err(RzILError::UnkownPure),
         }
     }
 
-    fn create_nop(&mut self) -> Rc<RzIL> {
-        self.new_effect(EffectCode::Nop, vec![], false, None)
-    }
-
-    fn create_effect_seq(&mut self, op: &RzILInfo, vec: &mut Vec<Rc<RzIL>>) -> RzILResult<()> {
+        fn parse_effect_seq(&mut self, op: &RzILInfo, vec: &mut Vec<Rc<Effect>>) -> RzILResult<()> {
         match op {
             RzILInfo::Seq { x, y } => {
-                self.create_effect_seq(x, vec)?;
-                self.create_effect_seq(y, vec)?;
+                self.parse_effect_seq(x, vec)?;
+                self.parse_effect_seq(y, vec)?;
             }
             _ => {
-                match self.create_effect(op) {
-                    Ok(ret) => {
-                        if Code::Effect(EffectCode::Seq) == ret.code {
-                            for e in &ret.args {
-                                vec.push(e.clone())
-                            }
-                        }else{
-                            vec.push(ret)
+                match self.parse_effect(op) {
+                    Ok(ret) => match &*ret {
+                        Effect::Seq{args} => for op in args {
+                                vec.push(op.clone())
                         }
+                        _ => vec.push(ret)
                     },
                     Err(RzILError::EmptyNode) => (),
                     Err(err) => return Err(err),
@@ -1473,10 +1450,10 @@ impl RzILContext {
     }
 
     fn fresh_var(
-        &mut self,
+        &self,
         scope: Scope,
-        value: &Rc<RzIL>,
-    ) -> Rc<RzIL> {
+        value: &Rc<Pure>,
+    ) -> Rc<Pure> {
         let symbolized = value.is_symbolized();
         let sort = value.get_sort();
         let eval = value.evaluate();
@@ -1488,7 +1465,7 @@ impl RzILContext {
         !self.bs_to_si.conditions.is_empty() && !self.bs_to_si.taken.is_empty()
     }
 
-    fn branch_set_to_set_ite_connect_condition(&mut self) -> RzILResult<Rc<RzIL>> {
+    fn branch_set_to_set_ite_connect_condition(&self) -> RzILResult<Rc<Pure>> {
         let len = self.bs_to_si.conditions.len();
         let mut x = self.bs_to_si.conditions.last().unwrap().clone();
         for i in (0..len-1).rev() {
@@ -1496,21 +1473,15 @@ impl RzILContext {
                 return Err(RzILError::UnexpectedSort(Sort::Bool, x.get_sort()));
             }
             if i < len-2 && !self.bs_to_si.taken[i+1] {
-                let symbolized = x.is_symbolized();
-                let sort = Sort::Bool;
-                let eval = !(x.evaluate() != 0) as u64;
-                x = self.new_pure(PureCode::BoolInv, vec![], symbolized, sort, eval)
+                x = self.new_boolinv(x)
             }
             let y = self.bs_to_si.conditions[i].clone();
-            let symbolized = x.is_symbolized() | y.is_symbolized();
-            let sort = Sort::Bool;
-            let eval = x.evaluate() & y.evaluate();
-            x = self.new_pure(PureCode::BoolAnd, vec![x, y], symbolized, sort, eval)
+            x = self.new_booland(x, y);
         }
         Ok(x)
     }
 
-    fn branch_set_to_set_ite_add_entry(&mut self, name: &str, src: Rc<RzIL>, dst: Rc<RzIL> ) -> RzILResult<()> {
+    fn branch_set_to_set_ite_add_entry(&mut self, name: &str, src: Rc<Pure>, dst: Rc<Pure>) -> RzILResult<()> {
         let condition =
             self.branch_set_to_set_ite_connect_condition()?;
         let taken = self.bs_to_si.taken.first().unwrap().clone();
@@ -1538,15 +1509,7 @@ impl RzILContext {
                 let default = match self.get_var(name, Scope::Global) {
                     Some(var) => var.clone(),
                     None => {
-                        let code = match dst.get_sort() {
-                            Sort::Bitv(_) => PureCode::Bitv,
-                            Sort::Bool => PureCode::Bool,
-                            Sort::None => return Err(RzILError::UnkownRzIL)
-                        };
-                        let symbolized = false;
-                        let sort = dst.get_sort();
-                        let eval = 0;
-                        self.new_pure(code, vec![], symbolized, sort, eval)
+                        self.new_const(dst.get_sort(), 0)
                     }
                 };
                 let (mut then, mut otherwise) = (None, None);

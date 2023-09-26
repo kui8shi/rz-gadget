@@ -1,6 +1,6 @@
 [workspace]
 members = [
-	"rz-sym",
+	"risee",
 ]
 exclude = [
 ]
