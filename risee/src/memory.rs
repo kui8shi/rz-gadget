@@ -3,11 +3,12 @@ use rzapi::structs::Endian;
 use std::rc::Rc;
 use crate::rzil::{Pure, RzILContext, Sort};
 use std::fmt::Debug;
+use crate::solver::Solver;
+use crate::utils::IntervalTree;
 
 
 /*
-pub trait Memory {
-    fn new(addr_width: usize, endian: Endian) -> Self;
+pub trait MemoryOperation {
     fn store(&mut self, ctx: &RzILContext, addr: Rc<Pure>, val: Rc<Pure>);
     fn load(&self, ctx: &RzILContext, addr: Rc<Pure>) -> Rc<Pure>;
 }

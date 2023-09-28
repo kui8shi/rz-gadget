@@ -1,13 +1,13 @@
 use z3;
-use std::rc::Rc;
+use std::{rc::Rc, collections::BinaryHeap};
 use std::mem;
 use std::collections::BTreeSet;
 use crate::rzil::{
     {RzILContext, Pure, RzILError, Sort},
-    to_z3::ToZ3Error,
+   to_z3::ToZ3Error,
 };
 use thiserror::Error;
-//use crate::memory::Memory;
+use crate::memory::Memory;
 
 type SolverResult<T> = std::result::Result<T, SolverError>;
 
@@ -25,18 +25,16 @@ pub enum SolverError {
 
 pub struct Solver {
     solver: z3::Solver<'static>, 
-        // fake life time parameter. 
-        // this is a trick (or maybe a bad practice) 
+        // fake life time parameter
+        // which is (maybe a bad practice) 
         // to fit within the same struct with z3::Context
     z3_ctx: z3::Context,
     rzil_ctx: Rc<RzILContext>,
-    mem: Memory,
     //cache: HashMap<u64, Rc<z3::ast::Dynamic>>,
 }
 
-impl<Mem> Solver<Mem> {
+impl Solver {
     pub fn new(rzil_ctx: Rc<RzILContext>) -> Self {
-        let mem: Mem::new();
         let z3_cfg = z3::Config::new();
         let z3_ctx = z3::Context::new(&z3_cfg);
         let solver: z3::Solver<'static> = unsafe {
@@ -46,26 +44,25 @@ impl<Mem> Solver<Mem> {
             solver,
             z3_ctx,
             rzil_ctx,
-            mem,
             //cache: HashMap::new(),
         }
 
     }
 
-    pub fn assert(&mut self, op:Rc<Pure>) -> SolverResult<()> {
+    pub fn assert(&self, mem: &mut Memory, op:Rc<Pure>) -> SolverResult<()> {
         if !op.is_bool() {
             return Err(SolverError::RzIL(RzILError::UnexpectedSort(Sort::Bool, op.get_sort())));
         }
-        let ast = self._to_z3(op)?;
+        let ast = self._to_z3(mem, op)?;
         self.solver.assert(&ast.as_bool().unwrap());
         Ok(())
     }
 
     // extract n models of op from current context.
     // returned vector has distinct and sorted valueself.
-    pub fn evaluate(&self, op: Rc<Pure>, n: usize) -> SolverResult<BTreeSet<u64>> {
-        let ast = self._to_z3(op.clone())?;
-        let mut results = BTreeSet::new();
+    pub fn evaluate(&self, mem: &mut Memory, op: Rc<Pure>, n: usize) -> SolverResult<Vec<u64>> {
+        let ast = self._to_z3(mem, op.clone())?;
+        let mut results = BinaryHeap::new();
         let mut extra_constraint = Vec::new();
         for _ in 0..n {
             if let Some(model) = self._get_model(&extra_constraint)? {
@@ -92,33 +89,30 @@ impl<Mem> Solver<Mem> {
                     None => return Err(SolverError::Z3(
                         "returned the model without an expected interpretation.".to_owned())),
                 };
-                if results.contains(&val) {
-                    return Err(SolverError::Z3("returned the same value twice.".to_owned()))
-                }
-                results.insert(val.clone());
+                results.push(val.clone());
                 extra_constraint.push({
                     let val = self.rzil_ctx.new_const(op.get_sort(), val);
                     let eq = self.rzil_ctx.new_eq(op.clone(),val);
                     let ex_c = self.rzil_ctx.new_boolinv(eq);
-                    self._to_z3(ex_c)?.as_bool().unwrap()
+                    self._to_z3(mem, ex_c)?.as_bool().unwrap()
                 });
             } else {
                 // model not found (unsat)
                 break
             }
         }
-        Ok(results)
+        Ok(results.into_sorted_vec())
     }
 
-    pub fn get_min(&self, op: Rc<Pure>) -> SolverResult<Option<u64>> {
-         Ok(self.evaluate(op, 10)?.first().cloned())
+    pub fn get_min(&self, mem: &mut Memory, op: Rc<Pure>) -> SolverResult<Option<u64>> {
+         Ok(self.evaluate(mem, op, 10)?.first().cloned())
     }
 
-    pub fn get_max(&self, op: Rc<Pure>) -> SolverResult<Option<u64>> {
-         Ok(self.evaluate(op, 10)?.last().cloned())
+    pub fn get_max(&self, mem: &mut Memory, op: Rc<Pure>) -> SolverResult<Option<u64>> {
+         Ok(self.evaluate(mem, op, 10)?.last().cloned())
     }
 
-    fn _to_z3<'a>(&'a self, op: Rc<Pure>) -> SolverResult<z3::ast::Dynamic<'a>> {
+    fn _to_z3<'a>(&'a self, mem: &mut Memory, op: Rc<Pure>) -> SolverResult<z3::ast::Dynamic<'a>> {
         /* this code was intended to cache the past 'to_z3' queries as forms of z3::ast::Dynamic. 
          * However, it was impossible since z3::ast::Dynamic has a generic lifetime parameter 
          * which the Solver struct could not hold.
@@ -136,7 +130,7 @@ impl<Mem> Solver<Mem> {
             }
         }
          */
-        Ok(op.to_z3(&self.z3_ctx, &mut self.mem)?)
+        Ok(op.to_z3(&self.z3_ctx, mem)?)
     }
 
     fn _get_model<'a>(&'a self, extra_constraint: &[z3::ast::Bool]) -> SolverResult<Option<z3::Model<'a>>> {

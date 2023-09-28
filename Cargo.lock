@@ -826,6 +826,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "rangemap"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "977b1e897f9d764566891689e642653e5ed90c6895106acd005eb4c1d0203991"
+
+[[package]]
 name = "redox_syscall"
 version = "0.1.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -944,6 +950,7 @@ dependencies = [
  "bitflags 2.3.1",
  "petgraph",
  "quick_cache",
+ "rangemap",
  "rustproof-libsmt",
  "rzapi",
  "serde",

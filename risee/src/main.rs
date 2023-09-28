@@ -9,8 +9,9 @@ pub mod explorer {
 pub mod context;
 */
 pub mod solver;
-//pub mod memory;
+pub mod memory;
 pub mod rzil;
+pub mod utils;
 use anyhow::Result;
 use rzapi::api;
 fn main() -> Result<()> {
