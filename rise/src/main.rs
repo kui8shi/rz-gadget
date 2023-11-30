@@ -6,20 +6,27 @@ pub mod regstore {
 pub mod explorer {
     //pub mod explorer;
 }
-pub mod context;
 */
-pub mod solver;
+//pub mod context;
+pub mod context;
+pub mod effect;
+pub mod error;
 pub mod memory;
 pub mod rzil;
+pub mod solver;
 pub mod utils;
+pub mod to_z3;
+pub mod interval;
+pub mod intervalmap;
 use anyhow::Result;
-use rzapi::api;
 fn main() -> Result<()> {
+    /*
     println!("Hello, world!");
     let mut rzapi = api::RzApi::new(Some("/bin/ls"), None).unwrap();
     let mut rzil_ctx = rzil::RzILContext::new();
     rzil_ctx.bind_registers(&mut rzapi)?;
     let inst = rzil_ctx.lift_n_insts(&mut rzapi, 0x67d4, 1)?;
     dbg!(inst);
+    */
     Ok(())
 }
