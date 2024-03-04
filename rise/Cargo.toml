@@ -6,17 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.71"
-bitflags = "2.3.1"
-petgraph = "0.2.10"
-rustproof-libsmt = "0.1.0"
-rzapi = { path = "../rzapi" }
-serde = { version = "1.0.188", features = ["derive"]}
-serde_json = "1.0.105"
-thiserror = "1.0.40"
-quick_cache = "0.4.0"
-rangemap = "1.4.0"
-log = "0.4.20"
-z3 = "0.12.1"
+anyhow = "1.0.80"
+bitflags = "2.4.2"
+log = "0.4.21"
 owning_ref = "0.4.1"
-z3-sys = "0.8.1"
+petgraph = "0.6.4"
+quick_cache = "0.4.1"
+rangemap = "1.5.1"
+rzapi = { path = "../rzapi" }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.114"
+thiserror = "1.0.57"
+z3 = "0.12.1"

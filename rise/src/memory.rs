@@ -136,8 +136,8 @@ impl Memory {
         let mut v = rzil.new_const(Sort::Bitv(8), 0);
         self.t_neg.set(self.t_neg.get() - 1);
         for e in &entries {
-            let equiv = rzil.new_eq(e.addr.clone(), addr.clone())?;
-            v = rzil.new_ite(equiv, e.val.clone(), v)?;
+            let is_target_addr = rzil.new_eq(e.addr.clone(), addr.clone())?;
+            v = rzil.new_ite(is_target_addr, e.val.clone(), v)?;
         }
         Ok(v)
     }

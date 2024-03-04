@@ -1,3 +1,4 @@
+use z3::ast::Ast; // wrap
 use crate::memory::Memory;
 use crate::rzil::{
     PureRef, 
@@ -12,13 +13,18 @@ use std::vec;
 use crate::to_z3::ToZ3;
 use crate::error::{RiseError, RiseResult};
 //use owning_ref::OwningHandle;
-trait ModelExt<'ctx> {
+trait ModelEx<'ctx> {
     fn get_func_interp_as_const(&self, f: &z3::FuncDecl) -> Option<z3::ast::Dynamic<'ctx>>;
 }
-impl<'ctx> ModelExt<'ctx> for z3::Model<'ctx> {
+impl<'ctx> ModelEx<'ctx> for z3::Model<'ctx> {
     fn get_func_interp_as_const(&self, f: &z3::FuncDecl) -> Option<z3::ast::Dynamic<'ctx>> {
         if f.arity() == 0 {
-                unsafe { z3_sys::Z3_model_get_const_interp(self.ctx.z3_ctx, self.z3_mdl, f.z3_func_decl) };
+                let ret = unsafe { z3_sys::Z3_model_get_const_interp(self.ctx.z3_ctx, self.z3_mdl, f.z3_func_decl) };
+                if ret.is_null() {
+                    None
+                } else {
+                    Some(unsafe{ z3::ast::Dynamic::wrap(self.ctx, ret)})
+                }
         } else {
             None
         }
