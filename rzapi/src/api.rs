@@ -183,7 +183,14 @@ impl RzApi {
         rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }
 
-    pub fn get_registers(&mut self) -> RzResult<RegisterProfile> {
+    // get registers of the architecture to be analyzed
+    pub fn get_analysis_registers(&mut self) -> RzResult<RegisterProfile> {
+        let raw_json = self.cmd("arpj")?;
+        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+    }
+
+    // get registers of the architecture of the cpu running
+    pub fn get_cpu_registers(&mut self) -> RzResult<RegisterProfile> {
         let raw_json = self.cmd("drpj")?;
         rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
     }

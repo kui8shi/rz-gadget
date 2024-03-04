@@ -1,4 +1,5 @@
 use std::ops::{Deref, Range};
+use std::cmp::Ordering;
 use std::fmt::Debug;
 
 //
@@ -6,12 +7,12 @@ use std::fmt::Debug;
 //
 
 #[derive(Debug, Clone)]
-struct Interval<T> {
+pub struct Interval<T> {
     /*
      *  Wrapper of std::ops::Range
      *  Determines the inequality and the size relationships by start.
      */
-    end_sorted: IntervalEndSorted<T>
+    pub end_sorted: IntervalEndSorted<T>
 }
 
 impl<T> Interval<T> {

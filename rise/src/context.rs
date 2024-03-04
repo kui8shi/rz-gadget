@@ -1,25 +1,25 @@
 //! Define break;
-use std::rc::Rc;
-use crate::rzil::{RzIL, Pure};
+use crate::rzil::{builder::RzILBuilder, PureRef};
 use crate::memory::Memory;
 use crate::solver::Solver;
-use crate::error::RiseeResult;
+use crate::error::RiseResult;
 use rzapi::structs::Endian;
+//use std::rc::Rc;
 //use regstore::regfile::RzRegFile;
 #[derive(Clone, Debug)]
-pub struct Context
+pub struct Context<S>
 {
     pc: u64,
     memory: Memory,
-    solver: Solver,
+    solver: S,
 }
 
-impl Context {
-    pub fn new() -> Self {
+impl<S: Solver> Context<S> {
+    pub fn new(solver: S) -> Self {
         Context { 
             pc: 0, 
             memory: Memory::new(Endian::Little), 
-            solver: Solver::new(),
+            solver,
         }
     }
     
@@ -33,7 +33,7 @@ impl Context {
         old_pc
     }
 
-    pub fn get_solver(&self) -> &Solver {
+    pub fn get_solver(&self) -> &S {
         &self.solver
     }
 
@@ -41,7 +41,9 @@ impl Context {
         &self.memory
     }
 
-    pub fn store(&mut self, rzil: &RzIL, addr: Rc<Pure>, val: Rc<Pure>) -> RiseeResult<()> {
-        Ok(self.memory.store(&mut self.solver, rzil, addr, val)?)
+    //pub fn assert(&self, rzil: &RzILGenerator, )
+
+    pub fn store(&mut self, rzil: &RzILBuilder, addr: PureRef, val: PureRef) -> RiseResult<()>    {
+        Ok(self.memory.store(&self.solver, rzil, addr, val)?)
     }
 }

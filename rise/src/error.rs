@@ -1,11 +1,10 @@
-use crate::rzil::RzILError;
-
-pub type RiseeResult<T> = std::result::Result<T, RiseeError>;
+use crate::rzil;
+pub type RiseResult<T> = std::result::Result<T, RiseError>;
 
 #[derive(thiserror::Error, Debug)]
-pub enum RiseeError {
+pub enum RiseError {
     #[error("RzIL generation failed: {0}")]
-    RzIL(#[from] RzILError),
+    RzIL(#[from] rzil::error::RzILError),
 
     #[error("RzIL to Z3 conversion failed: {0}")]
     ToZ3(String),
@@ -15,4 +14,7 @@ pub enum RiseeError {
 
     #[error("Unsat")]
     Unsat,
+
+    #[error("RzApi failed: {0}")]
+    RzApi(String),
 }

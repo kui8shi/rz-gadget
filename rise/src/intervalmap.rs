@@ -1,8 +1,11 @@
 use std::collections::btree_map;
 use std::cmp::Ordering;
-use std::ops::{Deref, Range, Bound};
+use std::ops::{Range, Bound};
 use std::fmt::{self, Debug};
-use crate::interval::Interval;
+use crate::interval::{
+    Interval,
+    IntervalEndSorted,
+};
 
 #[derive(Clone)]
 pub struct IntervalMap<K, V> {
@@ -55,14 +58,6 @@ where
 }
 
 impl<K, V> IntervalMap<K, V> {
-    /// Makes a new empty `IntervalMap`.
-    #[cfg(feature = "const_fn")]
-    pub const fn new() -> Self {
-        IntervalMap {
-            btm: BTreeMap::new(),
-        }
-    }
-
     /// Makes a new empty `IntervalMap`.
     #[cfg(not(feature = "const_fn"))]
     pub fn new() -> Self {
@@ -363,7 +358,7 @@ impl<K, V> Iterator for IntoIter<K, V> {
 // Instead implement it in the same way that the underlying BTreeMap does.
 impl<K: Debug, V: Debug> Debug for IntervalMap<K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_map().entries(self.iter()).finish()
+        f.debug_map().entries::<&std::ops::Range<K>, &V, self::Iter<'_, K, V>>(self.iter()).finish()
     }
 }
 
@@ -373,7 +368,7 @@ where
     V: Eq + Clone,
 {
     fn from_iter<T: IntoIterator<Item = (Range<K>, V)>>(iter: T) -> Self {
-        let mut interval_map = IntervalMap::new();
+        let mut interval_map = IntervalMap::<K, V>::new();
         interval_map.extend(iter);
         interval_map
     }

@@ -7,7 +7,7 @@ fn main() {
     let path = "/bin/ls";
     let mut rz = RzApi::new(Some(path), None).expect("Failed to spawn rz");
     rz.analyze_all();
-    println!("{:#?}", rz.get_registers());
+    println!("{:#?}", rz.get_analysis_registers());
     println!("{:#?}", rz.get_info());
     println!("{:#?}", rz.get_flags());
     println!("{:#?}", rz.get_functions());

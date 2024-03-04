@@ -19,7 +19,7 @@ pub struct Rise
 
 /*
  * 1. block-wise symbolic execution. if branches, leave them and throw status.
- * 2. there can be a sample control manager code.
+ * 2. there can be control manager as a sample wrapper of this.
  *
  * import rise
  * let s = rise::Rise::new(Some("/bin/ls"))
@@ -63,7 +63,6 @@ impl Rise {
         }
     }
 
-    pub fn 
     pub fn run(&mut self, mode: Mode) -> RiseeResult<Status> {
         let ctx = self.explorer.pop_ctx(self.stream.get_probe().unwrap())?;
         ctx = match mode {

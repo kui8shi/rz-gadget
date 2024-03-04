@@ -1,19 +1,20 @@
-use crate::rzil::{RzIL, Pure, Effect, RzILError};
+use crate::rzil::{builder::RzILBuilder, PureRef, Effect, error::RzILError};
 use crate::memory::Memory;
+use crate::solver::Solver;
 use crate::context::Context;
-use crate::error::RiseeResult;
+use crate::error::RiseResult;
 use std::rc::Rc;
 use std::sync::mpsc;
-//use crate::engine::Risee;
+//use crate::engine::Rise;
 
 /*
  *Nop,
     Set {
-        dst: Rc<Pure>,
-        src: Rc<Pure>,
+        dst: PureRef,
+        src: PureRef,
     },
     Jmp {
-        dst: Rc<Pure>,
+        dst: PureRef,
     },
     Goto {
         label: String,
@@ -24,17 +25,17 @@ use std::sync::mpsc;
     Blk,
     Repeat,
     Branch {
-        condition: Rc<Pure>,
+        condition: PureRef,
         then: Rc<Effect>,
         otherwise: Rc<Effect>,
     },
     Store {
-        key: Rc<Pure>,
-        value: Rc<Pure>,
+        key: PureRef,
+        value: PureRef,
     },
     StoreW {
-        key: Rc<Pure>,
-        value: Rc<Pure>,
+        key: PureRef,
+        value: PureRef,
     },
     Empty,
 }
@@ -43,11 +44,12 @@ use std::sync::mpsc;
 enum Status {
     Continue,
     Jump(u64),
-    SymbolicJump(Rc<Pure>),
+    SymbolicJump(PureRef),
     Goto(String),
-    Branch(Rc<Pure>, Rc<Effect>, Rc<Effect>),
+    Branch(PureRef, Rc<Effect>, Rc<Effect>),
 }
-fn effect(ctx: &mut Context, rzil: &RzIL, op: Rc<Effect>, sender: &mpsc::Sender<Status>, receiver: &mpsc::Receiver<bool>) -> RiseeResult<Status> {
+
+fn effect<S: Solver>(ctx: &mut Context<S>, rzil: &RzILBuilder, op: Rc<Effect>) -> RiseResult<Status> {
     let op = op.as_ref();
     match op {
         Effect::Nop => Ok(Status::Continue),
@@ -62,7 +64,7 @@ fn effect(ctx: &mut Context, rzil: &RzIL, op: Rc<Effect>, sender: &mpsc::Sender<
         Effect::Goto { label } => Ok(Status::Goto(label.clone())),
         Effect::Seq { args } => {
             for arg in args {
-                let status = effect(ctx, rzil, arg.clone(), sender)?;
+                let status = effect(ctx, rzil, arg.clone())?;
                 match status {
                     Status::Continue => continue,
                     _ => {
@@ -75,15 +77,9 @@ fn effect(ctx: &mut Context, rzil: &RzIL, op: Rc<Effect>, sender: &mpsc::Sender<
         Effect::Blk => Err(RzILError::UnimplementedRzILEffect("Blk".to_string()).into()),
         Effect::Repeat => Err(RzILError::UnimplementedRzILEffect("Repeat".to_string()).into()),
         Effect::Branch { condition, then, otherwise } => {
-            sender.send(Status::Branch(condition.clone(), then.clone(), otherwise.clone()));
-            receiver.recv()?
             Ok(Status::Branch(condition.clone(), then.clone(), otherwise.clone()))
         }
         Effect::Store { key, value } => {
-            ctx.store(rzil, key.clone(), value.clone());
-            Ok(Status::Continue)
-        }
-        Effect::StoreW { key, value } => {
             ctx.store(rzil, key.clone(), value.clone());
             Ok(Status::Continue)
         }

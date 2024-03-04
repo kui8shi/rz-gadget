@@ -8,16 +8,18 @@ pub mod explorer {
 }
 */
 //pub mod context;
-pub mod context;
-pub mod effect;
-pub mod error;
-pub mod memory;
-pub mod rzil;
-pub mod solver;
-pub mod utils;
-pub mod to_z3;
-pub mod interval;
-pub mod intervalmap;
+mod context;
+mod effect;
+mod error;
+mod memory;
+mod rzil;
+mod solver;
+mod utils;
+mod to_z3;
+mod interval;
+mod intervalmap;
+mod registers;
+
 use anyhow::Result;
 fn main() -> Result<()> {
     /*

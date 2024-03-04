@@ -145,7 +145,7 @@ where
                 Rc::<IntervalMap<u64, V>>::make_mut(&mut page.clone())
                     .insert(entry_range, value.clone());
             } else {
-                let mut new_page = IntervalMap::new();
+                let mut new_page = IntervalMap::<u64, V>::new();
                 new_page.insert(entry_range, value.clone());
                 Rc::<IntervalMap::<u64, Rc<IntervalMap<u64, V>>>>::make_mut(
                     &mut self.pages)
