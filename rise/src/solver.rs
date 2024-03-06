@@ -98,7 +98,7 @@ impl Solver for Z3Solver {
             let ast = z3.convert_bool(mem, rzil, op)?;
             ex_cons.push(ast);
         }
-        for i in 0..n {
+        for _ in 0..n {
             let mut kv = HashMap::new();
             if let Some(model) = z3.get_model(&ex_cons)? {
                 for func_decl in model.iter() {
