@@ -80,7 +80,7 @@ fn effect<S: Solver>(ctx: &mut Context<S>, rzil: &RzILBuilder, op: Rc<Effect>) -
             Ok(Status::Branch(condition.clone(), then.clone(), otherwise.clone()))
         }
         Effect::Store { key, value } => {
-            ctx.store(rzil, key.clone(), value.clone());
+            ctx.store(rzil, key.clone(), value.clone())?;
             Ok(Status::Continue)
         }
         Effect::Empty => Ok(Status::Continue)

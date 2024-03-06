@@ -12,3 +12,6 @@ opt-level = 2
 [profile.dev]
 lto = false
 opt-level = 0
+
+[patch.crates-io]
+z3 = { git = "https://github.com/ez2take/z3.rs.git"}

@@ -100,7 +100,7 @@ impl RzILBuilder {
     pub fn new_var(&self, scope: Scope, name: &str, val: &Pure) -> PureRef {
         self.new_pure(
             PureCode::Var(scope, name.to_string()),
-            vec![],     // won't be unfolded
+            vec![],
             val.is_symbolized(),
             val.get_sort(),
             val.evaluate(),
@@ -113,7 +113,7 @@ impl RzILBuilder {
         let eval = val.evaluate();
         self.new_pure(
             PureCode::Var(Scope::Let, name.to_string()),
-            vec![val],  // will be unfolded
+            vec![val],  // will be unwrapped
             symbolized,
             sort,
             eval

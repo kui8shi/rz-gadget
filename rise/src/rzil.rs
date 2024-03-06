@@ -214,7 +214,7 @@ impl Pure {
         }
     }
     pub fn get_code(&self) -> PureCode {
-        self.code
+        self.code.clone()
     }
     pub fn get_sort(&self) -> Sort {
         self.sort.clone()
