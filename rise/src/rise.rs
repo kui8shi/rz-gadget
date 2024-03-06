@@ -2,7 +2,7 @@ use rzapi::RzApi;
 use std::rc::Rc;
 use crate::context::Context;
 use crate::explorer::PathExplorer;
-//use crate::stream::InstructionStream;
+use crate::stream::InstructionStream;
 use crate::error::RiseeResult;
 use crate::rzil::{RzIL, Effect, Pure};
 use crate::solver::Solver;
@@ -10,9 +10,9 @@ use crate::memory::Memory;
 use std::fmt::Debug;
 mod effect;
 #[derive(Debug)]
-pub struct Rise
+pub struct Rise<Stream: InstructionStream>
 {
-    stream: Rc<Stream>,
+    api: RzApi,
     explorer: PathExplorer,
     rzil: RzIL,
 }
@@ -53,7 +53,7 @@ impl Rise {
      * Panics if stream has not loaded any sources yet.
      */
     pub fn new(path: Option<String>) -> Self {
-        let stream = Rc::new(Stream::new(path));
+        let api = RzApi::new(path);
         let explorer = PathExplorer::new();
         let arch = Architecture::new(stream.arch_info());
         Risee {
@@ -89,5 +89,13 @@ impl Rise {
         };
         self.explorer.push_ctx(ctx);
         ctx.get_status()
+    }
+
+    pub fn at(&mut self, addr: u64) -> Option<Self::Output> {
+        if let Ok(v) = self.api.get_n_insts(Some(1), Some(addr)) {
+            Some(v[0].rzil)
+        } else {
+            None
+        }
     }
 }
