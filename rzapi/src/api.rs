@@ -123,7 +123,7 @@ impl RzApi {
         let cmd = format!("pdfj @ {}", func_name);
         let raw_json = self.cmd(&cmd)?;
         // Handle errors here.
-        rz_result(from_str(&raw_json)) //(|e| Box::new(RzPipeLangError::ParsingJson(e.to_string())))
+        rz_result(from_str(&raw_json)) 
     }
 
     pub fn disassemble_n_bytes(
@@ -138,7 +138,7 @@ impl RzApi {
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| "".to_owned())
         ))?;
-        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&raw_json)) 
     }
 
     pub fn disassemble_n_insts(
@@ -153,7 +153,7 @@ impl RzApi {
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| "".to_owned())
         ))?;
-        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&raw_json)) 
     }
 
     pub fn get_address(&mut self, symbol: &str) -> RzResult<u64> {
@@ -180,29 +180,29 @@ impl RzApi {
             cmd = format!("{} @ {}", cmd, o.to_string());
         }
         let raw_json = self.cmd(&cmd)?;
-        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&raw_json)) 
     }
 
     // get registers of the architecture to be analyzed
     pub fn get_analysis_registers(&mut self) -> RzResult<RegisterProfile> {
         let raw_json = self.cmd("arpj")?;
-        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&raw_json)) 
     }
 
     // get registers of the architecture of the cpu running
     pub fn get_cpu_registers(&mut self) -> RzResult<RegisterProfile> {
         let raw_json = self.cmd("drpj")?;
-        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&raw_json)) 
     }
 
     pub fn get_flags(&mut self) -> RzResult<Vec<FlagInfo>> {
         let raw_json = self.cmd("flj")?;
-        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&raw_json)) 
     }
 
     pub fn get_info(&mut self) -> RzResult<Information> {
         let raw_json = self.cmd("ij")?;
-        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&raw_json)) 
     }
 
     pub fn get_shellcode(&mut self, cmd: &str) -> RzResult<Vec<u8>> {
@@ -242,7 +242,7 @@ impl RzApi {
 
     pub fn get_cc(&mut self, location: u64) -> RzResult<Vec<CallingConvention>> {
         let raw_json = self.cmd(&format!("afcrj {}", location))?;
-        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&raw_json)) 
     }
 
     pub fn get_syscall_cc(&mut self) -> RzResult<CallingConvention> {
@@ -355,61 +355,50 @@ impl RzApi {
 
     pub fn get_variables(&mut self, location: u64) -> RzResult<VarInfo> {
         let raw_json = self.cmd(&format!("afvj @ {}", location))?;
-        rz_result(from_str(&raw_json)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&raw_json)) 
     }
 
     pub fn get_functions(&mut self) -> RzResult<Vec<FunctionInfo>> {
         let raw_json = self.cmd("aflj")?;
         let finfo = from_str::<Vec<FunctionInfo>>(&raw_json)
             .map_err(|e| RzPipeLangError::ParsingJson(e.to_string()));
-        /*
-        if let Ok(ref mut fns) = finfo {
-            for f in fns.iter_mut() {
-                let res = self.locals_of(f.offset.unwrap());
-                if res.is_ok() {
-                    f.locals = res.ok();
-                } else {
-                    f.locals = Some(Vec::new());
-                }
-            }
-        }*/
         rz_result(finfo)
     }
 
     pub fn get_sections(&mut self) -> RzResult<Vec<SectionInfo>> {
-        rz_result(from_str(&self.cmd("iSj").unwrap())) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&self.cmd("iSj").unwrap())) 
     }
 
     pub fn get_strings(&mut self, data_only: bool) -> RzResult<Vec<StringInfo>> {
         if data_only {
-            rz_result(from_str(&self.cmd("izj")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+            rz_result(from_str(&self.cmd("izj")?)) 
         } else {
-            rz_result(from_str(&self.cmd("izzj")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+            rz_result(from_str(&self.cmd("izzj")?)) 
         }
     }
 
     pub fn get_imports(&mut self) -> RzResult<Vec<ImportInfo>> {
-        rz_result(from_str(&self.cmd("iij")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&self.cmd("iij")?)) 
     }
 
     pub fn get_exports(&mut self) -> RzResult<Vec<ExportInfo>> {
-        rz_result(from_str(&self.cmd("iej")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&self.cmd("iej")?)) 
     }
 
     pub fn get_symbols(&mut self) -> RzResult<Vec<SymbolInfo>> {
-        rz_result(from_str(&self.cmd("isj")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&self.cmd("isj")?)) 
     }
 
     pub fn get_relocs(&mut self) -> RzResult<Vec<RelocInfo>> {
-        rz_result(from_str(&self.cmd("irj")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&self.cmd("irj")?)) 
     }
 
     pub fn get_entrypoint(&mut self) -> RzResult<Vec<EntryInfo>> {
-        rz_result(from_str(&self.cmd("iej")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&self.cmd("iej")?)) 
     }
 
     pub fn get_libraries(&mut self) -> RzResult<Vec<String>> {
-        rz_result(from_str(&self.cmd("ilj")?)) //(|e| RzPipeLangError::ParsingJson(e.to_string()))
+        rz_result(from_str(&self.cmd("ilj")?)) 
     }
 
     pub fn seek(&mut self, addr: u64) {

@@ -168,15 +168,15 @@ impl BranchSetToSetIte {
  *
  */
 #[derive(Clone, Debug)]
-pub struct Lifter {
+pub struct RzILLifter {
     //option: RzILConfig,
     bs_to_si: BranchSetToSetIte,
     tmp_vars: HashMap<String, PureRef>,    // store LocalPure vars
 }
 
-impl Lifter {
+impl RzILLifter {
     pub fn new() -> Self {
-        Lifter {
+        RzILLifter {
             bs_to_si: BranchSetToSetIte {
                 conditions: Vec::new(),
                 taken: Vec::new(),

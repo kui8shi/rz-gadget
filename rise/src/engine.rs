@@ -2,9 +2,9 @@ use rzapi::RzApi;
 use std::rc::Rc;
 use crate::context::Context;
 use crate::explorer::PathExplorer;
-//use crate::stream::InstructionStream;
-use crate::error::RiseeResult;
-use crate::rzil::{RzIL, Effect, Pure};
+use crate::error::RiseResult;
+use crate::rzil::{RzILLifter, RzILBuilder, Variables, Effect, PureRef};
+use crate::register;
 use crate::solver::Solver;
 use crate::memory::Memory;
 use std::fmt::Debug;
@@ -12,9 +12,11 @@ mod effect;
 #[derive(Debug)]
 pub struct Rise
 {
-    stream: Stream,
+    api: RzApi,
     explorer: PathExplorer,
-    rzil: RzIL,
+    lifter: Lifter,
+    builder: RzILBuilder,
+    vars: Variables,
 }
 
 /*
@@ -53,25 +55,32 @@ impl Rise {
      * Panics if stream has not loaded any sources yet.
      */
     pub fn new(path: Option<String>) -> Self {
-        let stream = Stream::new(path);
+        let mut api = RzApi::new(path);
         let explorer = PathExplorer::new();
-        let rzil = RzIL::new();
+        let lifter = RzILLifter::new();
+        let builder = RzILBuilder::new();
+        let mut vars = Variables::new();
+        register::bind_registers(&mut api, &mut vars)?;
         Risee {
-            stream,
+            api,
             explorer,
-            rzil,
+            lifter,
+            builder,
+            vars,
         }
     }
 
-    pub fn run(&mut self, mode: Mode) -> RiseeResult<Status> {
-        let ctx = self.explorer.pop_ctx(self.stream.get_probe().unwrap())?;
+    pub fn run(&mut self, mode: Mode) -> RiseResult<Status> {
+        let ctx = self.explorer.pop_ctx()?;
+        let pc = ctx.get_pc();
         ctx = match mode {
             Mode::Step => {
-                let op = self.stream.read_inst(&mut self.rzil)?;
-                self.process(ctx, op)?
+                let ops = self.read_insts(pc, 1)?;
+                self.process(ctx, ops)?
             },
             Mode::Block => {
-                let ops = self.stream.read_block(&mut self.rzil)?;
+                let n = self.num_insts_in_current_block()?;
+                let ops = self.read_insts(pc, n)?;
                 self.process(ctx, ops)?
             },
             Mode::Explore => {
@@ -86,5 +95,18 @@ impl Rise {
         };
         self.explorer.push_ctx(ctx);
         ctx.get_status()
+    }
+
+    fn process(&mut self, ctx: Context, ops: Vec<Effect>) -> RiseResult<Context> {
+        for op in ops {
+        }
+    }
+
+    fn read_insts(&mut self, pc: u64, n: u64) -> RiseResult<Vec<Effect>> {
+        let mut ops = Vec::new();
+        for inst in self.api.get_n_insts(Some(n), Some(pc))? {
+            ops.push(self.lifter.parse_effect(self.builder, &mut self.vars, inst)?);
+        }
+        Ok(ops)
     }
 }
