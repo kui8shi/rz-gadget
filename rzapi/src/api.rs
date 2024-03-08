@@ -1,8 +1,7 @@
-use rzpipe::errors::RzPipeLangError;
 use rzpipe::open_pipe;
 use rzpipe::rzpipe::RzPipe;
-use rzpipe::RzPipeSpawnOptions;
-use serde_json::from_str;
+//use rzpipe::RzPipeSpawnOptions;
+use serde_json;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -29,6 +28,7 @@ fn hex_encode(data: &[u8]) -> String {
 fn hex_decode(data: &str) -> Vec<u8> {
     let mut result = Vec::with_capacity(data.len());
     for i in 0..data.len() / 2 {
+        // TODO Handle ParseIntError
         result.push(u8::from_str_radix(&data[2 * i..2 * i + 2], 16).unwrap());
     }
     result
@@ -36,35 +36,43 @@ fn hex_decode(data: &str) -> Vec<u8> {
 
 #[derive(thiserror::Error, Debug)]
 pub enum RzError {
-    #[error("RzApi Failed")]
-    String
+    #[error("{0}")]
+    Init(#[from] rzpipe::RzInitError),
+
+    #[error("{0}")]
+    Pipe(#[from] rzpipe::RzPipeError),
+
+    #[error("Unable to fit a json into type:{0} due to {1}")]
+    Json(String, String),
+
+    #[error("{0}")]
+    Other(String)
 }
 
-pub type RzResult<T> = std::result::Result<T, RzError>;
-fn rz_result<T, E: std::fmt::Display>(result: Result<T, E>) -> RzResult<T> {
+pub type Result<T> = std::result::Result<T, RzError>;
+/*
+fn rz_result<T, E: std::fmt::Display>(result: Result<T, E>) -> Result<T> {
     match result {
         Ok(res) => Ok(res),
         Err(e) => Err(e.to_string()),
     }
 }
+*/
 
 impl RzApi {
     pub fn new<T: AsRef<str>>(
         path: Option<T>,
-        opts: Option<RzPipeSpawnOptions>,
-    ) -> RzResult<RzApi> {
+        //opts: Option<RzPipeSpawnOptions>,
+    ) -> Result<RzApi> {
         if path.is_none() && !RzApi::in_session() {
-            let e = "No rizin session open. Please specify a path.".to_owned();
-            return Err(e);
+            return Err(rzpipe::RzInitError::NoSessionOpenError.into());
         }
 
         // This means that path is `Some` or we have an open session.
         let pipe = match open_pipe!(path.as_ref()) {
             Ok(p) => p,
             Err(_) => {
-                return Err(
-                    "Path could not be resolved or we do not have an open session!".to_owned(),
-                );
+                return Err(rzpipe::RzInitError::PathNotResolvableError.into());
             }
         };
 
@@ -74,13 +82,7 @@ impl RzApi {
             do_cache: false,
             cache: HashMap::new(),
         };
-        rzapi.info = match rzapi.get_info() {
-            Ok(info) => info,
-            Err(e) => {
-                return Err(e.to_string());
-            }
-        };
-
+        rzapi.info = rzapi.get_info()?;
         rzapi.set_option("analysis.esil", "false")?;
         rzapi.set_option("scr.color", "0")?;
         Ok(rzapi)
@@ -99,15 +101,20 @@ impl RzApi {
         }
     }
 
-    pub fn set_option(&mut self, key: &str, value: &str) -> RzResult<String> {
+    pub fn set_option(&mut self, key: &str, value: &str) -> Result<String> {
         self.cmd(format!("e {}={}", key, value).as_str())
     }
 
-    pub fn cmd(&mut self, cmd: &str) -> RzResult<String> {
-        rz_result(self.rzp.lock().unwrap().cmd(cmd))
+    pub fn cmd(&mut self, cmd: &str) -> Result<String> {
+        Ok(self.rzp.lock().unwrap().cmd(cmd)?)
     }
 
-    pub fn ccmd(&mut self, cmd: &str) -> RzResult<String> {
+    pub fn cmdj<T: serde::de::DeserializeOwned>(&mut self, cmd: &str) -> Result<T> {
+        serde_json::from_value(self.rzp.lock().unwrap().cmdj(cmd)?)
+           .map_err(|e| RzError::Json(std::any::type_name::<T>().to_string(), e.to_string()))
+    }
+
+    pub fn ccmd(&mut self, cmd: &str) -> Result<String> {
         if self.do_cache {
             if let Some(result) = self.cache.get(cmd) {
                 Ok(result.to_owned())
@@ -124,53 +131,50 @@ impl RzApi {
         let _r = self.cmd("q!");
     }
 
-    pub fn function<T: AsRef<str>>(&mut self, func: T) -> RzResult<FunctionInfo> {
+    pub fn function<T: AsRef<str>>(&mut self, func: T) -> Result<FunctionInfo> {
         let func_name = func.as_ref();
         let cmd = format!("pdfj @ {}", func_name);
-        let raw_json = self.cmd(&cmd)?;
-        // Handle errors here.
-        rz_result(from_str(&raw_json)) 
+        self.cmdj(&cmd)
     }
 
     pub fn disassemble_n_bytes(
         &mut self,
         n: u64,
         offset: Option<u64>,
-    ) -> RzResult<Vec<Disassembly>> {
-        let raw_json = self.cmd(&format!(
+    ) -> Result<Vec<Disassembly>> {
+        self.cmdj(&format!(
             "pDj {} @ {}",
             n,
             offset
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| "".to_owned())
-        ))?;
-        rz_result(from_str(&raw_json)) 
+        ))
     }
 
     pub fn disassemble_n_insts(
         &mut self,
         n: u64,
         offset: Option<u64>,
-    ) -> RzResult<Vec<Disassembly>> {
-        let raw_json = self.cmd(&format!(
+    ) -> Result<Vec<Disassembly>> {
+        self.cmdj(&format!(
             "pdj {} @ {}",
             n,
             offset
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| "".to_owned())
-        ))?;
-        rz_result(from_str(&raw_json)) 
+        ))
     }
 
-    pub fn get_address(&mut self, symbol: &str) -> RzResult<u64> {
+    pub fn get_address(&mut self, symbol: &str) -> Result<u64> {
         for prefix in &["", "sym.", "sym.imp.", "sym.unk."] {
             let cmd = format!("%v {}{}", prefix, symbol);
             let val = self.cmd(&cmd).unwrap_or_default();
             if val != "" && val != "0x0\n" {
-                return rz_result(u64::from_str_radix(&val[2..val.len() - 1], 16));
+                // TODO Handle ParseIntError
+                return Ok(u64::from_str_radix(&val[2..val.len() - 1], 16).unwrap());
             }
         }
-        Err(format!("symbol {} was not found", symbol))
+        Err(RzError::Other(format!("symbol {} was not found", symbol)))
     }
 
     // get 'n' (or 16) instructions at 'offset' (or current position if offset in
@@ -179,39 +183,34 @@ impl RzApi {
         &mut self,
         n: Option<u64>,
         offset: Option<u64>,
-    ) -> RzResult<Vec<Instruction>> {
+    ) -> Result<Vec<Instruction>> {
         let n = n.unwrap_or(16);
         let mut cmd = format!("aoj {}", n);
         if let Some(o) = offset {
             cmd = format!("{} @ {}", cmd, o.to_string());
         }
-        let raw_json = self.cmd(&cmd)?;
-        rz_result(from_str(&raw_json)) 
+        self.cmdj(&cmd)
     }
 
     // get registers of the architecture to be analyzed
-    pub fn get_analysis_registers(&mut self) -> RzResult<RegisterProfile> {
-        let raw_json = self.cmd("arpj")?;
-        rz_result(from_str(&raw_json)) 
+    pub fn get_analysis_registers(&mut self) -> Result<RegisterProfile> {
+        self.cmdj("arpj")
     }
 
     // get registers of the architecture of the cpu running
-    pub fn get_cpu_registers(&mut self) -> RzResult<RegisterProfile> {
-        let raw_json = self.cmd("drpj")?;
-        rz_result(from_str(&raw_json)) 
+    pub fn get_cpu_registers(&mut self) -> Result<RegisterProfile> {
+        self.cmdj("drpj")
     }
 
-    pub fn get_flags(&mut self) -> RzResult<Vec<FlagInfo>> {
-        let raw_json = self.cmd("flj")?;
-        rz_result(from_str(&raw_json)) 
+    pub fn get_flags(&mut self) -> Result<Vec<FlagInfo>> {
+        self.cmdj("flj")
     }
 
-    pub fn get_info(&mut self) -> RzResult<Information> {
-        let raw_json = self.cmd("ij")?;
-        rz_result(from_str(&raw_json)) 
+    pub fn get_info(&mut self) -> Result<Information> {
+        self.cmdj("ij")
     }
 
-    pub fn get_shellcode(&mut self, cmd: &str) -> RzResult<Vec<u8>> {
+    pub fn get_shellcode(&mut self, cmd: &str) -> Result<Vec<u8>> {
         let result = self.cmd(&format!("gr;gi exec;gc cmd={};g", cmd))?;
         Ok(hex_decode(&result))
     }
@@ -246,12 +245,11 @@ impl RzApi {
     xtensa        a6    a3    a4    a5    a8    a9    -
     */
 
-    pub fn get_cc(&mut self, location: u64) -> RzResult<Vec<CallingConvention>> {
-        let raw_json = self.cmd(&format!("afcrj {}", location))?;
-        rz_result(from_str(&raw_json)) 
+    pub fn get_cc(&mut self, location: u64) -> Result<Vec<CallingConvention>> {
+        self.cmdj(&format!("afcrj {}", location))
     }
 
-    pub fn get_syscall_cc(&mut self) -> RzResult<CallingConvention> {
+    pub fn get_syscall_cc(&mut self) -> Result<CallingConvention> {
         match (self.info.bin.arch.as_str(), self.info.bin.bits) {
             ("x86", 32) => Ok(CallingConvention {
                 name: "x86syscall".to_owned(),
@@ -355,56 +353,52 @@ impl RzApi {
                 ],
                 ret: "a2".to_owned(),
             }),
-            _ => Err("calling convention not found".to_owned()),
+            _ => Err(RzError::Other("calling convention not found".to_owned())),
         }
     }
 
-    pub fn get_variables(&mut self, location: u64) -> RzResult<VarInfo> {
-        let raw_json = self.cmd(&format!("afvj @ {}", location))?;
-        rz_result(from_str(&raw_json)) 
+    pub fn get_variables(&mut self, location: u64) -> Result<VarInfo> {
+        self.cmdj(&format!("afvj @ {}", location))
     }
 
-    pub fn get_functions(&mut self) -> RzResult<Vec<FunctionInfo>> {
-        let raw_json = self.cmd("aflj")?;
-        let finfo = from_str::<Vec<FunctionInfo>>(&raw_json)
-            .map_err(|e| RzPipeLangError::ParsingJson(e.to_string()));
-        rz_result(finfo)
+    pub fn get_functions(&mut self) -> Result<Vec<FunctionInfo>> {
+        self.cmdj("aflj")
     }
 
-    pub fn get_sections(&mut self) -> RzResult<Vec<SectionInfo>> {
-        rz_result(from_str(&self.cmd("iSj").unwrap())) 
+    pub fn get_sections(&mut self) -> Result<Vec<SectionInfo>> {
+        self.cmdj("iSj")
     }
 
-    pub fn get_strings(&mut self, data_only: bool) -> RzResult<Vec<StringInfo>> {
+    pub fn get_strings(&mut self, data_only: bool) -> Result<Vec<StringInfo>> {
         if data_only {
-            rz_result(from_str(&self.cmd("izj")?)) 
+            self.cmdj("izj")
         } else {
-            rz_result(from_str(&self.cmd("izzj")?)) 
+            self.cmdj("izzj")
         }
     }
 
-    pub fn get_imports(&mut self) -> RzResult<Vec<ImportInfo>> {
-        rz_result(from_str(&self.cmd("iij")?)) 
+    pub fn get_imports(&mut self) -> Result<Vec<ImportInfo>> {
+        self.cmdj("iij")
     }
 
-    pub fn get_exports(&mut self) -> RzResult<Vec<ExportInfo>> {
-        rz_result(from_str(&self.cmd("iej")?)) 
+    pub fn get_exports(&mut self) -> Result<Vec<ExportInfo>> {
+        self.cmdj("iej")
     }
 
-    pub fn get_symbols(&mut self) -> RzResult<Vec<SymbolInfo>> {
-        rz_result(from_str(&self.cmd("isj")?)) 
+    pub fn get_symbols(&mut self) -> Result<Vec<SymbolInfo>> {
+        self.cmdj("isj")
     }
 
-    pub fn get_relocs(&mut self) -> RzResult<Vec<RelocInfo>> {
-        rz_result(from_str(&self.cmd("irj")?)) 
+    pub fn get_relocs(&mut self) -> Result<Vec<RelocInfo>> {
+        self.cmdj("irj")
     }
 
-    pub fn get_entrypoint(&mut self) -> RzResult<Vec<EntryInfo>> {
-        rz_result(from_str(&self.cmd("iej")?)) 
+    pub fn get_entrypoint(&mut self) -> Result<Vec<EntryInfo>> {
+        self.cmdj("iej")
     }
 
-    pub fn get_libraries(&mut self) -> RzResult<Vec<String>> {
-        rz_result(from_str(&self.cmd("ilj")?)) 
+    pub fn get_libraries(&mut self) -> Result<Vec<String>> {
+        self.cmdj("ilj")
     }
 
     pub fn seek(&mut self, addr: u64) {
@@ -412,13 +406,13 @@ impl RzApi {
     }
 
     // Send a raw command and recv output
-    pub fn raw(&mut self, cmd: String) -> RzResult<String> {
+    pub fn raw(&mut self, cmd: String) -> Result<String> {
         self.cmd(&cmd)
     }
 
-    pub fn analyze_n_insts(&mut self, n: u64, offset: Option<u64>) -> RzResult<Vec<Instruction>> {
+    pub fn analyze_n_insts(&mut self, n: u64, offset: Option<u64>) -> Result<Vec<Instruction>> {
         self.set_option("analysis.esil", "true")?;
-        let raw_json = self.cmd(&format!(
+        let ret = self.cmdj(&format!(
             "aoj {} @ {}",
             n,
             offset
@@ -426,7 +420,7 @@ impl RzApi {
                 .unwrap_or_else(|| "".to_owned())
         ))?;
         self.set_option("analysis.esil", "false")?;
-        rz_result(from_str(&raw_json))
+        Ok(ret)
     }
 
     /// All Analysis
@@ -475,16 +469,15 @@ impl RzApi {
     }
 
     // Get RzILVM status
-    pub fn get_rzil_vm_status(&mut self) -> RzResult<RzILVMStatus> {
+    pub fn get_rzil_vm_status(&mut self) -> Result<RzILVMStatus> {
         self.cmd("aezi")?;
-        let raw_json = self.cmd("aezvj")?;
-        rz_result(from_str(&raw_json))
+        self.cmdj("aezvj")
     }
 }
 
 #[test]
 fn rzil() {
-    let mut rzapi = RzApi::new(Some("/bin/ls"), None)
+    let mut rzapi = RzApi::new(Some("/bin/ls"))
         .map_err(|e| println!("Error:{}", e))
         .unwrap();
     rzapi.analyze_all();

@@ -17,16 +17,16 @@ pub enum RzILError {
     #[error("Code {0} was expected, but got {1}.")]
     UnexpectedCode(String, PureCode),
 
-    #[error("'{0}' should be hex-decimal")]
+    #[error("'{0}' should be hex-decimal.")]
     ParseHex(String),
 
-    #[error("invaid integer")]
+    #[error("invaid integer.")]
     ParseInt(#[from] ParseIntError),
 
-    #[error("Pure {0} is Unimplemented")]
+    #[error("Pure {0} is Unimplemented.")]
     UnimplementedRzILPure(PureCode),
 
-    #[error("Effect {0} is Unimplemented")]
+    #[error("Effect {0} is Unimplemented.")]
     UnimplementedRzILEffect(String),
 
     #[error("Unkown (Unimplemented or Invalid) Pure detected.")]
@@ -35,10 +35,10 @@ pub enum RzILError {
     #[error("Empty detected. Unable to continue.")]
     Empty,
 
-    #[error("Variable {0} is immutable but changed")]
+    #[error("Variable {0} is immutable but changed.")]
     ImmutableVariable(String),
 
-    #[error("Currently Unable to handle duplicate Set operations in one Branch")]
+    #[error("Currently Unable to handle Set operations with a duplicate target in a Branch.")]
     DuplicateSetInBranch,
 
     #[error("No return value.")]

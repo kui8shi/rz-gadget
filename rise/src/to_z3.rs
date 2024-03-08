@@ -7,7 +7,7 @@ use crate::rzil::{
     error::RzILError, 
     Sort
 };
-use crate::error::{RiseError, RiseResult};
+use crate::error::{RiseError, Result};
 use z3::ast::Ast;
 #[derive(Clone, Debug)]
 pub struct Z3Var<'ctx> {
@@ -38,7 +38,7 @@ impl<'ctx> ToZ3<'ctx> {
         }
     }
 
-    pub fn convert(&'ctx self, m: &Memory, r: &RzILBuilder, op: PureRef) -> RiseResult<z3::ast::Dynamic<'ctx>> {
+    pub fn convert(&'ctx self, m: &Memory, r: &RzILBuilder, op: PureRef) -> Result<z3::ast::Dynamic<'ctx>> {
         //if op.is_concretized()
         let size: u32 = op.get_size().try_into().unwrap();
         match op.get_code() {
@@ -246,24 +246,24 @@ impl<'ctx> ToZ3<'ctx> {
         }
     }
 
-    pub fn convert_bool(&'ctx self, m: &Memory, r: &RzILBuilder, op: PureRef) -> RiseResult<z3::ast::Bool<'ctx>> {
+    pub fn convert_bool(&'ctx self, m: &Memory, r: &RzILBuilder, op: PureRef) -> Result<z3::ast::Bool<'ctx>> {
         if !op.is_bool() {
             return Err(RzILError::UnexpectedSort(Sort::Bool, op.get_sort()).into());
         }
         if let Some(ast) = self.convert(m, r, op)?.as_bool() {
             Ok(ast)
         } else {
-            Err(RiseError::ToZ3("Bool rzil was somehow converted to non-bool z3 ast".to_string()))
+            Err(RiseError::RzILToZ3("Bool rzil was somehow converted to non-bool z3 ast".to_string()))
         }
     }
-    pub fn convert_bv(&'ctx self, m: &Memory, r: &RzILBuilder, op: PureRef) -> RiseResult<z3::ast::BV<'ctx>> {
+    pub fn convert_bv(&'ctx self, m: &Memory, r: &RzILBuilder, op: PureRef) -> Result<z3::ast::BV<'ctx>> {
         if !op.is_bitv() {
             return Err(RzILError::UnexpectedSort(Sort::Bitv(0), op.get_sort()).into());
         }
         if let Some(ast) = self.convert(m, r, op)?.as_bv() {
             Ok(ast)
         } else {
-            Err(RiseError::ToZ3("Bitv rzil was somehow converted to non-bitv z3 ast".to_string()))
+            Err(RiseError::RzILToZ3("Bitv rzil was somehow converted to non-bitv z3 ast".to_string()))
         }
     }
 
@@ -274,7 +274,7 @@ impl<'ctx> ToZ3<'ctx> {
     pub fn get_model(
         &'ctx self,
         extra_constraint: &[z3::ast::Bool],
-    ) -> RiseResult<Option<z3::Model<'ctx>>> {
+    ) -> Result<Option<z3::Model<'ctx>>> {
         let solver = self.z3_solver.clone();
         for ast in extra_constraint {
             self.assert(&ast);

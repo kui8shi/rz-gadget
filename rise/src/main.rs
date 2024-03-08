@@ -13,6 +13,7 @@ mod error;
 mod memory;
 mod rzil;
 mod solver;
+mod explorer;
 mod utils;
 mod to_z3;
 mod interval;

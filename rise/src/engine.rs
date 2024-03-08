@@ -1,26 +1,22 @@
 use rzapi::api::RzApi;
 use std::rc::Rc;
-use crate::context::Context;
+use crate::context::{Status, Context};
 use crate::explorer::PathExplorer;
-use crate::error::RiseResult;
+use crate::error::Result;
 use crate::rzil::{
     error::RzILError,
     lifter::RzILLifter,
     builder::RzILBuilder,
     variables::Variables,
-    Effect,
-    PureRef
+    Effect
 };
 use crate::registers;
 use crate::solver::Solver;
 //use crate::memory::Memory;
-use std::fmt::Debug;
-mod effect;
-#[derive(Debug)]
-pub struct Rise
+pub struct Rise<S: Solver>
 {
     api: RzApi,
-    explorer: PathExplorer,
+    explorer: PathExplorer<S>,
     lifter: RzILLifter,
     builder: RzILBuilder,
     vars: Variables,
@@ -58,63 +54,63 @@ pub enum Mode {
     Explore,
 }
 
-impl Rise {
+impl<S: Solver> Rise<S> {
     /*
      * Panics if stream has not loaded any sources yet.
      */
-    pub fn new(path: Option<String>) -> Self {
-        let mut api = RzApi::new(path);
+    pub fn new(path: Option<String>) -> Result<Self> {
+        let mut api = RzApi::new(path)?;
         let explorer = PathExplorer::new();
         let lifter = RzILLifter::new();
         let builder = RzILBuilder::new();
         let mut vars = Variables::new();
         let addr = 0;
-        register::bind_registers(&mut api, &mut vars)?;
-        Rise {
+        registers::bind_registers(&mut api, &mut vars)?;
+        Ok(Rise {
             api,
             explorer,
             lifter,
             builder,
             vars,
             addr,
-        }
+        })
     }
 
-    pub fn run(&mut self, mode: Mode) -> RiseResult<Status> {
-        let ctx = self.explorer.pop_ctx()?;
+    pub fn run(&mut self, mode: Mode) -> Result<Status> {
+        let mut ctx = self.explorer.pop_ctx()?;
         let pc = ctx.get_pc();
         match mode {
             Mode::Step => {
                 let ops = self.read_insts(pc, 1)?;
-                self.process(ctx, ops)?;
+                self.process(&mut ctx, ops)?;
             },
             Mode::Block => {
                 let n = self.num_insts_in_current_block()?;
                 let ops = self.read_insts(pc, n)?;
-                self.process(ctx, ops)?;
+                self.process(&mut ctx, ops)?;
             },
             Mode::Explore => {
                 while self.is_stopped() {
-                    ctx = self.run(Mode::Block)?;
-                    if let Status::DirectJump(addr) = ctx.get_status() {
-                        self.explorer.push_ctx(ctx);
+                    let status = self.run(Mode::Block)?;
+                    if let Status::DirectJump(addr) = status {
                         self.seek(addr);
                     }
                 }
             }
         };
+        let status = ctx.get_status();
         self.explorer.push_ctx(ctx);
-        ctx.get_status()
+        Ok(status)
     }
 
-    fn process<S: Solver>(&mut self, ctx: &mut Context<S>, ops: Vec<Rc<Effect>>) -> RiseResult<()> {
+    fn process(&mut self, ctx: &mut Context<S>, ops: Vec<Rc<Effect>>) -> Result<()> {
         for op in ops {
             process_op(ctx, &self.builder, op)?;
         }
         Ok(())
     }
 
-    fn read_insts(&mut self, pc: u64, n: u64) -> RiseResult<Vec<Rc<Effect>>> {
+    fn read_insts(&mut self, pc: u64, n: u64) -> Result<Vec<Rc<Effect>>> {
         let mut ops = Vec::new();
         for inst in self.api.get_n_insts(Some(n), Some(pc))? {
             ops.push(self.lifter.parse_effect(&self.builder, &mut self.vars, &inst.rzil)?);
@@ -126,7 +122,7 @@ impl Rise {
         self.addr = addr;
     }
 
-    fn num_insts_in_current_block(&self) -> RiseResult<u64> {
+    fn num_insts_in_current_block(&self) -> Result<u64> {
         Ok(0)
     }
 
@@ -135,15 +131,7 @@ impl Rise {
     }
 }
 
-enum Status {
-    Continue,
-    DirectJump(u64),
-    SymbolicJump(PureRef),
-    Goto(String),
-    Branch(PureRef, Rc<Effect>, Rc<Effect>),
-}
-
-fn process_op<S: Solver>(ctx: &mut Context<S>, rzil: &RzILBuilder, op: Rc<Effect>) -> RiseResult<Status> {
+fn process_op<S: Solver>(ctx: &mut Context<S>, rzil: &RzILBuilder, op: Rc<Effect>) -> Result<Status> {
     let op = op.as_ref();
     match op {
         Effect::Nop => Ok(Status::Continue),

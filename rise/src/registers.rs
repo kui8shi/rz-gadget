@@ -5,7 +5,7 @@ use crate::rzil::{
 };
 use crate::error::{
     RiseError,
-    RiseResult,
+    Result,
 };
 use rzapi::{
     structs::RegisterType,
@@ -28,7 +28,7 @@ impl RegSpec {
     }
 }
 
-fn parse_reg_info(rzapi: &mut RzApi) -> RiseResult<Vec<RegSpec>> {
+fn parse_reg_info(rzapi: &mut RzApi) -> Result<Vec<RegSpec>> {
     let mut min_offsets = HashMap::<u64, (u64, &str)>::new();
     let mut reg_specs = Vec::new();
     let reg_info = match rzapi.get_analysis_registers() {
@@ -75,7 +75,7 @@ fn parse_reg_info(rzapi: &mut RzApi) -> RiseResult<Vec<RegSpec>> {
     Ok(reg_specs)
 }
 
-pub fn bind_registers(rzapi: &mut RzApi, vars: &mut Variables) -> RiseResult<()> {
+pub fn bind_registers(rzapi: &mut RzApi, vars: &mut Variables) -> Result<()> {
     let reg_specs = parse_reg_info(rzapi)?;
     for r in reg_specs.into_iter() {
         vars.add_register(r);

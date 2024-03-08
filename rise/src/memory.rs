@@ -5,7 +5,7 @@ use crate::rzil::{
 };
 use crate::solver::Solver;
 use crate::utils::PagedIntervalMap;
-use crate::error::RiseResult;
+use crate::error::Result;
 use rangemap::RangeMap;
 use rzapi::structs::Endian;
 use std::cell::Cell;
@@ -50,7 +50,7 @@ impl Memory {
                  solver: &dyn Solver,
                  rzil: &RzILBuilder,
                  addr: PureRef,
-                 val: PureRef) -> RiseResult<()> {
+                 val: PureRef) -> Result<()> {
         assert!(val.get_size() > 0 && val.get_size() % 8 == 0);
         let n = u32::try_from(val.get_size() / 8).unwrap();
         for k in 0..n {
@@ -72,7 +72,7 @@ impl Memory {
               solver: &dyn Solver,
               rzil: &RzILBuilder,
               addr: PureRef,
-              val: PureRef) -> RiseResult<()> {
+              val: PureRef) -> Result<()> {
         self.t_pos.set(self.t_pos.get() + 1);
         let entry = MemoryEntry {
             addr: addr.clone(),
@@ -104,7 +104,7 @@ impl Memory {
     pub fn load(&self,
                 solver: &dyn Solver,
                 rzil: &RzILBuilder,
-                addr: PureRef, n: u32) -> RiseResult<PureRef> {
+                addr: PureRef, n: u32) -> Result<PureRef> {
         assert!(n > 0);
         let mut bytes = Vec::new();
         let address_range: Vec<u32> = match self.endian {
@@ -126,7 +126,7 @@ impl Memory {
     fn _load(&self,
              solver: &dyn Solver,
              rzil: &RzILBuilder,
-             addr: PureRef) -> RiseResult<PureRef> {
+             addr: PureRef) -> Result<PureRef> {
         let a = solver.get_min(self, rzil, addr.clone())?;
         let b = solver.get_max(self, rzil, addr.clone())?;
         let range = a..b;

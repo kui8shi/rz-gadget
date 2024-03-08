@@ -10,22 +10,22 @@ use std::collections::{
 use std::rc::Rc;
 use std::vec;
 use crate::to_z3::ToZ3;
-use crate::error::{RiseError, RiseResult};
+use crate::error::{RiseError, Result};
 //use owning_ref::OwningHandle;
      
 pub trait Solver {
     fn name(&self) -> &'static str;
-    fn assert(&self, mem: &Memory, rzil: &RzILBuilder, constriant: PureRef) -> RiseResult<()>;
-    fn assert_n(&self, mem: &Memory, rzil: &RzILBuilder, constraints: Vec<PureRef>) -> RiseResult<()>;
-    fn get_models(&self, mem: &Memory, rzil: &RzILBuilder, extra_constraint: Vec<PureRef>, n: usize) -> RiseResult<Vec<HashMap<String, u64>>>;
-    fn evaluate(&self, mem: &Memory, rzil: &RzILBuilder, target: PureRef, n: usize) -> RiseResult<Vec<u64>>;
-    fn get_min(&self, mem: &Memory, rzil: &RzILBuilder, target: PureRef) -> RiseResult<u64>;
-    fn get_max(&self, mem: &Memory, rzil: &RzILBuilder, target: PureRef) -> RiseResult<u64>;
-    fn is_sat(&self) -> RiseResult<bool>;
-    fn is_unsat(&self) -> RiseResult<bool>;
+    fn assert(&self, mem: &Memory, rzil: &RzILBuilder, constriant: PureRef) -> Result<()>;
+    fn assert_n(&self, mem: &Memory, rzil: &RzILBuilder, constraints: Vec<PureRef>) -> Result<()>;
+    fn get_models(&self, mem: &Memory, rzil: &RzILBuilder, extra_constraint: Vec<PureRef>, n: usize) -> Result<Vec<HashMap<String, u64>>>;
+    fn evaluate(&self, mem: &Memory, rzil: &RzILBuilder, target: PureRef, n: usize) -> Result<Vec<u64>>;
+    fn get_min(&self, mem: &Memory, rzil: &RzILBuilder, target: PureRef) -> Result<u64>;
+    fn get_max(&self, mem: &Memory, rzil: &RzILBuilder, target: PureRef) -> Result<u64>;
+    fn is_sat(&self) -> Result<bool>;
+    fn is_unsat(&self) -> Result<bool>;
 }
 
-fn get_interp(val: z3::ast::Dynamic) -> RiseResult<u64> {
+fn get_interp(val: z3::ast::Dynamic) -> Result<u64> {
     if let Some(v) = val.as_bool() {
         match v.as_bool() {
             Some(true) => Ok(1),
@@ -71,10 +71,10 @@ impl Solver for Z3Solver {
         "z3"
     }
 
-    fn assert(&self, mem: &Memory, rzil: &RzILBuilder, constraint: PureRef) -> RiseResult<()> {
+    fn assert(&self, mem: &Memory, rzil: &RzILBuilder, constraint: PureRef) -> Result<()> {
         self.assert_n(mem, rzil, vec![constraint])
     }
-    fn assert_n(&self, mem: &Memory, rzil: &RzILBuilder, constraints: Vec<PureRef>) -> RiseResult<()> {
+    fn assert_n(&self, mem: &Memory, rzil: &RzILBuilder, constraints: Vec<PureRef>) -> Result<()> {
         //TODO test
         let z3 = ToZ3::new(self);
         for op in constraints {
@@ -89,7 +89,7 @@ impl Solver for Z3Solver {
                   mem: &Memory,
                   rzil: &RzILBuilder,
                   extra_constraints: Vec<PureRef>,
-                  n: usize) -> RiseResult<Vec<HashMap<String, u64>>> {
+                  n: usize) -> Result<Vec<HashMap<String, u64>>> {
         //TODO
         let z3 = ToZ3::new(self);
         let mut ex_cons = Vec::new();
@@ -119,7 +119,7 @@ impl Solver for Z3Solver {
                 mem: &Memory, 
                 rzil: &RzILBuilder,
                 op: PureRef,
-                n: usize) -> RiseResult<Vec<u64>> {
+                n: usize) -> Result<Vec<u64>> {
         let z3 = ToZ3::new(self);
         let ast = z3.convert(mem, rzil, op.clone())?;
         let mut results = BinaryHeap::new();
@@ -151,25 +151,25 @@ impl Solver for Z3Solver {
         Ok(results.into_sorted_vec())
     }
 
-    fn get_min(&self, mem: &Memory, rzil: &RzILBuilder, op: PureRef) -> RiseResult<u64> {
+    fn get_min(&self, mem: &Memory, rzil: &RzILBuilder, op: PureRef) -> Result<u64> {
         match self.evaluate(mem, rzil, op, 10)?.first() {
             Some(val) => Ok(val.clone()),
             None => Err(RiseError::Unsat),
         }
     }
 
-    fn get_max(&self, mem: &Memory, rzil: &RzILBuilder, op: PureRef) -> RiseResult<u64> {
+    fn get_max(&self, mem: &Memory, rzil: &RzILBuilder, op: PureRef) -> Result<u64> {
         match self.evaluate(mem, rzil, op, 10)?.last() {
             Some(val) => Ok(val.clone()),
             None => Err(RiseError::Unsat),
         }
     }
 
-    fn is_sat(&self) -> RiseResult<bool> {
+    fn is_sat(&self) -> Result<bool> {
         //Ok(z3.get_model(&[])?.is_some())
         Ok(true)
     }
-    fn is_unsat(&self) -> RiseResult<bool> {
+    fn is_unsat(&self) -> Result<bool> {
         //Ok(z3.get_model(&[])?.is_none())
         Ok(true)
     }
