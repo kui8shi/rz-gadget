@@ -525,7 +525,7 @@ impl RzILLifter {
         }
     }
 
-    fn parse_effect(&mut self, rzil: &RzILBuilder, vars: &mut Variables, op: &RzILInfo) -> RzILResult<Rc<Effect>> {
+    pub fn parse_effect(&mut self, rzil: &RzILBuilder, vars: &mut Variables, op: &RzILInfo) -> RzILResult<Rc<Effect>> {
         match op {
             RzILInfo::Nop => Ok(rzil.new_nop()),
             RzILInfo::Set { dst, src } => {

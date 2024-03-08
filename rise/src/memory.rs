@@ -31,7 +31,7 @@ pub struct Memory {
 }
 
 // ref: http://season-lab.github.io/papers/memsight-ase17.pdf
-// ref: https://github.com/season-lab/memsight/blob/master/docs/pseudocode/naive-v4/main.pdf
+// pesudo code: https://github.com/season-lab/memsight/blob/master/docs/pseudocode/naive-v4/main.pdf
 impl Memory {
     /// Create a new memory instance
     pub fn new(endian: Endian) -> Self {

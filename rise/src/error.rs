@@ -16,5 +16,5 @@ pub enum RiseError {
     Unsat,
 
     #[error("RzApi failed: {0}")]
-    RzApi(String),
+    RzApi(#[from] rzapi::api::RzError),
 }

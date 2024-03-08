@@ -34,7 +34,13 @@ fn hex_decode(data: &str) -> Vec<u8> {
     result
 }
 
-pub type RzResult<T> = std::result::Result<T, String>;
+#[derive(thiserror::Error, Debug)]
+pub enum RzError {
+    #[error("RzApi Failed")]
+    String
+}
+
+pub type RzResult<T> = std::result::Result<T, RzError>;
 fn rz_result<T, E: std::fmt::Display>(result: Result<T, E>) -> RzResult<T> {
     match result {
         Ok(res) => Ok(res),

@@ -24,6 +24,7 @@ clippy = { version = "*", optional = true }
 serde = "*"
 serde_json = "*"
 serde_derive = "*"
+thiserror = "1.0.57"
 
 [dependencies.rzpipe]
 git = "https://github.com/rizinorg/rz-pipe"

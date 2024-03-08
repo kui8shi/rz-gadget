@@ -1,12 +1,19 @@
-use rzapi::RzApi;
+use rzapi::api::RzApi;
 use std::rc::Rc;
 use crate::context::Context;
 use crate::explorer::PathExplorer;
 use crate::error::RiseResult;
-use crate::rzil::{RzILLifter, RzILBuilder, Variables, Effect, PureRef};
-use crate::register;
+use crate::rzil::{
+    error::RzILError,
+    lifter::RzILLifter,
+    builder::RzILBuilder,
+    variables::Variables,
+    Effect,
+    PureRef
+};
+use crate::registers;
 use crate::solver::Solver;
-use crate::memory::Memory;
+//use crate::memory::Memory;
 use std::fmt::Debug;
 mod effect;
 #[derive(Debug)]
@@ -14,9 +21,10 @@ pub struct Rise
 {
     api: RzApi,
     explorer: PathExplorer,
-    lifter: Lifter,
+    lifter: RzILLifter,
     builder: RzILBuilder,
     vars: Variables,
+    addr: u64,
 }
 
 /*
@@ -60,28 +68,30 @@ impl Rise {
         let lifter = RzILLifter::new();
         let builder = RzILBuilder::new();
         let mut vars = Variables::new();
+        let addr = 0;
         register::bind_registers(&mut api, &mut vars)?;
-        Risee {
+        Rise {
             api,
             explorer,
             lifter,
             builder,
             vars,
+            addr,
         }
     }
 
     pub fn run(&mut self, mode: Mode) -> RiseResult<Status> {
         let ctx = self.explorer.pop_ctx()?;
         let pc = ctx.get_pc();
-        ctx = match mode {
+        match mode {
             Mode::Step => {
                 let ops = self.read_insts(pc, 1)?;
-                self.process(ctx, ops)?
+                self.process(ctx, ops)?;
             },
             Mode::Block => {
                 let n = self.num_insts_in_current_block()?;
                 let ops = self.read_insts(pc, n)?;
-                self.process(ctx, ops)?
+                self.process(ctx, ops)?;
             },
             Mode::Explore => {
                 while self.is_stopped() {
@@ -97,16 +107,76 @@ impl Rise {
         ctx.get_status()
     }
 
-    fn process(&mut self, ctx: Context, ops: Vec<Effect>) -> RiseResult<Context> {
+    fn process<S: Solver>(&mut self, ctx: &mut Context<S>, ops: Vec<Rc<Effect>>) -> RiseResult<()> {
         for op in ops {
+            process_op(ctx, &self.builder, op)?;
         }
+        Ok(())
     }
 
-    fn read_insts(&mut self, pc: u64, n: u64) -> RiseResult<Vec<Effect>> {
+    fn read_insts(&mut self, pc: u64, n: u64) -> RiseResult<Vec<Rc<Effect>>> {
         let mut ops = Vec::new();
         for inst in self.api.get_n_insts(Some(n), Some(pc))? {
-            ops.push(self.lifter.parse_effect(self.builder, &mut self.vars, inst)?);
+            ops.push(self.lifter.parse_effect(&self.builder, &mut self.vars, &inst.rzil)?);
         }
         Ok(ops)
+    }
+
+    fn seek(&mut self, addr: u64) {
+        self.addr = addr;
+    }
+
+    fn num_insts_in_current_block(&self) -> RiseResult<u64> {
+        Ok(0)
+    }
+
+    fn is_stopped(&self) -> bool {
+        false
+    }
+}
+
+enum Status {
+    Continue,
+    DirectJump(u64),
+    SymbolicJump(PureRef),
+    Goto(String),
+    Branch(PureRef, Rc<Effect>, Rc<Effect>),
+}
+
+fn process_op<S: Solver>(ctx: &mut Context<S>, rzil: &RzILBuilder, op: Rc<Effect>) -> RiseResult<Status> {
+    let op = op.as_ref();
+    match op {
+        Effect::Nop => Ok(Status::Continue),
+        Effect::Set { dst, src } => Ok(Status::Continue), //TODO add Set handling
+        Effect::Jmp { dst } => {
+            if dst.is_concretized() {
+                Ok(Status::DirectJump(dst.evaluate()))
+            } else {
+                Ok(Status::SymbolicJump(dst.clone()))
+            }
+        },
+        Effect::Goto { label } => Ok(Status::Goto(label.clone())),
+        Effect::Seq { args } => {
+            for arg in args {
+                let status = process_op(ctx, rzil, arg.clone())?;
+                match status {
+                    Status::Continue => continue,
+                    _ => {
+                        return Ok(status);
+                    }
+                }
+            }
+            Ok(Status::Continue)
+        }
+        Effect::Blk => Err(RzILError::UnimplementedRzILEffect("Blk".to_string()).into()),
+        Effect::Repeat => Err(RzILError::UnimplementedRzILEffect("Repeat".to_string()).into()),
+        Effect::Branch { condition, then, otherwise } => {
+            Ok(Status::Branch(condition.clone(), then.clone(), otherwise.clone()))
+        }
+        Effect::Store { key, value } => {
+            ctx.store(rzil, key.clone(), value.clone())?;
+            Ok(Status::Continue)
+        }
+        Effect::Empty => Ok(Status::Continue)
     }
 }

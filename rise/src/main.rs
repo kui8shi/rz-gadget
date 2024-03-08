@@ -9,7 +9,6 @@ pub mod explorer {
 */
 //pub mod context;
 mod context;
-mod effect;
 mod error;
 mod memory;
 mod rzil;
@@ -19,6 +18,7 @@ mod to_z3;
 mod interval;
 mod intervalmap;
 mod registers;
+mod engine;
 
 use anyhow::Result;
 fn main() -> Result<()> {
