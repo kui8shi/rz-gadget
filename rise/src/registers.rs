@@ -1,5 +1,5 @@
 use crate::error::{Result, RiseError};
-use crate::rzil::{variables::Variables, Sort};
+use crate::rzil::{variables::Variables, ast::Sort};
 use rzapi::{api::RzApi, structs::RegisterType};
 use std::collections::HashMap;
 

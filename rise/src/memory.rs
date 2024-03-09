@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::rzil::{builder::RzILBuilder, PureRef, Sort};
+use crate::rzil::{builder::RzILBuilder, ast::{PureRef, Sort}};
 use crate::solver::Solver;
 use crate::utils::PagedIntervalMap;
 use rangemap::RangeMap;

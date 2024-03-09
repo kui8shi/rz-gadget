@@ -3,7 +3,7 @@ use crate::error::Result;
 use crate::explorer::PathExplorer;
 use crate::registers;
 use crate::rzil::{
-    builder::RzILBuilder, error::RzILError, lifter::RzILLifter, variables::Variables, Effect,
+    builder::RzILBuilder, error::RzILError, lifter::RzILLifter, variables::Variables, ast::Effect,
 };
 use crate::solver::Solver;
 use rzapi::api::RzApi;
