@@ -1,6 +1,6 @@
 use crate::error::{Result, RiseError};
 use crate::memory::Memory;
-use crate::rzil::{builder::RzILBuilder, ast::PureRef};
+use crate::rzil::{ast::PureRef, builder::RzILBuilder};
 use crate::to_z3::ToZ3;
 use std::collections::{BinaryHeap, HashMap};
 use std::rc::Rc;
