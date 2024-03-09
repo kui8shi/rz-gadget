@@ -191,13 +191,29 @@ impl Hash for PureRef {
 #[derive(Debug, Eq, PartialEq)]
 pub struct Pure {
     code: PureCode,
+    args: Vec<PureRef>,
     symbolized: bool,
     sort: Sort,
     eval: u64, // if symbolized, it has 0.
-    args: Vec<PureRef>,
 }
 
 impl Pure {
+    pub fn new(
+        code: PureCode,
+        args: Vec<PureRef>,
+        symbolized: bool,
+        sort: Sort,
+        eval: u64,
+    ) -> Self {
+        Pure {
+            code,
+            args,
+            symbolized,
+            sort,
+            eval,
+        }
+    }
+
     pub fn evaluate(&self) -> u64 {
         self.eval
     }

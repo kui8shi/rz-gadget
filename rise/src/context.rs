@@ -1,7 +1,10 @@
 //! Define break;
 use crate::error::Result;
 use crate::memory::Memory;
-use crate::rzil::{builder::RzILBuilder, Effect, PureRef};
+use crate::rzil::{
+    ast::{Effect, PureRef},
+    builder::RzILBuilder,
+};
 use crate::solver::Solver;
 use rzapi::structs::Endian;
 use std::rc::Rc;

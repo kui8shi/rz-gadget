@@ -27,14 +27,7 @@ impl RzILBuilder {
         sort: Sort,
         eval: u64,
     ) -> PureRef {
-        let op: PureRef = Pure {
-            code,
-            args,
-            symbolized,
-            sort,
-            eval,
-        }
-        .into();
+        let op: PureRef = Pure::new(code, args, symbolized, sort, eval).into();
         if let Some(cached) = self.pure_cache.get(&op.get_hash()) {
             cached.clone()
         } else {
