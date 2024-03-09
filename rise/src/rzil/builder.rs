@@ -1,6 +1,6 @@
 use super::{
-    error::{RzILError, RzILResult},
-    Effect, Pure, PureCode, PureRef, Scope, Sort,
+    ast::{Effect, Pure, PureCode, PureRef, Scope, Sort},
+    error::{Result, RzILError},
 };
 use quick_cache::sync::Cache;
 use std::{cell::Cell, rc::Rc};
@@ -68,7 +68,7 @@ impl RzILBuilder {
     }
     */
 
-    fn convert_bool_to_bitv(&self, op: PureRef) -> RzILResult<PureRef> {
+    fn convert_bool_to_bitv(&self, op: PureRef) -> Result<PureRef> {
         if op.is_bool() {
             // convert op's sort from Bool to Bitv(1)
             if op.is_concretized() {
@@ -130,7 +130,7 @@ impl RzILBuilder {
         condition: PureRef,
         then: PureRef,
         otherwise: PureRef,
-    ) -> RzILResult<PureRef> {
+    ) -> Result<PureRef> {
         condition.expect_bool()?;
         then.expect_same_sort_with(&otherwise)?;
 
@@ -161,7 +161,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_boolinv(&self, x: PureRef) -> RzILResult<PureRef> {
+    pub fn new_boolinv(&self, x: PureRef) -> Result<PureRef> {
         x.expect_bool()?;
 
         let symbolized = x.is_symbolized();
@@ -171,7 +171,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::BoolInv, vec![x], symbolized, sort, eval))
     }
 
-    pub fn new_booland(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_booland(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bool()?;
         y.expect_bool()?;
 
@@ -182,7 +182,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::BoolAnd, vec![x, y], symbolized, sort, eval))
     }
 
-    pub fn new_boolor(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_boolor(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bool()?;
         y.expect_bool()?;
 
@@ -193,7 +193,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::BoolOr, vec![x, y], symbolized, sort, eval))
     }
 
-    pub fn new_boolxor(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_boolxor(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bool()?;
         y.expect_bool()?;
 
@@ -204,7 +204,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::BoolXor, vec![x, y], symbolized, sort, eval))
     }
 
-    pub fn new_msb(&self, bitv: PureRef) -> RzILResult<PureRef> {
+    pub fn new_msb(&self, bitv: PureRef) -> Result<PureRef> {
         bitv.expect_bitv()?;
 
         let symbolized = bitv.is_symbolized();
@@ -214,7 +214,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::Msb, vec![bitv], symbolized, sort, eval))
     }
 
-    pub fn new_lsb(&self, bitv: PureRef) -> RzILResult<PureRef> {
+    pub fn new_lsb(&self, bitv: PureRef) -> Result<PureRef> {
         bitv.expect_bitv()?;
 
         let symbolized = bitv.is_symbolized();
@@ -224,7 +224,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::Lsb, vec![bitv], symbolized, sort, eval))
     }
 
-    pub fn new_is_zero(&self, bitv: PureRef) -> RzILResult<PureRef> {
+    pub fn new_is_zero(&self, bitv: PureRef) -> Result<PureRef> {
         bitv.expect_bitv()?;
 
         let symbolized = bitv.is_symbolized();
@@ -234,7 +234,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::IsZero, vec![bitv], symbolized, sort, eval))
     }
 
-    pub fn new_neg(&self, bitv: PureRef) -> RzILResult<PureRef> {
+    pub fn new_neg(&self, bitv: PureRef) -> Result<PureRef> {
         bitv.expect_bitv()?;
 
         let symbolized = bitv.is_symbolized();
@@ -244,7 +244,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::Neg, vec![bitv], symbolized, sort, eval))
     }
 
-    pub fn new_lognot(&self, bitv: PureRef) -> RzILResult<PureRef> {
+    pub fn new_lognot(&self, bitv: PureRef) -> Result<PureRef> {
         bitv.expect_bitv()?;
 
         let symbolized = bitv.is_symbolized();
@@ -254,7 +254,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::LogNot, vec![bitv], symbolized, sort, eval))
     }
 
-    pub fn new_bvadd(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_bvadd(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -277,7 +277,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_bvsub(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_bvsub(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -300,7 +300,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_bvmul(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_bvmul(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -325,7 +325,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_bvdiv(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_bvdiv(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -349,7 +349,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_bvsdiv(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_bvsdiv(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -373,7 +373,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_bvmod(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_bvmod(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -397,7 +397,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_bvsmod(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_bvsmod(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -421,7 +421,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_logand(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_logand(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -444,7 +444,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_logor(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_logor(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -465,7 +465,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_logxor(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_logxor(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -483,7 +483,7 @@ impl RzILBuilder {
             Ok(y)
         } else if y.is_zero() {
             Ok(x)
-        } else if x.hash == y.hash {
+        } else if x.get_hash() == y.get_hash() {
             // xor eax, eax
             Ok(self.new_const(sort, 0))
         } else {
@@ -491,7 +491,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_bvshr(&self, fill_bit: PureRef, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_bvshr(&self, fill_bit: PureRef, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -521,7 +521,7 @@ impl RzILBuilder {
         ))
     }
 
-    pub fn new_bvshl(&self, fill_bit: PureRef, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_bvshl(&self, fill_bit: PureRef, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -551,7 +551,7 @@ impl RzILBuilder {
         ))
     }
 
-    pub fn new_eq(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_eq(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -572,7 +572,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::Equal, vec![x, y], symbolized, sort, eval))
     }
 
-    pub fn new_sle(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_sle(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -589,7 +589,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::Sle, vec![x, y], symbolized, sort, eval))
     }
 
-    pub fn new_ule(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
+    pub fn new_ule(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
@@ -606,12 +606,7 @@ impl RzILBuilder {
         Ok(self.new_pure_maybe_const(PureCode::Ule, vec![x, y], symbolized, sort, eval))
     }
 
-    pub fn new_cast(
-        &self,
-        fill_bit: PureRef,
-        value: PureRef,
-        length: usize,
-    ) -> RzILResult<PureRef> {
+    pub fn new_cast(&self, fill_bit: PureRef, value: PureRef, length: usize) -> Result<PureRef> {
         value.expect_bitv()?;
 
         let fill_bit = self.convert_bool_to_bitv(fill_bit)?;
@@ -643,7 +638,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_append(&self, high: PureRef, low: PureRef) -> RzILResult<PureRef> {
+    pub fn new_append(&self, high: PureRef, low: PureRef) -> Result<PureRef> {
         high.expect_bitv()?;
         low.expect_bitv()?;
 
@@ -659,7 +654,7 @@ impl RzILBuilder {
     }
 
     // extract bits of high down to low from value
-    pub fn new_extract(&self, value: PureRef, high: u32, low: u32) -> RzILResult<PureRef> {
+    pub fn new_extract(&self, value: PureRef, high: u32, low: u32) -> Result<PureRef> {
         value.expect_bitv()?;
 
         assert!(high >= low);
@@ -680,7 +675,7 @@ impl RzILBuilder {
         ))
     }
 
-    pub fn new_load(&self, key: PureRef) -> RzILResult<PureRef> {
+    pub fn new_load(&self, key: PureRef) -> Result<PureRef> {
         key.expect_bitv()?;
 
         let symbolized = true;
@@ -689,7 +684,7 @@ impl RzILBuilder {
         Ok(self.new_pure(PureCode::Load, vec![key], symbolized, sort, eval))
     }
 
-    pub fn new_loadw(&self, key: PureRef, bits: u64) -> RzILResult<PureRef> {
+    pub fn new_loadw(&self, key: PureRef, bits: u64) -> Result<PureRef> {
         key.expect_bitv()?;
 
         let symbolized = true;
@@ -709,7 +704,7 @@ impl RzILBuilder {
     pub fn new_seq(&self, args: Vec<Rc<Effect>>) -> Rc<Effect> {
         self.new_effect(Effect::Seq { args })
     }
-    pub fn new_jmp(&self, dst: PureRef) -> RzILResult<Rc<Effect>> {
+    pub fn new_jmp(&self, dst: PureRef) -> Result<Rc<Effect>> {
         dst.expect_bitv()?;
         Ok(self.new_effect(Effect::Jmp { dst }))
     }
@@ -719,7 +714,7 @@ impl RzILBuilder {
         condition: PureRef,
         then: Rc<Effect>,
         otherwise: Rc<Effect>,
-    ) -> RzILResult<Rc<Effect>> {
+    ) -> Result<Rc<Effect>> {
         condition.expect_bool()?;
         if condition.is_concretized() {
             if condition.evaluate_bool() {
@@ -736,7 +731,7 @@ impl RzILBuilder {
         }
     }
 
-    pub fn new_store(&self, key: PureRef, value: PureRef) -> RzILResult<Rc<Effect>> {
+    pub fn new_store(&self, key: PureRef, value: PureRef) -> Result<Rc<Effect>> {
         key.expect_bitv()?;
         value.expect_bitv()?;
         Ok(self.new_effect(Effect::Store { key, value }))

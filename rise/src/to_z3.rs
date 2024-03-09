@@ -1,6 +1,10 @@
 use crate::error::{Result, RiseError};
 use crate::memory::Memory;
-use crate::rzil::{builder::RzILBuilder, error::RzILError, PureCode, PureRef, Sort};
+use crate::rzil::{
+    ast::{PureCode, PureRef, Sort},
+    builder::RzILBuilder,
+    error::RzILError,
+};
 use crate::solver::{Solver, Z3Solver};
 use z3::ast::Ast;
 #[derive(Clone, Debug)]

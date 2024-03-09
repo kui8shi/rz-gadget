@@ -1,8 +1,8 @@
 use super::{
+    ast::{Effect, PureCode, PureRef, Scope, Sort},
     builder::RzILBuilder,
-    error::{RzILError, RzILResult},
+    error::{Result, RzILError},
     variables::Variables,
-    Effect, PureCode, PureRef, Scope, Sort,
 };
 use bitflags::bitflags;
 use rzapi::structs::RzILInfo;
@@ -60,7 +60,7 @@ impl BranchSetToSetIte {
         self.conditions.pop();
     }
 
-    fn connect_condition(&self, rzil: &RzILBuilder) -> RzILResult<PureRef> {
+    fn connect_condition(&self, rzil: &RzILBuilder) -> Result<PureRef> {
         let len = self.conditions.len();
         let mut x = self.conditions.last().unwrap().clone();
         for i in (0..len - 1).rev() {
@@ -83,7 +83,7 @@ impl BranchSetToSetIte {
         name: &str,
         src: PureRef,
         dst: PureRef,
-    ) -> RzILResult<()> {
+    ) -> Result<()> {
         let condition = self.connect_condition(rzil)?;
         let taken = self.taken.first().unwrap().clone();
         let mut entry = None;
@@ -131,7 +131,7 @@ impl BranchSetToSetIte {
         Ok(())
     }
 
-    fn drain(&mut self, rzil: &RzILBuilder) -> RzILResult<Vec<Rc<Effect>>> {
+    fn drain(&mut self, rzil: &RzILBuilder) -> Result<Vec<Rc<Effect>>> {
         let entries: Vec<BranchSetToSetIteEntry> = self.entries.drain(..).collect();
         let mut set_ite = Vec::new();
         self.clear();
@@ -230,7 +230,7 @@ impl RzILLifter {
         rzil: &RzILBuilder,
         vars: &mut Variables,
         op: &RzILInfo,
-    ) -> RzILResult<PureRef> {
+    ) -> Result<PureRef> {
         match op {
             RzILInfo::Var { value } => {
                 if let Some((_, var)) = vars.get_var(value) {
@@ -529,7 +529,7 @@ impl RzILLifter {
         rzil: &RzILBuilder,
         vars: &mut Variables,
         op: &RzILInfo,
-    ) -> RzILResult<Rc<Effect>> {
+    ) -> Result<Rc<Effect>> {
         match op {
             RzILInfo::Nop => Ok(rzil.new_nop()),
             RzILInfo::Set { dst, src } => {
@@ -640,7 +640,7 @@ impl RzILLifter {
         vars: &mut Variables,
         seq_arg: &RzILInfo,
         vec: &mut Vec<Rc<Effect>>,
-    ) -> RzILResult<()> {
+    ) -> Result<()> {
         match seq_arg {
             RzILInfo::Seq { x, y } => {
                 // nested Seq

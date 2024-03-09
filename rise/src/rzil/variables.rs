@@ -2,7 +2,10 @@ use crate::registers::RegSpec;
 use std::cell::Cell;
 use std::collections::HashMap;
 
-use super::{error::RzILResult, PureRef, Scope};
+use super::{
+    ast::{PureRef, Scope},
+    error::Result,
+};
 
 #[derive(Clone, Debug)]
 pub struct Variables {
@@ -61,7 +64,7 @@ impl Variables {
         None
     }
 
-    pub fn set_var(&mut self, name: &str, var: PureRef) -> RzILResult<()> {
+    pub fn set_var(&mut self, name: &str, var: PureRef) -> Result<()> {
         let id = self.get_uniq_var_id();
         let scope = if self.reg_specs.contains_key(name) {
             Scope::Global

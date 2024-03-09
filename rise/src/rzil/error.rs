@@ -1,7 +1,7 @@
-use super::{PureCode, Sort};
+use super::ast::{PureCode, Sort};
 use std::num::ParseIntError;
 
-pub type RzILResult<T> = std::result::Result<T, RzILError>;
+pub type Result<T> = std::result::Result<T, RzILError>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum RzILError {
