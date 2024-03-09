@@ -1,17 +1,14 @@
+use error::{RzILError, RzILResult};
+use std::collections::hash_map::DefaultHasher;
 use std::fmt::Display;
 use std::hash::{Hash, Hasher};
-use std::collections::hash_map::DefaultHasher;
-use std::rc::Rc;
 use std::ops::Deref;
-use error::{
-    RzILResult,
-    RzILError,
-};
+use std::rc::Rc;
 
-pub mod variables;
+pub(crate) mod builder;
 pub mod error;
 pub(crate) mod lifter;
-pub(crate) mod builder;
+pub mod variables;
 
 /*
  * rzapi::RzILInfo -> rz-sym::Pure(sorted, unrolled) -> Expr.add_solver
@@ -68,9 +65,9 @@ impl std::fmt::Display for Sort {
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug, Hash)]
 pub enum Scope {
-    Global,    // represent physical registers
-    Local,     // variables valid inside an Instruction
-    Let,       // variables valid inside a Let expression
+    Global, // represent physical registers
+    Local,  // variables valid inside an Instruction
+    Let,    // variables valid inside a Let expression
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -159,7 +156,7 @@ pub struct PureRef {
 
 impl Deref for PureRef {
     type Target = Pure;
-    
+
     fn deref(&self) -> &Self::Target {
         &self.pure
     }
@@ -167,7 +164,10 @@ impl Deref for PureRef {
 
 impl From<Pure> for PureRef {
     fn from(pure: Pure) -> Self {
-        let mut to = Self { pure: Rc::new(pure), hash: 0 };
+        let mut to = Self {
+            pure: Rc::new(pure),
+            hash: 0,
+        };
         let mut hasher = DefaultHasher::new();
         to.hash(&mut hasher);
         to.hash = hasher.finish();
@@ -320,7 +320,6 @@ impl Display for Effect {
     }
 }
 
-
 impl Effect {
     fn is_nop(&self) -> bool {
         if let Effect::Nop = self {
@@ -330,4 +329,3 @@ impl Effect {
         }
     }
 }
-

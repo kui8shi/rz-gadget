@@ -9,17 +9,17 @@ pub mod explorer {
 */
 //pub mod context;
 mod context;
+mod engine;
 mod error;
-mod memory;
-mod rzil;
-mod solver;
 mod explorer;
-mod utils;
-mod to_z3;
 mod interval;
 mod intervalmap;
+mod memory;
 mod registers;
-mod engine;
+mod rzil;
+mod solver;
+mod to_z3;
+mod utils;
 
 use anyhow::Result;
 fn main() -> Result<()> {

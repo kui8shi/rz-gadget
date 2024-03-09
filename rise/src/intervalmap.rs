@@ -1,15 +1,12 @@
-use std::collections::btree_map;
+use crate::interval::{Interval, IntervalEndSorted};
 use std::cmp::Ordering;
-use std::ops::{Range, Bound};
+use std::collections::btree_map;
 use std::fmt::{self, Debug};
-use crate::interval::{
-    Interval,
-    IntervalEndSorted,
-};
+use std::ops::{Bound, Range};
 
 #[derive(Clone)]
 pub struct IntervalMap<K, V> {
-    btm: btree_map::BTreeMap<Interval<K>, V>
+    btm: btree_map::BTreeMap<Interval<K>, V>,
 }
 
 impl<K, V> Default for IntervalMap<K, V> {
@@ -223,23 +220,19 @@ where
         // whose start is less than or equal to the start of the range to insert.
         if let Some((stored_interval, stored_value)) = self
             .btm
-            .range::<Interval<K>, (Bound<&Interval<K>>, Bound<&Interval<K>>)>((Bound::Unbounded, Bound::Included(&interval)))
+            .range::<Interval<K>, (Bound<&Interval<K>>, Bound<&Interval<K>>)>((
+                Bound::Unbounded,
+                Bound::Included(&interval),
+            ))
             .next_back()
             .filter(|(stored_interval, _stored_value)| {
                 // Does the only candidate range overlap
                 // the range to insert?
-                stored_interval
-                    .overlaps(&interval)
+                stored_interval.overlaps(&interval)
             })
-            .map(|(stored_interval, stored_value)| {
-                (stored_interval.clone(), stored_value.clone())
-            })
+            .map(|(stored_interval, stored_value)| (stored_interval.clone(), stored_value.clone()))
         {
-            self.adjust_overlapping_ranges_for_remove(
-                stored_interval,
-                stored_value,
-                range,
-            );
+            self.adjust_overlapping_ranges_for_remove(stored_interval, stored_value, range);
         }
 
         // Are there any stored ranges whose heads overlap the range to insert?
@@ -258,15 +251,9 @@ where
                 Bound::Excluded(&new_range_end_as_start),
             ))
             .next()
-            .map(|(stored_interval, stored_value)| {
-                (stored_interval.clone(), stored_value.clone())
-            })
+            .map(|(stored_interval, stored_value)| (stored_interval.clone(), stored_value.clone()))
         {
-            self.adjust_overlapping_ranges_for_remove(
-                stored_interval,
-                stored_value,
-                range,
-            );
+            self.adjust_overlapping_ranges_for_remove(stored_interval, stored_value, range);
         }
     }
 
@@ -309,9 +296,7 @@ where
     type Item = (&'a Range<K>, &'a V);
 
     fn next(&mut self) -> Option<(&'a Range<K>, &'a V)> {
-        self.inner
-            .next()
-            .map(|(k, v)| (&k.end_sorted.range, v))
+        self.inner.next().map(|(k, v)| (&k.end_sorted.range, v))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -344,9 +329,7 @@ impl<K, V> IntoIterator for IntervalMap<K, V> {
 impl<K, V> Iterator for IntoIter<K, V> {
     type Item = (Range<K>, V);
     fn next(&mut self) -> Option<(Range<K>, V)> {
-        self.inner
-            .next()
-            .map(|(k, v)| (k.end_sorted.range, v))
+        self.inner.next().map(|(k, v)| (k.end_sorted.range, v))
     }
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.inner.size_hint()
@@ -358,7 +341,9 @@ impl<K, V> Iterator for IntoIter<K, V> {
 // Instead implement it in the same way that the underlying BTreeMap does.
 impl<K: Debug, V: Debug> Debug for IntervalMap<K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_map().entries::<&std::ops::Range<K>, &V, self::Iter<'_, K, V>>(self.iter()).finish()
+        f.debug_map()
+            .entries::<&std::ops::Range<K>, &V, self::Iter<'_, K, V>>(self.iter())
+            .finish()
     }
 }
 
@@ -480,4 +465,3 @@ where
         }
     }
 }
-

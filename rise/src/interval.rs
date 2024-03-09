@@ -1,6 +1,6 @@
-use std::ops::{Deref, Range};
 use std::cmp::Ordering;
 use std::fmt::Debug;
+use std::ops::{Deref, Range};
 
 //
 // Range wrapper start sorted
@@ -12,12 +12,14 @@ pub struct Interval<T> {
      *  Wrapper of std::ops::Range
      *  Determines the inequality and the size relationships by start.
      */
-    pub end_sorted: IntervalEndSorted<T>
+    pub end_sorted: IntervalEndSorted<T>,
 }
 
 impl<T> Interval<T> {
     pub fn new(range: Range<T>) -> Self {
-        Interval { end_sorted: IntervalEndSorted { range } }
+        Interval {
+            end_sorted: IntervalEndSorted { range },
+        }
     }
 }
 
@@ -57,9 +59,7 @@ where
 {
     fn cmp(&self, other: &Interval<T>) -> Ordering {
         match self.start.cmp(&other.start) {
-            Ordering::Equal => {
-                self.end.cmp(&other.end)
-            }
+            Ordering::Equal => self.end.cmp(&other.end),
             Ordering::Less => Ordering::Less,
             Ordering::Greater => Ordering::Greater,
         }

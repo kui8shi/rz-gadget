@@ -1,7 +1,7 @@
-use std::ops::Range;
-use std::fmt::Debug;
-use std::rc::Rc;
 use crate::intervalmap::IntervalMap;
+use std::fmt::Debug;
+use std::ops::Range;
+use std::rc::Rc;
 
 #[derive(Clone, Debug)]
 pub struct PagedIntervalMap<V> {
@@ -25,23 +25,18 @@ impl<V> PagedIntervalMap<V> {
     }
 
     /// Get a page iterator, ordered by page range.
-    pub fn iter_page(&self)
-    -> impl Iterator<Item = (&Range<u64>, Rc<IntervalMap<u64, V>>)>
-    {
+    pub fn iter_page(&self) -> impl Iterator<Item = (&Range<u64>, Rc<IntervalMap<u64, V>>)> {
         self.pages.iter().map(|(k, v)| (k, v.clone()))
     }
 
     /// Get an entry iterator, ordered by entry range.
-    pub fn iter(&self)
-    -> impl Iterator<Item = (&Range<u64>, &V)> 
-    {
+    pub fn iter(&self) -> impl Iterator<Item = (&Range<u64>, &V)> {
         self.pages.iter().flat_map(|(_, v)| v.iter())
     }
 
     /// Remove all pages, including their entries.
     pub fn clear(&mut self) {
-        Rc::<IntervalMap::<u64, Rc<IntervalMap<u64, V>>>>::make_mut(&mut self.pages)
-            .clear()
+        Rc::<IntervalMap<u64, Rc<IntervalMap<u64, V>>>>::make_mut(&mut self.pages).clear()
     }
 
     /// Return the number of pages.
@@ -96,19 +91,19 @@ where
     }
     /// Get a page iterator over all the stored ranges that are
     /// either partially or completely overlapped by the given range.
-    pub fn overlapping_page<'a>(&'a self, range: &'a Range<u64>)
-    -> impl Iterator<Item = (&Range<u64>, Rc<IntervalMap<u64, V>>)> 
-    {
-        self.pages
-            .overlapping(range)
-            .map(|(k, v)| (k, v.clone()))
+    pub fn overlapping_page<'a>(
+        &'a self,
+        range: &'a Range<u64>,
+    ) -> impl Iterator<Item = (&Range<u64>, Rc<IntervalMap<u64, V>>)> {
+        self.pages.overlapping(range).map(|(k, v)| (k, v.clone()))
     }
 
     /// Get an entry iterator over all the stored ranges that are
     /// either partially or completely overlapped by the given range.
-    pub fn overlapping<'a>(&'a self, range: &'a Range<u64>)
-    -> impl Iterator<Item = (&Range<u64>, &V)> 
-    {
+    pub fn overlapping<'a>(
+        &'a self,
+        range: &'a Range<u64>,
+    ) -> impl Iterator<Item = (&Range<u64>, &V)> {
         self.pages
             .overlapping(range)
             .flat_map(|(_, v)| v.overlapping(range))
@@ -147,8 +142,7 @@ where
             } else {
                 let mut new_page = IntervalMap::<u64, V>::new();
                 new_page.insert(entry_range, value.clone());
-                Rc::<IntervalMap::<u64, Rc<IntervalMap<u64, V>>>>::make_mut(
-                    &mut self.pages)
+                Rc::<IntervalMap<u64, Rc<IntervalMap<u64, V>>>>::make_mut(&mut self.pages)
                     .insert(page_range, Rc::new(new_page));
             }
 
@@ -161,7 +155,7 @@ where
     /// Panics if range `start >= end`.
     pub fn remove(&mut self, range: Range<u64>) {
         assert!(range.start < range.end);
-        for (page_range, page) in self.overlapping_page(&range) { 
+        for (page_range, page) in self.overlapping_page(&range) {
             let start = u64::max(range.start, page_range.start);
             let end = u64::min(range.end, page_range.end);
             Rc::<IntervalMap<u64, V>>::make_mut(&mut page.clone()).remove(start..end)

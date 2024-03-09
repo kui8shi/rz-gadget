@@ -46,7 +46,7 @@ pub enum RzError {
     Json(String, String),
 
     #[error("{0}")]
-    Other(String)
+    Other(String),
 }
 
 pub type Result<T> = std::result::Result<T, RzError>;
@@ -111,7 +111,7 @@ impl RzApi {
 
     pub fn cmdj<T: serde::de::DeserializeOwned>(&mut self, cmd: &str) -> Result<T> {
         serde_json::from_value(self.rzp.lock().unwrap().cmdj(cmd)?)
-           .map_err(|e| RzError::Json(std::any::type_name::<T>().to_string(), e.to_string()))
+            .map_err(|e| RzError::Json(std::any::type_name::<T>().to_string(), e.to_string()))
     }
 
     pub fn ccmd(&mut self, cmd: &str) -> Result<String> {
@@ -137,11 +137,7 @@ impl RzApi {
         self.cmdj(&cmd)
     }
 
-    pub fn disassemble_n_bytes(
-        &mut self,
-        n: u64,
-        offset: Option<u64>,
-    ) -> Result<Vec<Disassembly>> {
+    pub fn disassemble_n_bytes(&mut self, n: u64, offset: Option<u64>) -> Result<Vec<Disassembly>> {
         self.cmdj(&format!(
             "pDj {} @ {}",
             n,
@@ -151,11 +147,7 @@ impl RzApi {
         ))
     }
 
-    pub fn disassemble_n_insts(
-        &mut self,
-        n: u64,
-        offset: Option<u64>,
-    ) -> Result<Vec<Disassembly>> {
+    pub fn disassemble_n_insts(&mut self, n: u64, offset: Option<u64>) -> Result<Vec<Disassembly>> {
         self.cmdj(&format!(
             "pdj {} @ {}",
             n,
@@ -179,11 +171,7 @@ impl RzApi {
 
     // get 'n' (or 16) instructions at 'offset' (or current position if offset in
     // `None`)
-    pub fn get_n_insts(
-        &mut self,
-        n: Option<u64>,
-        offset: Option<u64>,
-    ) -> Result<Vec<Instruction>> {
+    pub fn get_n_insts(&mut self, n: Option<u64>, offset: Option<u64>) -> Result<Vec<Instruction>> {
         let n = n.unwrap_or(16);
         let mut cmd = format!("aoj {}", n);
         if let Some(o) = offset {

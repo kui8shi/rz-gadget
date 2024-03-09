@@ -1,5 +1,5 @@
+use super::{PureCode, Sort};
 use std::num::ParseIntError;
-use super::{Sort, PureCode};
 
 pub type RzILResult<T> = std::result::Result<T, RzILError>;
 

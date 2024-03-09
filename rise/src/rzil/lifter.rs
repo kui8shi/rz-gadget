@@ -1,22 +1,12 @@
-use rzapi::structs::RzILInfo;
-use bitflags::bitflags;
-use std::{
-    rc::Rc,
-    collections::HashMap,
-};
 use super::{
-    Sort,
-    Scope,
-    PureRef,
-    PureCode,
-    Effect,
     builder::RzILBuilder,
-    error::{
-        RzILError,
-        RzILResult,
-    },
+    error::{RzILError, RzILResult},
     variables::Variables,
+    Effect, PureCode, PureRef, Scope, Sort,
 };
+use bitflags::bitflags;
+use rzapi::structs::RzILInfo;
+use std::{collections::HashMap, rc::Rc};
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -171,7 +161,7 @@ impl BranchSetToSetIte {
 pub struct RzILLifter {
     //option: RzILConfig,
     bs_to_si: BranchSetToSetIte,
-    tmp_vars: HashMap<String, PureRef>,    // store LocalPure vars
+    tmp_vars: HashMap<String, PureRef>, // store LocalPure vars
 }
 
 impl RzILLifter {
@@ -182,7 +172,7 @@ impl RzILLifter {
                 taken: Vec::new(),
                 entries: Vec::new(),
             },
-            tmp_vars: HashMap::new(), 
+            tmp_vars: HashMap::new(),
         }
     }
 
@@ -235,7 +225,12 @@ impl RzILLifter {
     }
     */
 
-    fn parse_pure(&mut self, rzil: &RzILBuilder, vars: &mut Variables, op: &RzILInfo) -> RzILResult<PureRef> {
+    fn parse_pure(
+        &mut self,
+        rzil: &RzILBuilder,
+        vars: &mut Variables,
+        op: &RzILInfo,
+    ) -> RzILResult<PureRef> {
         match op {
             RzILInfo::Var { value } => {
                 if let Some((_, var)) = vars.get_var(value) {
@@ -388,7 +383,11 @@ impl RzILLifter {
                 let y = self.parse_pure(rzil, vars, y)?;
                 rzil.new_ule(x, y)
             }
-            RzILInfo::Cast { value, length, fill } => {
+            RzILInfo::Cast {
+                value,
+                length,
+                fill,
+            } => {
                 let fill_bit = self.parse_pure(rzil, vars, fill)?;
                 let value = self.parse_pure(rzil, vars, value)?;
                 let length = length.clone();
@@ -525,7 +524,12 @@ impl RzILLifter {
         }
     }
 
-    pub fn parse_effect(&mut self, rzil: &RzILBuilder, vars: &mut Variables, op: &RzILInfo) -> RzILResult<Rc<Effect>> {
+    pub fn parse_effect(
+        &mut self,
+        rzil: &RzILBuilder,
+        vars: &mut Variables,
+        op: &RzILInfo,
+    ) -> RzILResult<Rc<Effect>> {
         match op {
             RzILInfo::Nop => Ok(rzil.new_nop()),
             RzILInfo::Set { dst, src } => {
@@ -535,10 +539,10 @@ impl RzILLifter {
                     Some((Scope::Global, var)) => {
                         src.expect_same_sort_with(&var)?;
                         rzil.new_var(Scope::Global, name, &src)
-                    },
+                    }
                     Some(_) => {
                         return Err(RzILError::ImmutableVariable(name.to_string()));
-                    },
+                    }
                     None => {
                         let var = rzil.new_var(Scope::Local, name, &src);
                         if src.is_concretized() {
@@ -630,7 +634,13 @@ impl RzILLifter {
         }
     }
 
-    fn parse_seq_arg(&mut self, rzil: &RzILBuilder, vars: &mut Variables, seq_arg: &RzILInfo, vec: &mut Vec<Rc<Effect>>) -> RzILResult<()> {
+    fn parse_seq_arg(
+        &mut self,
+        rzil: &RzILBuilder,
+        vars: &mut Variables,
+        seq_arg: &RzILInfo,
+        vec: &mut Vec<Rc<Effect>>,
+    ) -> RzILResult<()> {
         match seq_arg {
             RzILInfo::Seq { x, y } => {
                 // nested Seq
@@ -653,7 +663,6 @@ impl RzILLifter {
         };
         Ok(())
     }
-
 }
 
 /*

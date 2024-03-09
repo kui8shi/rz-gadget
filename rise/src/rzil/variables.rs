@@ -1,12 +1,8 @@
+use crate::registers::RegSpec;
 use std::cell::Cell;
 use std::collections::HashMap;
-use crate::registers::RegSpec;
 
-use super::{
-    Scope,
-    PureRef,
-    error::RzILResult,
-};
+use super::{error::RzILResult, PureRef, Scope};
 
 #[derive(Clone, Debug)]
 pub struct Variables {
@@ -37,8 +33,8 @@ impl Variables {
         let ids_to_remove: std::collections::HashSet<u64> = self
             .latest_var_ids
             .iter()
-            .filter(|(_, v)| { v.1 != Scope::Global })
-            .map(|(_, v)| { v.0.clone() })
+            .filter(|(_, v)| v.1 != Scope::Global)
+            .map(|(_, v)| v.0.clone())
             .collect();
         self.latest_var_ids.retain(|_, v| v.1 == Scope::Global);
         self.vars.retain(|k, _| !ids_to_remove.contains(k));
@@ -59,7 +55,7 @@ impl Variables {
     pub fn get_var(&self, name: &str) -> Option<(Scope, PureRef)> {
         if let Some((id, scope)) = self.latest_var_ids.get(name) {
             if let Some(var) = self.vars.get(id) {
-                return Some((scope.clone(), var.clone()))
+                return Some((scope.clone(), var.clone()));
             }
         }
         None
@@ -88,10 +84,9 @@ impl Variables {
     }
 
     fn remove_var(&mut self, name: &str) -> Option<PureRef> {
-        if let Some((id,_)) = self.latest_var_ids.remove(name){
+        if let Some((id, _)) = self.latest_var_ids.remove(name) {
             return self.vars.remove(&id);
         }
         None
     }
-
 }

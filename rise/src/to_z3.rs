@@ -1,13 +1,7 @@
-use crate::solver::{Solver, Z3Solver};
+use crate::error::{Result, RiseError};
 use crate::memory::Memory;
-use crate::rzil::{
-    builder::RzILBuilder, 
-    PureRef, 
-    PureCode, 
-    error::RzILError, 
-    Sort
-};
-use crate::error::{RiseError, Result};
+use crate::rzil::{builder::RzILBuilder, error::RzILError, PureCode, PureRef, Sort};
+use crate::solver::{Solver, Z3Solver};
 use z3::ast::Ast;
 #[derive(Clone, Debug)]
 pub struct Z3Var<'ctx> {
@@ -20,7 +14,7 @@ pub struct ToZ3<'ctx> {
     // is (maybe a bad practice)
     // to fit within the same struct with z3::Context
     parent: &'ctx Z3Solver,
-    z3_solver: z3::Solver<'ctx>, 
+    z3_solver: z3::Solver<'ctx>,
     //mappings: HashMap<PureRef, Z3Var<'ctx>>,
 }
 
@@ -38,7 +32,12 @@ impl<'ctx> ToZ3<'ctx> {
         }
     }
 
-    pub fn convert(&'ctx self, m: &Memory, r: &RzILBuilder, op: PureRef) -> Result<z3::ast::Dynamic<'ctx>> {
+    pub fn convert(
+        &'ctx self,
+        m: &Memory,
+        r: &RzILBuilder,
+        op: PureRef,
+    ) -> Result<z3::ast::Dynamic<'ctx>> {
         //if op.is_concretized()
         let size: u32 = op.get_size().try_into().unwrap();
         match op.get_code() {
@@ -70,7 +69,9 @@ impl<'ctx> ToZ3<'ctx> {
                 let body = self.convert(m, r, op.get_arg(2))?;
                 Ok(body.substitute(&[(&var, &binding)]).into())
             }
-            PureCode::Bool => Ok(z3::ast::Bool::from_bool(self.get_z3_ctx(), op.evaluate_bool()).into()),
+            PureCode::Bool => {
+                Ok(z3::ast::Bool::from_bool(self.get_z3_ctx(), op.evaluate_bool()).into())
+            }
             PureCode::BoolInv => {
                 let x = self.convert_bool(m, r, op.get_arg(0))?;
                 if op.is_concretized() {
@@ -94,7 +95,9 @@ impl<'ctx> ToZ3<'ctx> {
                 let y = self.convert_bool(m, r, op.get_arg(1))?;
                 Ok(x.xor(&y).into())
             }
-            PureCode::Bitv => Ok(z3::ast::BV::from_u64(self.get_z3_ctx(), op.evaluate(), size).into()),
+            PureCode::Bitv => {
+                Ok(z3::ast::BV::from_u64(self.get_z3_ctx(), op.evaluate(), size).into())
+            }
             PureCode::Msb => {
                 let bv = self.convert_bv(m, r, op.get_arg(0))?;
                 Ok(bv.extract(size - 1, size - 1).into())
@@ -246,24 +249,38 @@ impl<'ctx> ToZ3<'ctx> {
         }
     }
 
-    pub fn convert_bool(&'ctx self, m: &Memory, r: &RzILBuilder, op: PureRef) -> Result<z3::ast::Bool<'ctx>> {
+    pub fn convert_bool(
+        &'ctx self,
+        m: &Memory,
+        r: &RzILBuilder,
+        op: PureRef,
+    ) -> Result<z3::ast::Bool<'ctx>> {
         if !op.is_bool() {
             return Err(RzILError::UnexpectedSort(Sort::Bool, op.get_sort()).into());
         }
         if let Some(ast) = self.convert(m, r, op)?.as_bool() {
             Ok(ast)
         } else {
-            Err(RiseError::RzILToZ3("Bool rzil was somehow converted to non-bool z3 ast".to_string()))
+            Err(RiseError::RzILToZ3(
+                "Bool rzil was somehow converted to non-bool z3 ast".to_string(),
+            ))
         }
     }
-    pub fn convert_bv(&'ctx self, m: &Memory, r: &RzILBuilder, op: PureRef) -> Result<z3::ast::BV<'ctx>> {
+    pub fn convert_bv(
+        &'ctx self,
+        m: &Memory,
+        r: &RzILBuilder,
+        op: PureRef,
+    ) -> Result<z3::ast::BV<'ctx>> {
         if !op.is_bitv() {
             return Err(RzILError::UnexpectedSort(Sort::Bitv(0), op.get_sort()).into());
         }
         if let Some(ast) = self.convert(m, r, op)?.as_bv() {
             Ok(ast)
         } else {
-            Err(RiseError::RzILToZ3("Bitv rzil was somehow converted to non-bitv z3 ast".to_string()))
+            Err(RiseError::RzILToZ3(
+                "Bitv rzil was somehow converted to non-bitv z3 ast".to_string(),
+            ))
         }
     }
 
@@ -285,7 +302,5 @@ impl<'ctx> ToZ3<'ctx> {
     pub fn assert(&'ctx self, ast: &z3::ast::Bool<'ctx>) {
         self.z3_solver.assert(ast);
     }
-
 }
 //fn effect_to_z3<'a>
-

@@ -1,24 +1,30 @@
+use crate::error::{Result, RiseError};
 use crate::memory::Memory;
-use crate::rzil::{
-    PureRef, 
-    builder::RzILBuilder, 
-};
-use std::collections::{
-    BinaryHeap,
-    HashMap,
-};
+use crate::rzil::{builder::RzILBuilder, PureRef};
+use crate::to_z3::ToZ3;
+use std::collections::{BinaryHeap, HashMap};
 use std::rc::Rc;
 use std::vec;
-use crate::to_z3::ToZ3;
-use crate::error::{RiseError, Result};
 //use owning_ref::OwningHandle;
-     
+
 pub trait Solver {
     fn name(&self) -> &'static str;
     fn assert(&self, mem: &Memory, rzil: &RzILBuilder, constriant: PureRef) -> Result<()>;
     fn assert_n(&self, mem: &Memory, rzil: &RzILBuilder, constraints: Vec<PureRef>) -> Result<()>;
-    fn get_models(&self, mem: &Memory, rzil: &RzILBuilder, extra_constraint: Vec<PureRef>, n: usize) -> Result<Vec<HashMap<String, u64>>>;
-    fn evaluate(&self, mem: &Memory, rzil: &RzILBuilder, target: PureRef, n: usize) -> Result<Vec<u64>>;
+    fn get_models(
+        &self,
+        mem: &Memory,
+        rzil: &RzILBuilder,
+        extra_constraint: Vec<PureRef>,
+        n: usize,
+    ) -> Result<Vec<HashMap<String, u64>>>;
+    fn evaluate(
+        &self,
+        mem: &Memory,
+        rzil: &RzILBuilder,
+        target: PureRef,
+        n: usize,
+    ) -> Result<Vec<u64>>;
     fn get_min(&self, mem: &Memory, rzil: &RzILBuilder, target: PureRef) -> Result<u64>;
     fn get_max(&self, mem: &Memory, rzil: &RzILBuilder, target: PureRef) -> Result<u64>;
     fn is_sat(&self) -> Result<bool>;
@@ -46,7 +52,9 @@ fn get_interp(val: z3::ast::Dynamic) -> Result<u64> {
             }
         }
     } else {
-        return Err(RiseError::Z3("returned invalid model (unkown sort).".to_owned()));
+        return Err(RiseError::Z3(
+            "returned invalid model (unkown sort).".to_owned(),
+        ));
     }
 }
 
@@ -58,7 +66,9 @@ pub struct Z3Solver {
 impl Z3Solver {
     pub fn new() -> Self {
         let z3_cfg = z3::Config::new();
-        Z3Solver { z3_ctx: Rc::new(z3::Context::new(&z3_cfg)) }
+        Z3Solver {
+            z3_ctx: Rc::new(z3::Context::new(&z3_cfg)),
+        }
     }
 
     pub fn get_z3_ctx(&self) -> &z3::Context {
@@ -85,11 +95,13 @@ impl Solver for Z3Solver {
     }
 
     // extract n models from current context.
-    fn get_models(&self,
-                  mem: &Memory,
-                  rzil: &RzILBuilder,
-                  extra_constraints: Vec<PureRef>,
-                  n: usize) -> Result<Vec<HashMap<String, u64>>> {
+    fn get_models(
+        &self,
+        mem: &Memory,
+        rzil: &RzILBuilder,
+        extra_constraints: Vec<PureRef>,
+        n: usize,
+    ) -> Result<Vec<HashMap<String, u64>>> {
         //TODO
         let z3 = ToZ3::new(self);
         let mut ex_cons = Vec::new();
@@ -102,8 +114,9 @@ impl Solver for Z3Solver {
             let mut kv = HashMap::new();
             if let Some(model) = z3.get_model(&ex_cons)? {
                 for func_decl in model.iter() {
-                    if let Some(val) = 
-                        model.get_func_interp_as_const::<z3::ast::Dynamic>(&func_decl) {
+                    if let Some(val) =
+                        model.get_func_interp_as_const::<z3::ast::Dynamic>(&func_decl)
+                    {
                         kv.insert(func_decl.name(), get_interp(val)?);
                     }
                 }
@@ -115,11 +128,13 @@ impl Solver for Z3Solver {
 
     // extract n models of op from current context.
     // returned vector has distinct and sorted values.
-    fn evaluate(&self, 
-                mem: &Memory, 
-                rzil: &RzILBuilder,
-                op: PureRef,
-                n: usize) -> Result<Vec<u64>> {
+    fn evaluate(
+        &self,
+        mem: &Memory,
+        rzil: &RzILBuilder,
+        op: PureRef,
+        n: usize,
+    ) -> Result<Vec<u64>> {
         let z3 = ToZ3::new(self);
         let ast = z3.convert(mem, rzil, op.clone())?;
         let mut results = BinaryHeap::new();
@@ -127,22 +142,14 @@ impl Solver for Z3Solver {
         for _ in 0..n {
             if let Some(model) = z3.get_model(&extra_constraint)? {
                 let val = match model.get_const_interp(&ast) {
-                    Some(val) => {
-                        get_interp(val)?
-                    }
-                    None => {
-                        return Err(RiseError::Z3(
-                            "returned no model.".to_owned(),
-                        ))
-                    }
+                    Some(val) => get_interp(val)?,
+                    None => return Err(RiseError::Z3("returned no model.".to_owned())),
                 };
                 results.push(val.clone());
                 let val = rzil.new_const(op.get_sort(), val);
                 let eq = rzil.new_eq(op.clone(), val)?;
                 let ex_c = rzil.new_boolinv(eq)?;
-                extra_constraint.push({
-                    z3.convert(mem, rzil, ex_c)?.as_bool().unwrap()
-                });
+                extra_constraint.push({ z3.convert(mem, rzil, ex_c)?.as_bool().unwrap() });
             } else {
                 // model not found (unsat)
                 break;

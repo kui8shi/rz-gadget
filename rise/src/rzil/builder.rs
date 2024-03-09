@@ -1,20 +1,9 @@
-use std::{
-    rc::Rc,
-    cell::Cell,
+use super::{
+    error::{RzILError, RzILResult},
+    Effect, Pure, PureCode, PureRef, Scope, Sort,
 };
 use quick_cache::sync::Cache;
-use super::{
-    Sort,
-    Scope,
-    PureCode, 
-    Pure, 
-    PureRef,
-    Effect,
-    error::{
-        RzILError,
-        RzILResult,
-    }
-};
+use std::{cell::Cell, rc::Rc};
 
 #[derive(Debug, Clone)]
 pub struct RzILBuilder {
@@ -25,7 +14,10 @@ pub struct RzILBuilder {
 impl RzILBuilder {
     pub fn new() -> Self {
         const default_cache_size: usize = 100;
-        RzILBuilder { pure_cache: Rc::new(Cache::new(default_cache_size)), uniq_var_id: Cell::new(0) }
+        RzILBuilder {
+            pure_cache: Rc::new(Cache::new(default_cache_size)),
+            uniq_var_id: Cell::new(0),
+        }
     }
     fn new_pure(
         &self,
@@ -41,7 +33,8 @@ impl RzILBuilder {
             symbolized,
             sort,
             eval,
-        }.into();
+        }
+        .into();
         if let Some(cached) = self.pure_cache.get(&op.get_hash()) {
             cached.clone()
         } else {
@@ -117,10 +110,10 @@ impl RzILBuilder {
         let eval = val.evaluate();
         self.new_pure(
             PureCode::Var(Scope::Let, name.to_string()),
-            vec![val],  // will be unwrapped
+            vec![val], // will be unwrapped
             symbolized,
             sort,
-            eval
+            eval,
         )
     }
     /*
@@ -132,7 +125,12 @@ impl RzILBuilder {
     }
     */
 
-    pub fn new_ite(&self, condition: PureRef, then: PureRef, otherwise: PureRef) -> RzILResult<PureRef> {
+    pub fn new_ite(
+        &self,
+        condition: PureRef,
+        then: PureRef,
+        otherwise: PureRef,
+    ) -> RzILResult<PureRef> {
         condition.expect_bool()?;
         then.expect_same_sort_with(&otherwise)?;
 
@@ -514,9 +512,15 @@ impl RzILBuilder {
             0
         };
 
-        Ok(self.new_pure_maybe_const(PureCode::ShiftRight, vec![fill_bit, x, y], symbolized, sort, eval))
+        Ok(self.new_pure_maybe_const(
+            PureCode::ShiftRight,
+            vec![fill_bit, x, y],
+            symbolized,
+            sort,
+            eval,
+        ))
     }
- 
+
     pub fn new_bvshl(&self, fill_bit: PureRef, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
@@ -538,7 +542,13 @@ impl RzILBuilder {
             0
         };
 
-        Ok(self.new_pure_maybe_const(PureCode::ShiftLeft, vec![fill_bit, x, y], symbolized, sort, eval))
+        Ok(self.new_pure_maybe_const(
+            PureCode::ShiftLeft,
+            vec![fill_bit, x, y],
+            symbolized,
+            sort,
+            eval,
+        ))
     }
 
     pub fn new_eq(&self, x: PureRef, y: PureRef) -> RzILResult<PureRef> {
@@ -558,7 +568,7 @@ impl RzILBuilder {
         } else {
             0
         };
-        
+
         Ok(self.new_pure_maybe_const(PureCode::Equal, vec![x, y], symbolized, sort, eval))
     }
 
@@ -575,7 +585,7 @@ impl RzILBuilder {
         } else {
             0
         };
-        
+
         Ok(self.new_pure_maybe_const(PureCode::Sle, vec![x, y], symbolized, sort, eval))
     }
 
@@ -592,11 +602,16 @@ impl RzILBuilder {
         } else {
             0
         };
-        
+
         Ok(self.new_pure_maybe_const(PureCode::Ule, vec![x, y], symbolized, sort, eval))
     }
 
-    pub fn new_cast(&self, fill_bit: PureRef, value: PureRef, length: usize) -> RzILResult<PureRef> {
+    pub fn new_cast(
+        &self,
+        fill_bit: PureRef,
+        value: PureRef,
+        length: usize,
+    ) -> RzILResult<PureRef> {
         value.expect_bitv()?;
 
         let fill_bit = self.convert_bool_to_bitv(fill_bit)?;
@@ -618,11 +633,17 @@ impl RzILBuilder {
             Ok(value)
         } else {
             let expand = value.get_size() < sort.get_size();
-            Ok(self.new_pure_maybe_const(PureCode::Cast(expand), vec![fill_bit, value], symbolized, sort, eval))
+            Ok(self.new_pure_maybe_const(
+                PureCode::Cast(expand),
+                vec![fill_bit, value],
+                symbolized,
+                sort,
+                eval,
+            ))
         }
     }
 
-    pub fn new_append(&self, high: PureRef, low: PureRef) -> RzILResult<PureRef>{
+    pub fn new_append(&self, high: PureRef, low: PureRef) -> RzILResult<PureRef> {
         high.expect_bitv()?;
         low.expect_bitv()?;
 
@@ -650,14 +671,20 @@ impl RzILBuilder {
             value.evaluate() << outer_left >> outer_left >> outer_right
         };
 
-        Ok(self.new_pure_maybe_const(PureCode::Extract(high, low), vec![value], symbolized, sort, eval))
+        Ok(self.new_pure_maybe_const(
+            PureCode::Extract(high, low),
+            vec![value],
+            symbolized,
+            sort,
+            eval,
+        ))
     }
 
     pub fn new_load(&self, key: PureRef) -> RzILResult<PureRef> {
         key.expect_bitv()?;
 
         let symbolized = true;
-        let sort = Sort::Bitv(8);//TODO Symbolize 8 as BIT or some
+        let sort = Sort::Bitv(8); //TODO Symbolize 8 as BIT or some
         let eval = 0;
         Ok(self.new_pure(PureCode::Load, vec![key], symbolized, sort, eval))
     }
@@ -687,7 +714,12 @@ impl RzILBuilder {
         Ok(self.new_effect(Effect::Jmp { dst }))
     }
 
-    pub fn new_branch(&self, condition: PureRef, then: Rc<Effect>, otherwise: Rc<Effect>) -> RzILResult<Rc<Effect>> {
+    pub fn new_branch(
+        &self,
+        condition: PureRef,
+        then: Rc<Effect>,
+        otherwise: Rc<Effect>,
+    ) -> RzILResult<Rc<Effect>> {
         condition.expect_bool()?;
         if condition.is_concretized() {
             if condition.evaluate_bool() {
@@ -696,7 +728,11 @@ impl RzILBuilder {
                 Ok(otherwise)
             }
         } else {
-            Ok(self.new_effect(Effect::Branch { condition, then, otherwise }))
+            Ok(self.new_effect(Effect::Branch {
+                condition,
+                then,
+                otherwise,
+            }))
         }
     }
 

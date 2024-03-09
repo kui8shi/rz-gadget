@@ -1,11 +1,7 @@
-use crate::rzil::{
-    Sort,
-    PureRef, 
-    builder::RzILBuilder
-};
+use crate::error::Result;
+use crate::rzil::{builder::RzILBuilder, PureRef, Sort};
 use crate::solver::Solver;
 use crate::utils::PagedIntervalMap;
-use crate::error::Result;
 use rangemap::RangeMap;
 use rzapi::structs::Endian;
 use std::cell::Cell;
@@ -18,7 +14,7 @@ use std::rc::Rc;
 struct MemoryEntry {
     addr: PureRef,
     val: PureRef,
-    t: i64,             // timestamp
+    t: i64, // timestamp
 }
 
 #[derive(Clone, Debug)]
@@ -46,11 +42,13 @@ impl Memory {
     }
 
     /// Write n bytes of memory from a certain location
-    pub fn store(&mut self,
-                 solver: &dyn Solver,
-                 rzil: &RzILBuilder,
-                 addr: PureRef,
-                 val: PureRef) -> Result<()> {
+    pub fn store(
+        &mut self,
+        solver: &dyn Solver,
+        rzil: &RzILBuilder,
+        addr: PureRef,
+        val: PureRef,
+    ) -> Result<()> {
         assert!(val.get_size() > 0 && val.get_size() % 8 == 0);
         let n = u32::try_from(val.get_size() / 8).unwrap();
         for k in 0..n {
@@ -58,8 +56,7 @@ impl Memory {
             let address = rzil.new_bvadd(addr.clone(), offset)?;
             let value = match self.endian {
                 Endian::Little => rzil.new_extract(val.clone(), k + 7, k)?,
-                Endian::Big => rzil.new_extract(
-                    val.clone(), u64::BITS - k, u64::BITS - k - 7)?,
+                Endian::Big => rzil.new_extract(val.clone(), u64::BITS - k, u64::BITS - k - 7)?,
             };
             //extract val k k
             self._store(solver, rzil, address, value)?;
@@ -68,11 +65,13 @@ impl Memory {
     }
 
     /// Write a byte of memory at a certain location
-    fn _store(&mut self,
-              solver: &dyn Solver,
-              rzil: &RzILBuilder,
-              addr: PureRef,
-              val: PureRef) -> Result<()> {
+    fn _store(
+        &mut self,
+        solver: &dyn Solver,
+        rzil: &RzILBuilder,
+        addr: PureRef,
+        val: PureRef,
+    ) -> Result<()> {
         self.t_pos.set(self.t_pos.get() + 1);
         let entry = MemoryEntry {
             addr: addr.clone(),
@@ -80,12 +79,12 @@ impl Memory {
             t: self.t_pos.get(),
         };
         if addr.is_concretized() {
-            Rc::make_mut(&mut self.concrete).insert(addr.evaluate()..addr.evaluate()+1, entry);
+            Rc::make_mut(&mut self.concrete).insert(addr.evaluate()..addr.evaluate() + 1, entry);
         } else {
             let a = solver.get_min(self, rzil, addr.clone())?;
             let b = solver.get_max(self, rzil, addr.clone())?;
             if a == b {
-                Rc::make_mut(&mut self.concrete).insert(a..a+1, entry);
+                Rc::make_mut(&mut self.concrete).insert(a..a + 1, entry);
             } else {
                 self.symbolic.insert(a..b, entry);
             }
@@ -95,21 +94,31 @@ impl Memory {
 
     /// Collect all admissible memory entries of given address ranges
     fn search<'a>(&'a self, range: &'a Range<u64>) -> Vec<&MemoryEntry> {
-        self.concrete.overlapping(range).filter(|e| e.1.t <= self.t_pos.get())
-            .chain(self.symbolic.overlapping(range).filter(|e| e.1.t <= self.t_pos.get()))
-            .map(|(_r, e)| e).collect()
+        self.concrete
+            .overlapping(range)
+            .filter(|e| e.1.t <= self.t_pos.get())
+            .chain(
+                self.symbolic
+                    .overlapping(range)
+                    .filter(|e| e.1.t <= self.t_pos.get()),
+            )
+            .map(|(_r, e)| e)
+            .collect()
     }
 
     /// Read n bytes of memory at a certain location
-    pub fn load(&self,
-                solver: &dyn Solver,
-                rzil: &RzILBuilder,
-                addr: PureRef, n: u32) -> Result<PureRef> {
+    pub fn load(
+        &self,
+        solver: &dyn Solver,
+        rzil: &RzILBuilder,
+        addr: PureRef,
+        n: u32,
+    ) -> Result<PureRef> {
         assert!(n > 0);
         let mut bytes = Vec::new();
         let address_range: Vec<u32> = match self.endian {
             Endian::Little => (0..n).collect(),
-            Endian::Big => (0..n).rev().collect()
+            Endian::Big => (0..n).rev().collect(),
         };
         for k in &address_range {
             let offset = rzil.new_const(Sort::Bitv(addr.get_size()), *k as u64);
@@ -123,10 +132,7 @@ impl Memory {
     }
 
     /// Read a byte of memory at a certain location
-    fn _load(&self,
-             solver: &dyn Solver,
-             rzil: &RzILBuilder,
-             addr: PureRef) -> Result<PureRef> {
+    fn _load(&self, solver: &dyn Solver, rzil: &RzILBuilder, addr: PureRef) -> Result<PureRef> {
         let a = solver.get_min(self, rzil, addr.clone())?;
         let b = solver.get_max(self, rzil, addr.clone())?;
         let range = a..b;

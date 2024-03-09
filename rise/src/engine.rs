@@ -1,20 +1,15 @@
+use crate::context::{Context, Status};
+use crate::error::Result;
+use crate::explorer::PathExplorer;
+use crate::registers;
+use crate::rzil::{
+    builder::RzILBuilder, error::RzILError, lifter::RzILLifter, variables::Variables, Effect,
+};
+use crate::solver::Solver;
 use rzapi::api::RzApi;
 use std::rc::Rc;
-use crate::context::{Status, Context};
-use crate::explorer::PathExplorer;
-use crate::error::Result;
-use crate::rzil::{
-    error::RzILError,
-    lifter::RzILLifter,
-    builder::RzILBuilder,
-    variables::Variables,
-    Effect
-};
-use crate::registers;
-use crate::solver::Solver;
 //use crate::memory::Memory;
-pub struct Rise<S: Solver>
-{
+pub struct Rise<S: Solver> {
     api: RzApi,
     explorer: PathExplorer<S>,
     lifter: RzILLifter,
@@ -36,7 +31,7 @@ pub struct Rise<S: Solver>
  *  Status::DirectJump(id) => s.seek(id), s.run(Mode::Block),
  *  Status::IndirectJump(id) => let jump = s.eval(id) or s.get_pure(id),
  *  Status::Branch(cond, then, else) => ,
- *  Status::Continue => 
+ *  Status::Continue =>
  * }
  *
  * let stream = risee::InstructionStream::new("/bin/ls")
@@ -83,12 +78,12 @@ impl<S: Solver> Rise<S> {
             Mode::Step => {
                 let ops = self.read_insts(pc, 1)?;
                 self.process(&mut ctx, ops)?;
-            },
+            }
             Mode::Block => {
                 let n = self.num_insts_in_current_block()?;
                 let ops = self.read_insts(pc, n)?;
                 self.process(&mut ctx, ops)?;
-            },
+            }
             Mode::Explore => {
                 while self.is_stopped() {
                     let status = self.run(Mode::Block)?;
@@ -113,7 +108,10 @@ impl<S: Solver> Rise<S> {
     fn read_insts(&mut self, pc: u64, n: u64) -> Result<Vec<Rc<Effect>>> {
         let mut ops = Vec::new();
         for inst in self.api.get_n_insts(Some(n), Some(pc))? {
-            ops.push(self.lifter.parse_effect(&self.builder, &mut self.vars, &inst.rzil)?);
+            ops.push(
+                self.lifter
+                    .parse_effect(&self.builder, &mut self.vars, &inst.rzil)?,
+            );
         }
         Ok(ops)
     }
@@ -131,7 +129,11 @@ impl<S: Solver> Rise<S> {
     }
 }
 
-fn process_op<S: Solver>(ctx: &mut Context<S>, rzil: &RzILBuilder, op: Rc<Effect>) -> Result<Status> {
+fn process_op<S: Solver>(
+    ctx: &mut Context<S>,
+    rzil: &RzILBuilder,
+    op: Rc<Effect>,
+) -> Result<Status> {
     let op = op.as_ref();
     match op {
         Effect::Nop => Ok(Status::Continue),
@@ -142,7 +144,7 @@ fn process_op<S: Solver>(ctx: &mut Context<S>, rzil: &RzILBuilder, op: Rc<Effect
             } else {
                 Ok(Status::SymbolicJump(dst.clone()))
             }
-        },
+        }
         Effect::Goto { label } => Ok(Status::Goto(label.clone())),
         Effect::Seq { args } => {
             for arg in args {
@@ -158,13 +160,19 @@ fn process_op<S: Solver>(ctx: &mut Context<S>, rzil: &RzILBuilder, op: Rc<Effect
         }
         Effect::Blk => Err(RzILError::UnimplementedRzILEffect("Blk".to_string()).into()),
         Effect::Repeat => Err(RzILError::UnimplementedRzILEffect("Repeat".to_string()).into()),
-        Effect::Branch { condition, then, otherwise } => {
-            Ok(Status::Branch(condition.clone(), then.clone(), otherwise.clone()))
-        }
+        Effect::Branch {
+            condition,
+            then,
+            otherwise,
+        } => Ok(Status::Branch(
+            condition.clone(),
+            then.clone(),
+            otherwise.clone(),
+        )),
         Effect::Store { key, value } => {
             ctx.store(rzil, key.clone(), value.clone())?;
             Ok(Status::Continue)
         }
-        Effect::Empty => Ok(Status::Continue)
+        Effect::Empty => Ok(Status::Continue),
     }
 }

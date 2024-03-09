@@ -1,16 +1,7 @@
+use crate::error::{Result, RiseError};
+use crate::rzil::{variables::Variables, Sort};
+use rzapi::{api::RzApi, structs::RegisterType};
 use std::collections::HashMap;
-use crate::rzil::{
-    Sort,
-    variables::Variables,
-};
-use crate::error::{
-    RiseError,
-    Result,
-};
-use rzapi::{
-    structs::RegisterType,
-    api::RzApi
-};
 
 #[derive(Clone, Debug)]
 pub struct RegSpec {
@@ -33,11 +24,11 @@ fn parse_reg_info(rzapi: &mut RzApi) -> Result<Vec<RegSpec>> {
     let mut reg_specs = Vec::new();
     let reg_info = match rzapi.get_analysis_registers() {
         Ok(reg_profile) => reg_profile.reg_info,
-        Err(e) => return Err(RiseError::RzApi(e))
+        Err(e) => return Err(RiseError::RzApi(e)),
     };
     for r in &reg_info {
         match min_offsets.get(&r.type_id) {
-            Some((offset, _)) =>  {
+            Some((offset, _)) => {
                 if r.offset > offset.clone() {
                     ()
                 } else {
@@ -61,7 +52,7 @@ fn parse_reg_info(rzapi: &mut RzApi) -> Result<Vec<RegSpec>> {
                     Sort::Bitv(r.size)
                 }
             }
-            _ => Sort::Bitv(r.size)
+            _ => Sort::Bitv(r.size),
         };
         reg_specs.push(RegSpec {
             name: r.name.to_string(),
