@@ -1,9 +1,8 @@
-use crate::interval::{Interval, IntervalEndSorted};
 use std::cmp::Ordering;
 use std::collections::btree_map;
 use std::fmt::{self, Debug};
 use std::ops::{Bound, Range};
-
+use super::interval::{Interval, IntervalEndSorted};
 #[derive(Clone)]
 pub struct IntervalMap<K, V> {
     btm: btree_map::BTreeMap<Interval<K>, V>,

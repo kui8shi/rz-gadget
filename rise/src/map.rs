@@ -1,4 +1,6 @@
-use crate::intervalmap::IntervalMap;
+mod interval;
+mod interval_map;
+use interval_map::IntervalMap;
 use std::fmt::Debug;
 use std::ops::Range;
 use std::rc::Rc;

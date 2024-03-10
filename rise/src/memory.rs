@@ -4,7 +4,7 @@ use crate::rzil::{
     builder::RzILBuilder,
 };
 use crate::solver::Solver;
-use crate::utils::PagedIntervalMap;
+use crate::map::PagedIntervalMap;
 use rangemap::RangeMap;
 use rzapi::structs::Endian;
 use std::cell::Cell;

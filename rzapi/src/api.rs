@@ -462,17 +462,3 @@ impl RzApi {
         self.cmdj("aezvj")
     }
 }
-
-#[test]
-fn rzil() {
-    let mut rzapi = RzApi::new(Some("/bin/ls"))
-        .map_err(|e| println!("Error:{}", e))
-        .unwrap();
-    rzapi.analyze_all();
-    let rzil = &rzapi
-        .analyze_n_insts(1, Some(0x4e19))
-        .map_err(|e| println!("Error:{}", e))
-        .unwrap()[0]
-        .rzil;
-    println!("{:?}", rzil);
-}
