@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::ops::{Deref, Range};
@@ -82,7 +83,7 @@ where
     }
 }
 
-impl<T> core::borrow::Borrow<IntervalEndSorted<T>> for Interval<T> {
+impl<T> Borrow<IntervalEndSorted<T>> for Interval<T> {
     fn borrow(&self) -> &IntervalEndSorted<T> {
         &self.end_sorted
     }
@@ -155,5 +156,34 @@ impl<T> Deref for IntervalEndSorted<T> {
 
     fn deref(&self) -> &Self::Target {
         &self.range
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Interval;
+
+    #[test]
+    fn compare() {
+        let a = Interval::new(2..19);
+        let b = Interval::new(6..18);
+        let c = Interval::new(2..18);
+        assert!(a < b);
+        assert!(b > c);
+        assert!(a == c);
+        assert!(a.end_sorted > b.end_sorted);
+        assert!(b.end_sorted == c.end_sorted);
+        assert!(a.end_sorted > c.end_sorted);
+    }
+
+    #[test]
+    fn overlap_and_touch() {
+        let a = Interval::new(2..19);
+        let b = Interval::new(18..20);
+        let c = Interval::new(19..20);
+        assert!(a.overlaps(&b));
+        assert!(!a.overlaps(&c));
+        assert!(a.touches(&b));
+        assert!(a.touches(&c));
     }
 }

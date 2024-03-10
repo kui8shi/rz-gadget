@@ -1,6 +1,7 @@
 .cache
 build
 *.txt
+compile_commands.json
 
 # Added by cargo
 

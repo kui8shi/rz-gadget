@@ -12,12 +12,13 @@ mod context;
 mod engine;
 mod error;
 mod explorer;
+mod map;
 mod memory;
+mod paged_map;
 mod registers;
 mod rzil;
 mod solver;
 mod to_z3;
-mod map;
 
 use anyhow::Result;
 fn main() -> Result<()> {

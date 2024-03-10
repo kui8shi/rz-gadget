@@ -13,9 +13,9 @@ pub struct RzILBuilder {
 
 impl RzILBuilder {
     pub fn new() -> Self {
-        const default_cache_size: usize = 100;
+        const DEFAULT_CACHE_SIZE: usize = 100;
         RzILBuilder {
-            pure_cache: Rc::new(Cache::new(default_cache_size)),
+            pure_cache: Rc::new(Cache::new(DEFAULT_CACHE_SIZE)),
             uniq_var_id: Cell::new(0),
         }
     }

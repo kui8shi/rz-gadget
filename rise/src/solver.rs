@@ -149,7 +149,7 @@ impl Solver for Z3Solver {
                 let val = rzil.new_const(op.get_sort(), val);
                 let eq = rzil.new_eq(op.clone(), val)?;
                 let ex_c = rzil.new_boolinv(eq)?;
-                extra_constraint.push({ z3.convert(mem, rzil, ex_c)?.as_bool().unwrap() });
+                extra_constraint.push(z3.convert(mem, rzil, ex_c)?.as_bool().unwrap());
             } else {
                 // model not found (unsat)
                 break;

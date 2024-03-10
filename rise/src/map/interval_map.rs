@@ -1,13 +1,12 @@
+use super::interval::{Interval, IntervalEndSorted};
+use super::splay_tree;
 use std::cmp::Ordering;
-use std::collections::btree_map;
 use std::fmt::{self, Debug};
 use std::ops::{Bound, Range};
-use super::interval::{Interval, IntervalEndSorted};
 #[derive(Clone)]
 pub struct IntervalMap<K, V> {
-    btm: btree_map::BTreeMap<Interval<K>, V>,
+    binary_tree: splay_tree::SplayTree<Interval<K>, V>,
 }
-
 impl<K, V> Default for IntervalMap<K, V> {
     fn default() -> Self {
         Self::new()
@@ -58,7 +57,7 @@ impl<K, V> IntervalMap<K, V> {
     #[cfg(not(feature = "const_fn"))]
     pub fn new() -> Self {
         IntervalMap {
-            btm: btree_map::BTreeMap::new(),
+            binary_tree: splay_tree::SplayTree::new(),
         }
     }
 
@@ -68,30 +67,30 @@ impl<K, V> IntervalMap<K, V> {
     /// The iterator element type is `(&'a Range<K>, &'a V)`.
     pub fn iter(&self) -> Iter<'_, K, V> {
         Iter {
-            inner: self.btm.iter(),
+            inner: self.binary_tree.iter(),
         }
     }
 
     /// Clears the map, removing all elements.
     pub fn clear(&mut self) {
-        self.btm.clear();
+        self.binary_tree.clear();
     }
 
     /// Returns the number of elements in the map.
     pub fn len(&self) -> usize {
-        self.btm.len()
+        self.binary_tree.len()
     }
 
     /// Returns true if the map contains no elements.
     pub fn is_empty(&self) -> bool {
-        self.btm.is_empty()
+        self.binary_tree.is_empty()
     }
 
     /// Returns an iterator that includes both ends of the key range.
     ///
     /// Mainly used for comparisons.
     fn expanded_iter(&self) -> impl Iterator<Item = (&K, &K, &V)> {
-        self.btm.iter().map(|(k, v)| (&k.start, &k.end, v))
+        self.binary_tree.iter().map(|(k, v)| (&k.start, &k.end, v))
     }
 }
 
@@ -111,7 +110,7 @@ where
         // The only stored range that could contain the given key is the
         // last stored range whose start is less than or equal to this key.
         let key_as_start = Interval::new(key.clone()..key.clone());
-        self.btm
+        self.binary_tree
             .range((Bound::Unbounded, Bound::Included(key_as_start)))
             .next_back()
             .filter(|(interval, _value)| {
@@ -139,7 +138,7 @@ where
     pub fn gaps<'a>(&'a self, outer_range: &'a Range<K>) -> Gaps<'a, K, V> {
         Gaps {
             outer_range,
-            keys: self.btm.keys(),
+            keys: self.binary_tree.keys(),
             // We'll start the candidate range at the start of the outer range
             // without checking what's there. Each time we yield an item,
             // we'll skip any ranges we find before the next gap.
@@ -150,19 +149,18 @@ where
     /// Gets an iterator over all the stored ranges that are
     /// either partially or completely overlapped by the given range.
     pub fn overlapping<'a>(&'a self, range: &'a Range<K>) -> Overlapping<K, V> {
-        // Find the first matching stored range by its _end_,
-        // using sneaky layering and `Borrow` implementation. (See `range_wrappers` module.)
+        // Find the first matching stored range by its end,
+        // using sneaky layering and `Borrow` implementation. (See `interval` module.)
+        // After that, add another overlapping condition for the range start
+        // in Overlapping::next(). (See definition of 'next' in Iterator impl of Overlapping)
         let start_sliver = IntervalEndSorted::new(range.start.clone()..range.start.clone());
-        let btm_range_iter = self
-            .btm
+        let iter = self
+            .binary_tree
             .range::<IntervalEndSorted<K>, (Bound<&IntervalEndSorted<K>>, Bound<_>)>((
                 Bound::Excluded(&start_sliver),
                 Bound::Unbounded,
             ));
-        Overlapping {
-            query_range: range,
-            btm_range_iter,
-        }
+        Overlapping { range, iter }
     }
 
     /// Returns `true` if any range in the map completely or partially
@@ -182,6 +180,7 @@ where
     /// # Panics
     ///
     /// Panics if range `start >= end`.
+    /// TODO the case that ranges of the same starts are given.
     pub fn insert(&mut self, range: Range<K>, value: V) {
         // We don't want to have to make empty ranges make sense;
         // they don't represent anything meaningful in this structure.
@@ -192,7 +191,7 @@ where
         // See `interval.rs` for explanation of these hacks.
         let interval: Interval<K> = Interval::new(range);
 
-        self.btm.insert(interval, value);
+        self.binary_tree.insert(interval, value);
     }
 
     /// Removes a range from the map, if all or any of it was present.
@@ -218,7 +217,7 @@ where
         // If there is any such stored range, it will be the last
         // whose start is less than or equal to the start of the range to insert.
         if let Some((stored_interval, stored_value)) = self
-            .btm
+            .binary_tree
             .range::<Interval<K>, (Bound<&Interval<K>>, Bound<&Interval<K>>)>((
                 Bound::Unbounded,
                 Bound::Included(&interval),
@@ -244,7 +243,7 @@ where
         // and use that to search here, to avoid constructing another `Interval`.
         let new_range_end_as_start = Interval::new(range.end.clone()..range.end.clone());
         while let Some((stored_interval, stored_value)) = self
-            .btm
+            .binary_tree
             .range::<Interval<K>, (Bound<&Interval<K>>, Bound<&Interval<K>>)>((
                 Bound::Excluded(&interval),
                 Bound::Excluded(&new_range_end_as_start),
@@ -264,18 +263,18 @@ where
     ) {
         // Delete the stored range, and then add back between
         // 0 and 2 subranges at the ends of the range to insert.
-        self.btm.remove(&stored);
+        self.binary_tree.remove(&stored);
         let stored_range = stored.end_sorted;
         if stored_range.start < range_to_remove.start {
             // Insert the piece left of the range to insert.
-            self.btm.insert(
+            self.binary_tree.insert(
                 Interval::new(stored_range.range.start..range_to_remove.start.clone()),
                 stored_value.clone(),
             );
         }
         if stored_range.range.end > range_to_remove.end {
             // Insert the piece right of the range to insert.
-            self.btm.insert(
+            self.binary_tree.insert(
                 Interval::new(range_to_remove.end.clone()..stored_range.range.end),
                 stored_value,
             );
@@ -284,7 +283,7 @@ where
 }
 
 pub struct Iter<'a, K, V> {
-    inner: btree_map::Iter<'a, Interval<K>, V>,
+    inner: splay_tree::Iter<'a, Interval<K>, V>,
 }
 
 impl<'a, K, V> Iterator for Iter<'a, K, V>
@@ -303,6 +302,7 @@ where
     }
 }
 
+/*
 /// An owning iterator over the entries of a `IntervalMap`, ordered by key range.
 ///
 /// The iterator element type is `(Range<K>, V)`.
@@ -312,7 +312,7 @@ where
 ///
 /// [`into_iter`]: IntoIterator::into_iter
 pub struct IntoIter<K, V> {
-    inner: btree_map::IntoIter<Interval<K>, V>,
+    inner: splay_tree::IntoIter<Interval<K>, V>,
 }
 
 impl<K, V> IntoIterator for IntervalMap<K, V> {
@@ -320,7 +320,7 @@ impl<K, V> IntoIterator for IntervalMap<K, V> {
     type IntoIter = IntoIter<K, V>;
     fn into_iter(self) -> Self::IntoIter {
         IntoIter {
-            inner: self.btm.into_iter(),
+            inner: self.binary_tree.into_iter(),
         }
     }
 }
@@ -335,6 +335,7 @@ impl<K, V> Iterator for IntoIter<K, V> {
     }
 }
 
+*/
 // We can't just derive this automatically, because that would
 // expose irrelevant (and private) implementation details.
 // Instead implement it in the same way that the underlying BTreeMap does.
@@ -380,7 +381,7 @@ where
 /// [`gaps`]: IntervalMap::gaps
 pub struct Gaps<'a, K, V> {
     outer_range: &'a Range<K>,
-    keys: btree_map::Keys<'a, Interval<K>, V>,
+    keys: splay_tree::Keys<'a, Interval<K>, V>,
     candidate_start: &'a K,
 }
 
@@ -435,8 +436,8 @@ where
 ///
 /// [`overlapping`]: IntervalMap::overlapping
 pub struct Overlapping<'a, K, V> {
-    query_range: &'a Range<K>,
-    btm_range_iter: btree_map::Range<'a, Interval<K>, V>,
+    range: &'a Range<K>,
+    iter: splay_tree::Iter<'a, Interval<K>, V>,
 }
 
 // `Overlapping` is always fused. (See definition of `next` below.)
@@ -449,8 +450,8 @@ where
     type Item = (&'a Range<K>, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some((k, v)) = self.btm_range_iter.next() {
-            if k.start < self.query_range.end {
+        if let Some((k, v)) = self.iter.next() {
+            if k.start < self.range.end {
                 Some((&k.range, v))
             } else {
                 // The rest of the items in the underlying iterator
@@ -464,3 +465,19 @@ where
         }
     }
 }
+
+/*
+#[cfg(test)]
+mod test {
+    use super::super::interval::Interval;
+    use super::IntervalMap;
+
+    #[test]
+    fn overlap() {
+        let mut i = IntervalMap::new();
+        i.insert(2..9, "a");
+        i.insert(3..8, "b");
+        i.insert(2..8, "c");
+    }
+}
+*/

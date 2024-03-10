@@ -1,10 +1,10 @@
 use crate::error::Result;
+use crate::paged_map::PagedIntervalMap;
 use crate::rzil::{
     ast::{PureRef, Sort},
     builder::RzILBuilder,
 };
 use crate::solver::Solver;
-use crate::map::PagedIntervalMap;
 use rangemap::RangeMap;
 use rzapi::structs::Endian;
 use std::cell::Cell;
