@@ -94,30 +94,6 @@ impl<K, V> SplayTree<K, V> {
         new_id
     }
 
-    // delete node with 'id' from splay tree's internal node array.
-    // in the deletion, the last element of the array will be swapped
-    // into the deleted node's position(see 'Vec::swap_remove' document).
-    // since the call is disruptive for the relationships between nodes and their ids,
-    // please take care of your vars of node ids before calling this function.
-    pub(self) fn delete_node(&mut self, id: Option<usize>) -> Option<Node<K, V>> {
-        if self.is_empty() || !id.is_some_and(|id| id < self.len()) {
-            return None;
-        }
-        let last = self.array.last().unwrap().id;
-        debug_assert!(last == self.array.len() - 1);
-        {
-            // rename the last node's id to 'id',
-            // because we are going to swap the array positions
-            // of the deleting node and the last node by 'swap_remove'.
-            self.relink(Some(last), id);
-            self.array[last].id = id.unwrap();
-            if self.root == Some(last) {
-                self.root = id;
-            }
-        }
-        Some(self.array.swap_remove(id.unwrap()))
-    }
-
     pub fn clear(&mut self) {
         self.array.clear();
         self.root = None;
@@ -237,6 +213,30 @@ impl<K, V> SplayTree<K, V> {
         } else {
             id
         }
+    }
+
+    // delete node with 'id' from splay tree's internal node array.
+    // in the deletion, the last element of the array will be swapped
+    // into the deleted node's position(see 'Vec::swap_remove' document).
+    // since the call is disruptive for the relationships between nodes and their ids,
+    // please take care of your vars of node ids before calling this function.
+    pub(self) fn delete_node(&mut self, id: Option<usize>) -> Option<Node<K, V>> {
+        if self.is_empty() || !id.is_some_and(|id| id < self.len()) {
+            return None;
+        }
+        let last = self.array.last().unwrap().id;
+        debug_assert!(last == self.array.len() - 1);
+        {
+            // rename the last node's id to 'id',
+            // because we are going to swap the array positions
+            // of the deleting node and the last node by 'swap_remove'.
+            self.relink(Some(last), id);
+            self.array[last].id = id.unwrap();
+            if self.root == Some(last) {
+                self.root = id;
+            }
+        }
+        Some(self.array.swap_remove(id.unwrap()))
     }
 
     fn relink(&mut self, old: Option<usize>, new: Option<usize>) {
@@ -719,8 +719,3 @@ impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Values<'a, K, V> {
         self.inner.next_back().map(|(_, v)| v)
     }
 }
-
-/*
-impl<K: Ord, V>  {
-}
-*/
