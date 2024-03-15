@@ -131,13 +131,11 @@ impl<K, V> SplayTree<K, V> {
         )
     }
 
-    /*
     pub fn into_iter(self) -> IntoIter<K, V> {
         let front = self.left_most_of(self.root);
         let back = self.right_most_of(self.root);
         IntoIter::new(self, front, back)
     }
-    */
 
     pub fn keys(&self) -> Keys<'_, K, V> {
         Keys {
@@ -162,7 +160,6 @@ impl<K, V> SplayTree<K, V> {
     pub(self) fn at(&self, id: Option<usize>) -> Option<&Node<K, V>> {
         id.and_then(|id| {
             debug_assert!(id < self.array.len());
-            debug_assert!(self.array[id].value.len() > 0);
             Some(&self.array[id])
         })
     }
@@ -170,7 +167,6 @@ impl<K, V> SplayTree<K, V> {
     pub(self) fn mut_at(&mut self, id: Option<usize>) -> Option<&mut Node<K, V>> {
         id.and_then(|id| {
             debug_assert!(id < self.array.len());
-            debug_assert!(self.array[id].value.len() > 0);
             Some(&mut self.array[id])
         })
     }
@@ -583,107 +579,91 @@ impl<'a, K: 'a, V: 'a> Iterator for Iter<'a, K, V> {
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let (front, val_idx) = self.front;
-        let node = self.tree.at(front)?;
-        if self.front == self.back {
+        let (mut front, mut val_idx) = self.front;
+        if val_idx < self.tree.at(front)?.value.len() - 1 {
+            self.front = (front, val_idx + 1);
+        } else if self.front == self.back {
             self.front = (None, 0);
             self.back = (None, 0);
-        } else if val_idx < node.value.len() - 1 {
-            self.front = (front, val_idx + 1);
         } else {
-            let next = self.tree.ascend(front);
-            let next_val_idx = 0;
-            self.front = (next, next_val_idx);
+            front = self.tree.ascend(front);
+            val_idx = 0;
+            self.front = (front, val_idx);
         }
+        let node = self.tree.at(front)?;
         Some((&node.key, &node.value[val_idx]))
     }
 }
 
 impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Iter<'a, K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        let (back, val_idx) = self.back;
-        let node = self.tree.at(back)?;
-        if self.front == self.back {
+        let (mut back, mut val_idx) = self.back;
+        if val_idx > 0 {
+            self.back = (back, val_idx - 1);
+        } else if self.front == self.back {
             self.front = (None, 0);
             self.back = (None, 0);
-        } else if val_idx > 0 {
-            self.back = (back, val_idx - 1);
         } else {
-            let next = self.tree.descend(back);
-            let next_val_idx = self.tree.at(next).map_or(0, |n| n.value.len() - 1);
-            self.back = (next, next_val_idx);
+            back = self.tree.descend(back);
+            val_idx = self.tree.at(back).map_or(0, |n| n.value.len() - 1);
+            self.back = (back, val_idx);
         }
+        let node = self.tree.at(back)?;
         Some((&node.key, &node.value[val_idx]))
     }
 }
 
-/*
 pub struct IntoIter<K, V> {
     tree: SplayTree<K, V>,
-    front: Option<Node<K, V>>,
-    back: Option<Node<K, V>>,
+    front: Option<usize>,
+    back: Option<usize>,
 }
 
 impl<K, V> IntoIter<K, V> {
     pub(self) fn new(tree: SplayTree<K, V>, front: Option<usize>, back: Option<usize>) -> Self {
-        let mut tree = tree;
-        let mut back = back;
-        if !tree.is_empty() && back.is_some_and(|b| b == tree.len() - 1) {
-            // if back node is the last element of tree.array,
-            // just after the deletion of front node,
-            // back node will take over the id of deleted front node
-            // so overwrite 'back' beforehand.
-            back = front;
-        }
-        let front = tree.delete_node(front);
-        let back = tree.delete_node(back);
         Self { tree, front, back }
     }
 }
 
-impl<K: Ord, V> Iterator for IntoIter<K, V> {
+impl<K: Clone, V> Iterator for IntoIter<K, V> {
     type Item = (K, V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let id = self.front.map(|n| n.id);
-        let next = self.tree.ascend(id);
-        if self.front?.value.len() <= 1 &&
-           next.is_some_and(|id| id == back.id) {
-
-            self.back?.key {
-            self.front = (None, 0);
-            self.back = (None, 0);
-        } else if val_idx < node_ref.value.len() - 1 {
-            self.front = (front, val_idx + 1);
-        } else {
-            let next = self.tree.ascend(front);
-            let next_val_idx = 0;
-            self.front = (next, next_val_idx);
+        /*
+         * f/b
+         * f <-> b
+         * f -> ff/bb <~ b
+         * f -> ff ... bb <- b
+         *
+         */
+        if self.tree.at(self.front)?.value.is_empty() {
+            if self.front == self.back {
+                self.front = None;
+                self.back = None;
+            } else {
+                self.front = self.tree.ascend(self.front);
+            }
         }
-        let node = self.tree.remove(node_ref.key)?;
-        Some((node.key, node.value))
+        let node = self.tree.mut_at(self.front)?;
+        Some((node.key.clone(), node.value.pop()?))
     }
 }
 
-impl<K: Ord, V> DoubleEndedIterator for IntoIter<K, V> {
+impl<K: Clone, V> DoubleEndedIterator for IntoIter<K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        let (back, val_idx) = self.back;
-        if self.front == self.back {
-            self.front = (None, 0);
-            self.back = (None, 0);
-        } else if val_idx > 0 {
-            self.back = (back, val_idx - 1);
-        } else {
-            let next = self.tree.descend(back);
-            let next_val_idx = self.tree.at(next).map_or(0, |n| n.value.len() - 1);
-            self.back = (next, next_val_idx);
+        if self.tree.at(self.back)?.value.is_empty() {
+            if self.front == self.back {
+                self.front = None;
+                self.back = None;
+            } else {
+                self.back = self.tree.descend(self.back);
+            }
         }
-        let node = self.tree.remove(back)?;
-        Some((node.key, node.value))
+        let node = self.tree.mut_at(self.front)?;
+        Some((node.key.clone(), node.value.pop()?))
     }
 }
 
-*/
 pub struct Keys<'a, K, V> {
     inner: Iter<'a, K, V>,
 }

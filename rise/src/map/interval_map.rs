@@ -302,7 +302,6 @@ where
     }
 }
 
-/*
 /// An owning iterator over the entries of a `IntervalMap`, ordered by key range.
 ///
 /// The iterator element type is `(Range<K>, V)`.
@@ -315,7 +314,7 @@ pub struct IntoIter<K, V> {
     inner: splay_tree::IntoIter<Interval<K>, V>,
 }
 
-impl<K, V> IntoIterator for IntervalMap<K, V> {
+impl<K: Clone, V> IntoIterator for IntervalMap<K, V> {
     type Item = (Range<K>, V);
     type IntoIter = IntoIter<K, V>;
     fn into_iter(self) -> Self::IntoIter {
@@ -325,7 +324,7 @@ impl<K, V> IntoIterator for IntervalMap<K, V> {
     }
 }
 
-impl<K, V> Iterator for IntoIter<K, V> {
+impl<K: Clone, V> Iterator for IntoIter<K, V> {
     type Item = (Range<K>, V);
     fn next(&mut self) -> Option<(Range<K>, V)> {
         self.inner.next().map(|(k, v)| (k.end_sorted.range, v))
@@ -335,7 +334,6 @@ impl<K, V> Iterator for IntoIter<K, V> {
     }
 }
 
-*/
 // We can't just derive this automatically, because that would
 // expose irrelevant (and private) implementation details.
 // Instead implement it in the same way that the underlying BTreeMap does.
