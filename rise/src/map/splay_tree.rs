@@ -6,7 +6,7 @@ use std::ops::{Bound, RangeBounds};
 #[derive(Clone, Debug)]
 struct Node<K, V> {
     key: K,
-    value: Vec<V>, // allow duplicated key
+    values: Vec<V>, // allow duplicated key
     id: usize,
     parent: Option<usize>,
     left: Option<usize>,
@@ -15,7 +15,7 @@ struct Node<K, V> {
 
 impl<K: Ord, V> Node<K, V> {
     fn add_value(&mut self, value: V) {
-        self.value.push(value);
+        self.values.push(value);
     }
 }
 
@@ -34,7 +34,9 @@ impl<K: Clone, V: Clone> Clone for SplayTree<K, V> {
 }
 impl<K: Debug, V: Debug> Debug for SplayTree<K, V> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.pretty_print(self.root, 0, f)
+        f.write_str("{\n")?;
+        self.pretty_print(self.root, 2, f)?; // called recursively
+        f.write_str("}")
     }
 }
 
@@ -46,14 +48,15 @@ impl<K: Debug, V: Debug> SplayTree<K, V> {
         f: &mut std::fmt::Formatter<'_>,
     ) -> std::fmt::Result {
         if let Some(node) = self.at(id) {
-            self.pretty_print(self.left_of(id), indent + 2, f)?;
-            f.write_fmt(format_args!(
-                "{}{:?} : {:?}",
-                " ".repeat(indent * 2),
-                node.key,
-                node.value
-            ))?;
             self.pretty_print(self.right_of(id), indent + 2, f)?;
+            f.write_fmt(format_args!(
+                "{}{:?}: {:?} -> {:?}\n",
+                " ".repeat(indent * 2),
+                id.unwrap(),
+                node.key,
+                node.values
+            ))?;
+            self.pretty_print(self.left_of(id), indent + 2, f)?;
         }
         Ok(())
     }
@@ -80,18 +83,19 @@ impl<K, V> SplayTree<K, V> {
         value: V,
         left: Option<usize>,
         right: Option<usize>,
-    ) -> usize {
+    ) -> Option<usize> {
         let new_id = self.array.len();
         self.array.push(Node {
             key,
-            value: [value].into(),
+            values: [value].into(),
             id: new_id,
             parent: None,
             left,
             right,
         });
-        self.relink(Some(new_id), Some(new_id));
-        new_id
+        self.link_left(Some(new_id), left);
+        self.link_right(Some(new_id), right);
+        Some(new_id)
     }
 
     pub fn clear(&mut self) {
@@ -215,38 +219,13 @@ impl<K, V> SplayTree<K, V> {
         }
     }
 
-    // delete node with 'id' from splay tree's internal node array.
-    // in the deletion, the last element of the array will be swapped
-    // into the deleted node's position(see 'Vec::swap_remove' document).
-    // since the call is disruptive for the relationships between nodes and their ids,
-    // please take care of your vars of node ids before calling this function.
-    pub(self) fn delete_node(&mut self, id: Option<usize>) -> Option<Node<K, V>> {
-        if self.is_empty() || !id.is_some_and(|id| id < self.len()) {
-            return None;
-        }
-        let last = self.array.last().unwrap().id;
-        debug_assert!(last == self.array.len() - 1);
-        {
-            // rename the last node's id to 'id',
-            // because we are going to swap the array positions
-            // of the deleting node and the last node by 'swap_remove'.
-            self.relink(Some(last), id);
-            self.array[last].id = id.unwrap();
-            if self.root == Some(last) {
-                self.root = id;
-            }
-        }
-        Some(self.array.swap_remove(id.unwrap()))
+    fn link_left(&mut self, parent: Option<usize>, child: Option<usize>) {
+        self.mut_at(parent).map(|n| n.left = child);
+        self.mut_at(child).map(|n| n.parent = parent);
     }
-
-    fn relink(&mut self, old: Option<usize>, new: Option<usize>) {
-        if self.is_left_child(old) {
-            self.mut_at(self.parent_of(old)).map(|n| n.left = new);
-        } else if self.is_right_child(old) {
-            self.mut_at(self.parent_of(old)).map(|n| n.right = new);
-        }
-        self.mut_at(self.left_of(old)).map(|n| n.parent = new);
-        self.mut_at(self.right_of(old)).map(|n| n.parent = new);
+    fn link_right(&mut self, parent: Option<usize>, child: Option<usize>) {
+        self.mut_at(parent).map(|n| n.right = child);
+        self.mut_at(child).map(|n| n.parent = parent);
     }
 
     // rotate the tree right to make the left node of 'root' the new root.
@@ -254,10 +233,11 @@ impl<K, V> SplayTree<K, V> {
     // #Panics
     // if the left child node of 'root' is None.
     fn rotate_right(&mut self, root: Option<usize>) -> Option<usize> {
-        let new_root = self.left_of(root);
-        self.array[root?].left = self.at(new_root)?.right;
-        self.array[new_root?].right = root;
-        new_root
+        let left = self.left_of(root);
+        self.link_left(root, self.right_of(left));
+        self.link_right(left, root);
+        self.mut_at(left).map(|n| n.parent = None);
+        left
     }
 
     // rotate the tree left to make the right child node of 'root' the new root.
@@ -265,38 +245,37 @@ impl<K, V> SplayTree<K, V> {
     // #Panics
     // if root node or right child node of 'root' is None.
     fn rotate_left(&mut self, root: Option<usize>) -> Option<usize> {
-        let new_root = self.right_of(root);
-        self.array[root?].left = self.at(new_root)?.left;
-        self.array[new_root?].left = root;
-        new_root
+        let right = self.right_of(root);
+        self.link_right(root, self.left_of(right));
+        self.link_left(right, root);
+        self.mut_at(right).map(|n| n.parent = None);
+        right
     }
 }
 
 impl<K: Ord, V> SplayTree<K, V> {
     pub fn insert(&mut self, key: K, value: V) -> bool {
-        let root = std::mem::replace(&mut self.root, None);
         self.root = self.splay(&key, self.root);
         if self.at(self.root).is_none() {
-            self.root = Some(self.new_node(key, value, None, None));
+            self.root = self.new_node(key, value, None, None);
             return true;
         }
-        let root_node = self.mut_at(self.root).unwrap();
-        match key.cmp(&root_node.key) {
+        match key.cmp(&self.at(self.root).unwrap().key) {
             Ordering::Less => {
                 // split at the left edge of root and
                 // insert a new node as the new root
-                self.new_node(key, value, self.left_of(root), root);
+                self.root = self.new_node(key, value, self.left_of(self.root), self.root);
                 true
             }
             Ordering::Greater => {
                 // split at the right edge of root and
                 // insert a new node as the new root
-                self.new_node(key, value, root, self.right_of(root));
+                self.root = self.new_node(key, value, self.root, self.right_of(self.root));
                 true
             }
             Ordering::Equal => {
                 // complete the insertion as the addition of 'value' to root
-                root_node.add_value(value);
+                self.mut_at(self.root).unwrap().add_value(value);
                 true
             }
         }
@@ -306,7 +285,7 @@ impl<K: Ord, V> SplayTree<K, V> {
         self.root = self.splay(key, self.root);
         if &self.at(self.root)?.key == key {
             let node = self.at(self.root)?;
-            Some(&node.value)
+            Some(&node.values)
         } else {
             None
         }
@@ -332,8 +311,14 @@ impl<K: Ord, V> SplayTree<K, V> {
             }
             _ => {}
         }
-        let lower_bound = self.lower_bound(self.root, &start);
-        let upper_bound = self.upper_bound(self.root, &end);
+        let mut lower_bound = self.lower_bound(self.root, &start);
+        let mut upper_bound = self.upper_bound(self.root, &end);
+        if lower_bound.is_none() || upper_bound.is_none() || lower_bound > upper_bound {
+            // if either bound is none or lower exceeds upper,  
+            // the tree has no keys in the range.
+            lower_bound = None;
+            upper_bound = None;
+        }
         Iter::new(self, lower_bound, upper_bound)
     }
 
@@ -366,13 +351,14 @@ impl<K: Ord, V> SplayTree<K, V> {
         if left.is_none() {
             return root;
         }
-        match key.cmp(&self.at(left)?.key) {
+        let left_node = self.at(left).unwrap();
+        match key.cmp(&left_node.key) {
             Ordering::Less => {
                 // zig-zig
 
                 // make the left-left subtree have 'key' at its root by recursive splay operations
-                let tmp = self.splay(key, self.at(left)?.left);
-                self.mut_at(left)?.left = tmp;
+                let left_left = self.splay(key, self.left_of(left));
+                self.link_left(left, left_left);
 
                 // make the root of left-left subtree the new root by double right rotations
                 let new_root = self.rotate_right(root);
@@ -386,16 +372,16 @@ impl<K: Ord, V> SplayTree<K, V> {
                 // zig-zag
 
                 // make the left-right subtree have 'key' at its root by recursive splay operations
-                let tmp = self.splay(key, self.at(left)?.right);
-                self.mut_at(left)?.right = tmp;
+                let left_right = self.splay(key, self.right_of(left));
+                self.link_right(left, left_right);
 
                 // make the root of left-right subtree the new root by left and right rotations
-                let tmp = if self.right_of(left).is_some() {
+                let left = if self.right_of(left).is_some() {
                     self.rotate_left(left)
                 } else {
                     left
                 };
-                self.mut_at(root)?.left = tmp;
+                self.link_left(root, left);
                 self.rotate_right(root)
             }
             Ordering::Equal => {
@@ -412,18 +398,19 @@ impl<K: Ord, V> SplayTree<K, V> {
         if right.is_none() {
             return root;
         }
-        match key.cmp(&self.at(right)?.key) {
+        let right_node = self.at(right).unwrap();
+        match key.cmp(&right_node.key) {
             Ordering::Greater => {
                 // zig-zig
 
                 // make the right-right subtree have 'key' at its root by recursive splay operations
-                let tmp = self.splay(key, self.at(right)?.right);
-                self.mut_at(right)?.right = tmp;
+                let right_right = self.splay(key, self.right_of(right));
+                self.link_right(right, right_right);
 
                 // make the root of right-right subtree the new root by double left rotations
-                let new_root = self.rotate_right(root);
+                let new_root = self.rotate_left(root);
                 if self.left_of(new_root).is_some() {
-                    self.rotate_right(new_root)
+                    self.rotate_left(new_root)
                 } else {
                     new_root
                 }
@@ -432,16 +419,16 @@ impl<K: Ord, V> SplayTree<K, V> {
                 // zig-zag
 
                 // make the right-left subtree have 'key' at its root by recursive splay operations
-                let tmp = self.splay(key, self.at(right)?.left);
-                self.mut_at(right)?.left = tmp;
+                let right_left = self.splay(key, self.left_of(right));
+                self.link_left(right, right_left);
 
                 // make the root of right-left subtree the new root by left and right rotations
-                let tmp = if self.right_of(right).is_some() {
+                let right = if self.left_of(right).is_some() {
                     self.rotate_right(right)
                 } else {
                     right
                 };
-                self.mut_at(root)?.right = tmp;
+                self.link_right(root, right);
                 self.rotate_left(root)
             }
             Ordering::Equal => {
@@ -501,11 +488,11 @@ impl<K: Ord, V> SplayTree<K, V> {
             Bound::Included(v) => match (*v).cmp(node.key.borrow()) {
                 Ordering::Less => {
                     // v < key] : in the range. if right is none, it is the upper bound
-                    self.lower_bound(self.right_of(id), bound).or(id)
+                    self.upper_bound(self.right_of(id), bound).or(id)
                 }
                 Ordering::Greater => {
                     // key] < v : not in the range. go left
-                    self.lower_bound(self.left_of(id), bound)
+                    self.upper_bound(self.left_of(id), bound)
                 }
                 Ordering::Equal => {
                     // v == key] : in the range. the node is the upper bound of spanning range
@@ -515,16 +502,16 @@ impl<K: Ord, V> SplayTree<K, V> {
             Bound::Excluded(v) => match (*v).cmp(node.key.borrow()) {
                 Ordering::Less => {
                     // v < key) : in the range. if right is none, it is the upper bound
-                    self.lower_bound(self.right_of(id), bound).or(id)
+                    self.upper_bound(self.right_of(id), bound).or(id)
                 }
                 Ordering::Greater | Ordering::Equal => {
                     // key) <= v : not in the range. go left
-                    self.lower_bound(self.left_of(id), bound)
+                    self.upper_bound(self.left_of(id), bound)
                 }
             },
             Bound::Unbounded => {
                 // the right-most node is the upper bound
-                self.lower_bound(self.right_of(id), bound).or(id)
+                self.upper_bound(self.right_of(id), bound).or(id)
             }
         }
     }
@@ -532,25 +519,62 @@ impl<K: Ord, V> SplayTree<K, V> {
 
 impl<K: Ord + Clone, V> SplayTree<K, V> {
     pub fn remove(&mut self, key: &K) -> Option<Vec<V>> {
-        self.root = self.splay(key, self.root);
-        if &self.at(self.root)?.key != key {
+        self.root = Some(self.splay(key, self.root)?);
+        if &self.at(self.root).unwrap().key != key {
             return None;
         }
-        let mut left = self.left_of(self.root);
-        let right = self.right_of(self.root);
-        let removed_node = self.delete_node(self.root);
-        self.relink(self.root, None);
+        // save left and right children ids of root
+        let mut left_root = self.left_of(self.root);
+        let mut right_root = self.right_of(self.root);
+
+        let removed_node = {
+            // remove root node from splay tree's internal node array.
+            // in the process, the last element of the array will be swapped
+            // into the removed node's array position(see docs of 'Vec::swap_remove').
+            let last = Some(self.array.last().unwrap().id);
+            let root = Some(self.root.unwrap());
+            {
+                // rename the last node's id to removing(root) node's id,
+                // because we are going to swap the array positions.
+                if self.is_left_child(last) {
+                    self.link_left(self.parent_of(last), root);
+                } else if self.is_right_child(last) {
+                    self.link_right(self.parent_of(last), root);
+                }
+                self.link_left(root, self.left_of(last));
+                self.link_right(root, self.right_of(last));
+                self.mut_at(last).unwrap().id = root.unwrap();
+                if left_root == last {
+                    left_root = root;
+                }
+                if right_root == last {
+                    right_root = root;
+                }
+            }
+            // remove root node
+            self.root = None;
+            self.array.swap_remove(root.unwrap())
+        };
+
         if let Some(key) = self
-            .at(self.right_most_of(left))
+            .at(self.right_most_of(left_root))
             .map(|left_max| &left_max.key)
         {
-            left = self.splay(&key.clone(), left);
+            // splay the max node of left subtree
+            left_root = self.splay(&key.clone(), left_root);
         }
-        self.root = self.mut_at(left).map_or(right, |left_node| {
-            left_node.right = right;
-            left
-        });
-        removed_node.map(|n| n.value)
+
+        self.root = if let Some(left_root_node) = self.mut_at(left_root) {
+            // make the root of left subtree as the new root
+            left_root_node.right = right_root;
+            left_root
+        } else {
+            // make the root of right subtree as the new root
+            right_root
+        };
+
+        // return owned values of the removed node
+        Some(removed_node.values)
     }
 }
 
@@ -566,7 +590,7 @@ pub struct Iter<'a, K, V> {
 impl<'a, K: 'a, V: 'a> Iter<'a, K, V> {
     pub(self) fn new(tree: &'a SplayTree<K, V>, front: Option<usize>, back: Option<usize>) -> Self {
         let initial_val_idx_front = 0;
-        let initial_val_idx_back = tree.at(back).map_or(0, |n| n.value.len() - 1);
+        let initial_val_idx_back = tree.at(back).map_or(0, |n| n.values.len() - 1);
         Self {
             tree,
             front: (front, initial_val_idx_front),
@@ -580,7 +604,7 @@ impl<'a, K: 'a, V: 'a> Iterator for Iter<'a, K, V> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let (mut front, mut val_idx) = self.front;
-        if val_idx < self.tree.at(front)?.value.len() - 1 {
+        if val_idx < self.tree.at(front)?.values.len() - 1 {
             self.front = (front, val_idx + 1);
         } else if self.front == self.back {
             self.front = (None, 0);
@@ -591,7 +615,7 @@ impl<'a, K: 'a, V: 'a> Iterator for Iter<'a, K, V> {
             self.front = (front, val_idx);
         }
         let node = self.tree.at(front)?;
-        Some((&node.key, &node.value[val_idx]))
+        Some((&node.key, &node.values[val_idx]))
     }
 }
 
@@ -605,11 +629,11 @@ impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Iter<'a, K, V> {
             self.back = (None, 0);
         } else {
             back = self.tree.descend(back);
-            val_idx = self.tree.at(back).map_or(0, |n| n.value.len() - 1);
+            val_idx = self.tree.at(back).map_or(0, |n| n.values.len() - 1);
             self.back = (back, val_idx);
         }
         let node = self.tree.at(back)?;
-        Some((&node.key, &node.value[val_idx]))
+        Some((&node.key, &node.values[val_idx]))
     }
 }
 
@@ -629,14 +653,7 @@ impl<K: Clone, V> Iterator for IntoIter<K, V> {
     type Item = (K, V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        /*
-         * f/b
-         * f <-> b
-         * f -> ff/bb <~ b
-         * f -> ff ... bb <- b
-         *
-         */
-        if self.tree.at(self.front)?.value.is_empty() {
+        if self.tree.at(self.front)?.values.is_empty() {
             if self.front == self.back {
                 self.front = None;
                 self.back = None;
@@ -645,13 +662,13 @@ impl<K: Clone, V> Iterator for IntoIter<K, V> {
             }
         }
         let node = self.tree.mut_at(self.front)?;
-        Some((node.key.clone(), node.value.pop()?))
+        Some((node.key.clone(), node.values.pop()?))
     }
 }
 
 impl<K: Clone, V> DoubleEndedIterator for IntoIter<K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.tree.at(self.back)?.value.is_empty() {
+        if self.tree.at(self.back)?.values.is_empty() {
             if self.front == self.back {
                 self.front = None;
                 self.back = None;
@@ -660,7 +677,7 @@ impl<K: Clone, V> DoubleEndedIterator for IntoIter<K, V> {
             }
         }
         let node = self.tree.mut_at(self.front)?;
-        Some((node.key.clone(), node.value.pop()?))
+        Some((node.key.clone(), node.values.pop()?))
     }
 }
 
@@ -717,5 +734,45 @@ impl<'a, K: 'a, V: 'a> Iterator for Values<'a, K, V> {
 impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Values<'a, K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.inner.next_back().map(|(_, v)| v)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::SplayTree;
+    #[test]
+    fn rotation() {
+        let mut tree = SplayTree::new();
+        tree.insert(100, "foo");
+        tree.insert(200, "bar");
+        let root = tree.root;
+        tree.root = tree.rotate_right(tree.root);
+        assert!(root != tree.root);
+        tree.root = tree.rotate_left(tree.root);
+        assert!(root == tree.root);
+    }
+
+    #[test]
+    fn insertion() {
+        let mut tree = SplayTree::new();
+        tree.insert(100, "foo");
+        tree.insert(100, "foo_foo");
+        tree.insert(200, "bar");
+        tree.insert(0, "zero");
+        tree.insert(9200, "big");
+        assert!(tree.get(&100) == Some(&["foo", "foo_foo"]));
+        assert!(tree.get(&200) == Some(&["bar"]));
+        assert!(tree.get(&0) == Some(&["zero"]));
+        assert!(tree.get(&9200) == Some(&["big"]));
+    }
+
+    #[test]
+    fn removal() {
+        let mut tree = SplayTree::new();
+        tree.insert(100, "foo");
+        tree.insert(200, "bar");
+        assert!(tree.remove(&100) == Some(Vec::from_iter(["foo"])));
+        assert!(tree.remove(&200) == Some(Vec::from_iter(["bar"])));
+        assert!(tree.is_empty());
     }
 }
