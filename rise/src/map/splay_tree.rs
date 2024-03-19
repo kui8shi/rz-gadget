@@ -264,13 +264,17 @@ impl<K: Ord, V> SplayTree<K, V> {
             Ordering::Less => {
                 // split at the left edge of root and
                 // insert a new node as the new root
-                self.root = self.new_node(key, value, self.left_of(self.root), self.root);
+                let new_root = self.new_node(key, value, self.left_of(self.root), self.root);
+                self.link_left(self.root, None);
+                self.root = new_root;
                 true
             }
             Ordering::Greater => {
                 // split at the right edge of root and
                 // insert a new node as the new root
-                self.root = self.new_node(key, value, self.root, self.right_of(self.root));
+                let new_root = self.new_node(key, value, self.root, self.right_of(self.root));
+                self.link_right(self.root, None);
+                self.root = new_root;
                 true
             }
             Ordering::Equal => {
@@ -313,7 +317,8 @@ impl<K: Ord, V> SplayTree<K, V> {
         }
         let mut lower_bound = self.lower_bound(self.root, &start);
         let mut upper_bound = self.upper_bound(self.root, &end);
-        if lower_bound.is_none() || upper_bound.is_none() || lower_bound > upper_bound {
+        if !self.at(lower_bound).is_some_and(|lower| 
+            self.at(upper_bound).is_some_and(|upper| lower.key <= upper.key )) {
             // if either bound is none or lower exceeds upper,  
             // the tree has no keys in the range.
             lower_bound = None;
@@ -446,28 +451,28 @@ impl<K: Ord, V> SplayTree<K, V> {
         let node = self.at(id)?;
         match bound {
             // find lower bound
-            Bound::Included(v) => match (*v).cmp(node.key.borrow()) {
+            Bound::Included(s) => match (*s).cmp(node.key.borrow()) {
                 Ordering::Less => {
-                    // v < [key : not in the range. go right
-                    self.lower_bound(self.right_of(id), bound)
-                }
-                Ordering::Greater => {
-                    // [key < v : in the range. if left is none, it is the lower bound
+                    // [s < key : in the range. if left is none, it is the lower bound
                     self.lower_bound(self.left_of(id), bound).or(id)
                 }
+                Ordering::Greater => {
+                    // key < [s : not in the range. go right
+                    self.lower_bound(self.right_of(id), bound)
+                }
                 Ordering::Equal => {
-                    // v == [key : in the range. the node is the lower bound of spanning range
+                    // [s == key : in the range. the node is the lower bound of spanning range
                     id
                 }
             },
-            Bound::Excluded(v) => match (*v).cmp(node.key.borrow()) {
-                Ordering::Less | Ordering::Equal => {
-                    // v <= (key : not in the range. go right
-                    self.lower_bound(self.right_of(id), bound)
-                }
-                Ordering::Greater => {
-                    // (key < v : in the range. if left is none, it is the lower bound
+            Bound::Excluded(s) => match (*s).cmp(node.key.borrow()) {
+                Ordering::Less => {
+                    // (s < key : in the range. if left is none, it is the lower bound
                     self.lower_bound(self.left_of(id), bound).or(id)
+                }
+                Ordering::Greater | Ordering::Equal => {
+                    // key <= (s : not in the range. go right
+                    self.lower_bound(self.right_of(id), bound)
                 }
             },
             Bound::Unbounded => {
@@ -485,27 +490,27 @@ impl<K: Ord, V> SplayTree<K, V> {
         let node = self.at(id)?;
         match bound {
             // find upper bound
-            Bound::Included(v) => match (*v).cmp(node.key.borrow()) {
-                Ordering::Less => {
-                    // v < key] : in the range. if right is none, it is the upper bound
+            Bound::Included(e) => match (*e).cmp(node.key.borrow()) {
+                Ordering::Greater => {
+                    // key < e] : in the range. if right is none, it is the upper bound
                     self.upper_bound(self.right_of(id), bound).or(id)
                 }
-                Ordering::Greater => {
-                    // key] < v : not in the range. go left
+                Ordering::Less => {
+                    // e] < key : not in the range. go left
                     self.upper_bound(self.left_of(id), bound)
                 }
                 Ordering::Equal => {
-                    // v == key] : in the range. the node is the upper bound of spanning range
+                    // e] == key : in the range. the node is the upper bound of spanning range
                     id
                 }
             },
-            Bound::Excluded(v) => match (*v).cmp(node.key.borrow()) {
-                Ordering::Less => {
-                    // v < key) : in the range. if right is none, it is the upper bound
+            Bound::Excluded(e) => match (*e).cmp(node.key.borrow()) {
+                Ordering::Greater => {
+                    // key < e) : in the range. if right is none, it is the upper bound
                     self.upper_bound(self.right_of(id), bound).or(id)
                 }
-                Ordering::Greater | Ordering::Equal => {
-                    // key) <= v : not in the range. go left
+                Ordering::Less | Ordering::Equal => {
+                    // e) <= key : not in the range. go left
                     self.upper_bound(self.left_of(id), bound)
                 }
             },
@@ -594,7 +599,7 @@ impl<'a, K: 'a, V: 'a> Iter<'a, K, V> {
         Self {
             tree,
             front: (front, initial_val_idx_front),
-            back: (front, initial_val_idx_back),
+            back: (back, initial_val_idx_back),
         }
     }
 }
@@ -603,16 +608,16 @@ impl<'a, K: 'a, V: 'a> Iterator for Iter<'a, K, V> {
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let (mut front, mut val_idx) = self.front;
+        let (front, val_idx) = self.front;
         if val_idx < self.tree.at(front)?.values.len() - 1 {
             self.front = (front, val_idx + 1);
         } else if self.front == self.back {
             self.front = (None, 0);
             self.back = (None, 0);
         } else {
-            front = self.tree.ascend(front);
-            val_idx = 0;
-            self.front = (front, val_idx);
+            let next = self.tree.ascend(front);
+            let next_val_idx = 0;
+            self.front = (next, next_val_idx);
         }
         let node = self.tree.at(front)?;
         Some((&node.key, &node.values[val_idx]))
@@ -621,16 +626,16 @@ impl<'a, K: 'a, V: 'a> Iterator for Iter<'a, K, V> {
 
 impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Iter<'a, K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        let (mut back, mut val_idx) = self.back;
+        let (back, val_idx) = self.back;
         if val_idx > 0 {
             self.back = (back, val_idx - 1);
         } else if self.front == self.back {
             self.front = (None, 0);
             self.back = (None, 0);
         } else {
-            back = self.tree.descend(back);
-            val_idx = self.tree.at(back).map_or(0, |n| n.values.len() - 1);
-            self.back = (back, val_idx);
+            let next = self.tree.descend(back);
+            let next_val_idx = self.tree.at(back).map_or(0, |n| n.values.len() - 1);
+            self.back = (next, next_val_idx);
         }
         let node = self.tree.at(back)?;
         Some((&node.key, &node.values[val_idx]))
@@ -774,5 +779,55 @@ mod test {
         assert!(tree.remove(&100) == Some(Vec::from_iter(["foo"])));
         assert!(tree.remove(&200) == Some(Vec::from_iter(["bar"])));
         assert!(tree.is_empty());
+        assert!(tree.root == None);
+    }
+
+    #[test]
+    fn iter() {
+        let mut tree = SplayTree::new();
+        tree.insert(60, "foo");
+        tree.insert(20, "bar");
+        tree.insert(10, "a");
+        tree.insert(20, "b");
+        tree.insert(30, "c");
+        tree.insert(40, "d");
+        tree.insert(50, "e");
+        tree.insert(60, "f");
+        let mut iter = tree.iter();
+        assert!(iter.next() == Some((&10, &"a")));
+        assert!(iter.next() == Some((&20, &"bar")));
+        assert!(iter.next() == Some((&20, &"b")));
+        assert!(iter.next() == Some((&30, &"c")));
+        assert!(iter.next() == Some((&40, &"d")));
+        assert!(iter.next() == Some((&50, &"e")));
+        assert!(iter.next() == Some((&60, &"foo")));
+        assert!(iter.next() == Some((&60, &"f")));
+    }
+
+    #[test]
+    fn range() {
+        let mut tree = SplayTree::new();
+        tree.insert(61, "foo");
+        tree.insert(21, "bar");
+        tree.insert(10, "a");
+        tree.insert(20, "b");
+        tree.insert(30, "c");
+        tree.insert(40, "d");
+        tree.insert(50, "e");
+        tree.insert(60, "f");
+
+        let mut range = tree.range(20..60);
+        assert!(range.next() == Some((&20, &"b")));
+        assert!(range.next() == Some((&21, &"bar")));
+        assert!(range.next() == Some((&30, &"c")));
+        assert!(range.next() == Some((&40, &"d")));
+        assert!(range.next() == Some((&50, &"e")));
+        assert!(range.next().is_none());
+
+        let mut range = tree.range(..30);
+        assert!(range.next() == Some((&10, &"a")));
+        assert!(range.next() == Some((&20, &"b")));
+        assert!(range.next() == Some((&21, &"bar")));
+        assert!(range.next().is_none());
     }
 }
