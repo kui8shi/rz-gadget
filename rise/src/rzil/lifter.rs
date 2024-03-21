@@ -85,7 +85,7 @@ impl BranchSetToSetIte {
         dst: PureRef,
     ) -> Result<()> {
         let condition = self.connect_condition(rzil)?;
-        let taken = self.taken.first().unwrap().clone();
+        let taken = *self.taken.first().unwrap();
         let mut entry = None;
         for e in self.entries.iter_mut() {
             if e.name.eq(name) {
@@ -250,7 +250,7 @@ impl RzILLifter {
                 // so exp will be directly assigned to body.
                 let exp = self.parse_pure(rzil, vars, exp)?;
                 let tmp_var = rzil.new_let_var(dst, exp);
-                if let Some(_) = self.tmp_vars.insert(dst.to_string(), tmp_var) {
+                if self.tmp_vars.insert(dst.to_string(), tmp_var).is_some() {
                     return Err(RzILError::ImmutableVariable(dst.to_string()));
                 }
                 let body = self.parse_pure(rzil, vars, body)?;
@@ -259,7 +259,7 @@ impl RzILLifter {
             }
             RzILInfo::Bool { value } => {
                 let sort = Sort::Bool;
-                let val = if value.clone() { 1 } else { 0 };
+                let val = if *value { 1 } else { 0 };
                 Ok(rzil.new_const(sort, val))
             }
             RzILInfo::BoolInv { x } => {
@@ -282,7 +282,7 @@ impl RzILLifter {
                 rzil.new_boolxor(x, y)
             }
             RzILInfo::Bitv { bits, len } => {
-                let sort = Sort::Bitv(len.clone());
+                let sort = Sort::Bitv(*len);
                 let val = u64::from_str_radix(&bits[2..], 16)?;
                 Ok(rzil.new_const(sort, val))
             }
@@ -390,8 +390,7 @@ impl RzILLifter {
             } => {
                 let fill_bit = self.parse_pure(rzil, vars, fill)?;
                 let value = self.parse_pure(rzil, vars, value)?;
-                let length = length.clone();
-                rzil.new_cast(value, fill_bit, length)
+                rzil.new_cast(value, fill_bit, *length)
             }
             RzILInfo::Append { high, low } => {
                 let high = self.parse_pure(rzil, vars, high)?;
@@ -404,7 +403,7 @@ impl RzILLifter {
             }
             RzILInfo::Loadw { mem: _, key, bits } => {
                 let key = self.parse_pure(rzil, vars, key)?;
-                rzil.new_loadw(key, bits.clone())
+                rzil.new_loadw(key, *bits)
             }
             RzILInfo::Float { format: _, bv: _ } => {
                 Err(RzILError::UnimplementedRzILPure(PureCode::Float))
@@ -572,7 +571,7 @@ impl RzILLifter {
                 let mut args = Vec::new();
                 self.parse_seq_arg(rzil, vars, x, &mut args)?;
                 self.parse_seq_arg(rzil, vars, y, &mut args)?;
-                if args.len() == 0 {
+                if args.is_empty() {
                     return Ok(rzil.new_nop());
                 } else if args.len() == 1 {
                     return Ok(args.pop().unwrap());
@@ -598,11 +597,11 @@ impl RzILLifter {
                 if self.bs_to_si.in_root_branch() {
                     args.append(&mut self.bs_to_si.drain(rzil)?);
                 }
-                let need_branch = !(then.is_nop() && !otherwise.is_nop());
+                let need_branch = !then.is_nop() || !otherwise.is_nop();
                 if need_branch {
                     args.push(rzil.new_branch(condition, then, otherwise)?);
                 }
-                if args.len() == 0 {
+                if args.is_empty() {
                     Ok(rzil.new_nop())
                 } else if args.len() == 1 {
                     Ok(args.pop().unwrap())
@@ -652,7 +651,7 @@ impl RzILLifter {
                     Ok(ret) => match &*ret {
                         Effect::Seq { args } => {
                             // later generated Seq
-                            vec.extend_from_slice(&args);
+                            vec.extend_from_slice(args);
                         }
                         _ => vec.push(ret),
                     },

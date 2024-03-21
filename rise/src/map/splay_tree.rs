@@ -28,7 +28,7 @@ impl<K: Clone, V: Clone> Clone for SplayTree<K, V> {
     fn clone(&self) -> Self {
         Self {
             array: self.array.to_vec(),
-            root: self.root.clone(),
+            root: self.root,
         }
     }
 }
@@ -138,16 +138,16 @@ impl<K, V> SplayTree<K, V> {
     }
 
     pub(self) fn at(&self, id: Option<usize>) -> Option<&Node<K, V>> {
-        id.and_then(|id| {
+        id.map(|id| {
             debug_assert!(id < self.array.len());
-            Some(&self.array[id])
+            &self.array[id]
         })
     }
 
     pub(self) fn mut_at(&mut self, id: Option<usize>) -> Option<&mut Node<K, V>> {
-        id.and_then(|id| {
+        id.map(|id| {
             debug_assert!(id < self.array.len());
-            Some(&mut self.array[id])
+            &mut self.array[id]
         })
     }
 
@@ -220,12 +220,20 @@ impl<K, V> SplayTree<K, V> {
     }
 
     fn link_left(&mut self, parent: Option<usize>, child: Option<usize>) {
-        self.mut_at(parent).map(|n| n.left = child);
-        self.mut_at(child).map(|n| n.parent = parent);
+        if let Some(n) = self.mut_at(parent) {
+            n.left = child;
+        }
+        if let Some(n) = self.mut_at(child) {
+            n.parent = parent;
+        }
     }
     fn link_right(&mut self, parent: Option<usize>, child: Option<usize>) {
-        self.mut_at(parent).map(|n| n.right = child);
-        self.mut_at(child).map(|n| n.parent = parent);
+        if let Some(n) = self.mut_at(parent) {
+            n.right = child;
+        }
+        if let Some(n) = self.mut_at(child) {
+            n.parent = parent;
+        }
     }
 
     // rotate the tree right to make the left node of 'root' the new root.
@@ -236,7 +244,9 @@ impl<K, V> SplayTree<K, V> {
         let left = self.left_of(root);
         self.link_left(root, self.right_of(left));
         self.link_right(left, root);
-        self.mut_at(left).map(|n| n.parent = None);
+        if let Some(n) = self.mut_at(left) {
+            n.parent = None;
+        }
         left
     }
 
@@ -248,7 +258,9 @@ impl<K, V> SplayTree<K, V> {
         let right = self.right_of(root);
         self.link_right(root, self.left_of(right));
         self.link_left(right, root);
-        self.mut_at(right).map(|n| n.parent = None);
+        if let Some(n) = self.mut_at(right) {
+            n.parent = None;
+        }
         right
     }
 }
@@ -317,13 +329,17 @@ impl<K: Ord, V> SplayTree<K, V> {
         }
         let mut lower_bound = self.lower_bound(self.root, &start);
         let mut upper_bound = self.upper_bound(self.root, &end);
-        if !self.at(lower_bound).is_some_and(|lower| 
-            self.at(upper_bound).is_some_and(|upper| lower.key <= upper.key )) {
-            // if either bound is none or lower exceeds upper,  
+        if !self.at(lower_bound).is_some_and(|lower| {
+            self.at(upper_bound)
+                .is_some_and(|upper| lower.key <= upper.key)
+        }) {
+            // if either bound is none or lower exceeds upper,
             // the tree has no keys in the range.
             lower_bound = None;
             upper_bound = None;
         }
+        dbg!(lower_bound);
+        dbg!(upper_bound);
         Iter::new(self, lower_bound, upper_bound)
     }
 
@@ -341,12 +357,11 @@ impl<K: Ord, V> SplayTree<K, V> {
     fn splay(&mut self, key: &K, root: Option<usize>) -> Option<usize> {
         let root_node = self.at(root)?;
 
-        let new_root = match key.cmp(&root_node.key) {
+        match key.cmp(&root_node.key) {
             Ordering::Less => self.splay_left(key, root),
             Ordering::Greater => self.splay_right(key, root),
             Ordering::Equal => root,
-        };
-        new_root
+        }
     }
 
     // perform splay operation assuming 'key' is in the left subtree of 'root'.
@@ -523,6 +538,7 @@ impl<K: Ord, V> SplayTree<K, V> {
 }
 
 impl<K: Ord + Clone, V> SplayTree<K, V> {
+    // remove the node with the exact key recieved if contained.
     pub fn remove(&mut self, key: &K) -> Option<Vec<V>> {
         self.root = Some(self.splay(key, self.root)?);
         if &self.at(self.root).unwrap().key != key {
@@ -537,7 +553,7 @@ impl<K: Ord + Clone, V> SplayTree<K, V> {
             // in the process, the last element of the array will be swapped
             // into the removed node's array position(see docs of 'Vec::swap_remove').
             let last = Some(self.array.last().unwrap().id);
-            let root = Some(self.root.unwrap());
+            let root = self.root;
             {
                 // rename the last node's id to removing(root) node's id,
                 // because we are going to swap the array positions.
@@ -681,7 +697,7 @@ impl<K: Clone, V> DoubleEndedIterator for IntoIter<K, V> {
                 self.back = self.tree.descend(self.back);
             }
         }
-        let node = self.tree.mut_at(self.front)?;
+        let node = self.tree.mut_at(self.back)?;
         Some((node.key.clone(), node.values.pop()?))
     }
 }
@@ -779,7 +795,7 @@ mod test {
         assert!(tree.remove(&100) == Some(Vec::from_iter(["foo"])));
         assert!(tree.remove(&200) == Some(Vec::from_iter(["bar"])));
         assert!(tree.is_empty());
-        assert!(tree.root == None);
+        assert!(tree.root.is_none());
     }
 
     #[test]
@@ -802,6 +818,32 @@ mod test {
         assert!(iter.next() == Some((&50, &"e")));
         assert!(iter.next() == Some((&60, &"foo")));
         assert!(iter.next() == Some((&60, &"f")));
+        assert!(iter.next().is_none());
+        assert!(iter.next_back().is_none());
+    }
+
+    #[test]
+    fn into_iter() {
+        let mut tree = SplayTree::new();
+        tree.insert(60, "foo");
+        tree.insert(20, "bar");
+        tree.insert(10, "a");
+        tree.insert(20, "b");
+        tree.insert(30, "c");
+        tree.insert(40, "d");
+        tree.insert(50, "e");
+        tree.insert(60, "f");
+        let mut iter = tree.into_iter();
+        assert!(iter.next_back() == Some((60, "f")));
+        assert!(iter.next() == Some((10, "a")));
+        assert!(iter.next_back() == Some((60, "foo")));
+        assert!(iter.next() == Some((20, "b")));
+        assert!(iter.next_back() == Some((50, "e")));
+        assert!(iter.next() == Some((20, "bar")));
+        assert!(iter.next_back() == Some((40, "d")));
+        assert!(iter.next() == Some((30, "c")));
+        assert!(iter.next_back().is_none());
+        assert!(iter.next().is_none());
     }
 
     #[test]
@@ -825,9 +867,9 @@ mod test {
         assert!(range.next().is_none());
 
         let mut range = tree.range(..30);
-        assert!(range.next() == Some((&10, &"a")));
-        assert!(range.next() == Some((&20, &"b")));
-        assert!(range.next() == Some((&21, &"bar")));
+        assert!(range.next_back() == Some((&21, &"bar")));
+        assert!(range.next_back() == Some((&20, &"b")));
+        assert!(range.next_back() == Some((&10, &"a")));
         assert!(range.next().is_none());
     }
 }

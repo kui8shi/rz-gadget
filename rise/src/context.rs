@@ -60,6 +60,6 @@ impl<S: Solver> Context<S> {
     //pub fn assert(&self, rzil: &RzILGenerator, )
 
     pub fn store(&mut self, rzil: &RzILBuilder, addr: PureRef, val: PureRef) -> Result<()> {
-        Ok(self.memory.store(&self.solver, rzil, addr, val)?)
+        self.memory.store(&self.solver, rzil, addr, val)
     }
 }

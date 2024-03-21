@@ -137,7 +137,7 @@ fn process_op<S: Solver>(
     let op = op.as_ref();
     match op {
         Effect::Nop => Ok(Status::Continue),
-        Effect::Set { dst, src } => Ok(Status::Continue), //TODO add Set handling
+        Effect::Set { dst: _, src: _ } => Ok(Status::Continue), //TODO add Set handling
         Effect::Jmp { dst } => {
             if dst.is_concretized() {
                 Ok(Status::DirectJump(dst.evaluate()))

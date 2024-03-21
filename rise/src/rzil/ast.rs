@@ -46,7 +46,7 @@ impl Sort {
     }
     pub fn get_size(&self) -> usize {
         match self {
-            Sort::Bitv(len) => len.clone(),
+            Sort::Bitv(len) => *len,
             Sort::Bool => 1,
         }
     }
@@ -218,17 +218,13 @@ impl Pure {
         self.eval
     }
     pub fn evaluate_bool(&self) -> bool {
-        if self.evaluate() != 0 {
-            true
-        } else {
-            false
-        }
+        self.evaluate() != 0
     }
     pub fn get_code(&self) -> PureCode {
         self.code.clone()
     }
     pub fn get_sort(&self) -> Sort {
-        self.sort.clone()
+        self.sort
     }
     pub fn get_size(&self) -> usize {
         self.sort.get_size()
@@ -333,10 +329,6 @@ impl Display for Effect {
 
 impl Effect {
     pub fn is_nop(&self) -> bool {
-        if let Effect::Nop = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Effect::Nop)
     }
 }

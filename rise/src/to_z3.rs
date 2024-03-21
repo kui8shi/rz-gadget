@@ -65,13 +65,13 @@ impl<'ctx> ToZ3<'ctx> {
                 let condition = self.convert_bool(m, r, op.get_arg(0))?;
                 let then = self.convert(m, r, op.get_arg(1))?;
                 let else_ = self.convert(m, r, op.get_arg(2))?;
-                Ok(condition.ite(&then, &else_).into())
+                Ok(condition.ite(&then, &else_))
             }
             PureCode::Let => {
                 let var = self.convert(m, r, op.get_arg(0))?;
                 let binding = self.convert(m, r, op.get_arg(1))?;
                 let body = self.convert(m, r, op.get_arg(2))?;
-                Ok(body.substitute(&[(&var, &binding)]).into())
+                Ok(body.substitute(&[(&var, &binding)]))
             }
             PureCode::Bool => {
                 Ok(z3::ast::Bool::from_bool(self.get_z3_ctx(), op.evaluate_bool()).into())
@@ -298,7 +298,7 @@ impl<'ctx> ToZ3<'ctx> {
     ) -> Result<Option<z3::Model<'ctx>>> {
         let solver = self.z3_solver.clone();
         for ast in extra_constraint {
-            self.assert(&ast);
+            self.assert(ast);
         }
         Ok(solver.get_model())
     }

@@ -159,7 +159,7 @@ impl RzILBuilder {
 
         let symbolized = x.is_symbolized();
         let sort = Sort::Bool;
-        let eval = !(x.evaluate() != 0) as u64;
+        let eval = (x.evaluate() == 0) as u64;
 
         Ok(self.new_pure_maybe_const(PureCode::BoolInv, vec![x], symbolized, sort, eval))
     }
@@ -232,7 +232,7 @@ impl RzILBuilder {
 
         let symbolized = bitv.is_symbolized();
         let sort = Sort::Bool;
-        let eval = (bitv.evaluate() as i64 * -1i64) as u64;
+        let eval = -(bitv.evaluate() as i64) as u64;
 
         Ok(self.new_pure_maybe_const(PureCode::Neg, vec![bitv], symbolized, sort, eval))
     }
@@ -608,9 +608,9 @@ impl RzILBuilder {
         let sort = Sort::Bitv(length);
         let eval = if !symbolized {
             if value.get_size() >= length {
-                value.evaluate() & (1 << length - 1)
+                value.evaluate() & (1 << (length - 1))
             } else {
-                let fill_bits = (fill_bit.evaluate() << length - 1) & !value.get_bitmask();
+                let fill_bits = (fill_bit.evaluate() << (length - 1)) & !value.get_bitmask();
                 value.evaluate() | fill_bits
             }
         } else {
@@ -681,7 +681,7 @@ impl RzILBuilder {
         key.expect_bitv()?;
 
         let symbolized = true;
-        let sort = Sort::Bitv(bits.clone() as usize);
+        let sort = Sort::Bitv(bits as usize);
         let eval = 0;
         Ok(self.new_pure(PureCode::Load, vec![key], symbolized, sort, eval))
     }

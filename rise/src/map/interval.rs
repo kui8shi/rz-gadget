@@ -1,13 +1,13 @@
 use std::borrow::Borrow;
 use std::cmp::Ordering;
 use std::fmt::Debug;
-use std::ops::{Deref, Range};
+use std::ops::{Bound, Deref, DerefMut, Range, RangeBounds};
 
 //
 // Range wrapper start sorted
 //
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Interval<T> {
     /*
      *  Wrapper of std::ops::Range
@@ -21,6 +21,12 @@ impl<T> Interval<T> {
         Interval {
             end_sorted: IntervalEndSorted { range },
         }
+    }
+}
+
+impl<T: Debug> Debug for Interval<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{:?}",self.end_sorted.range))
     }
 }
 
@@ -40,6 +46,10 @@ where
         // I.e. the two could be joined into a single range, because they're overlapping
         // or immediately adjacent.
         max(&self.start, &other.start) <= min(&self.end, &other.end)
+    }
+
+    pub fn contains(&self, item: &T) -> bool {
+        self.end_sorted.contains(item)
     }
 }
 
@@ -83,6 +93,22 @@ where
     }
 }
 
+impl<T> RangeBounds<T> for Interval<T> {
+    fn start_bound(&self) -> Bound<&T> {
+        self.end_sorted.start_bound()
+    }
+
+    fn end_bound(&self) -> Bound<&T> {
+        self.end_sorted.end_bound()
+    }
+}
+
+impl<T> Borrow<T> for Interval<T> {
+    fn borrow(&self) -> &T {
+        &self.end_sorted.range.start
+    }
+}
+
 impl<T> Borrow<IntervalEndSorted<T>> for Interval<T> {
     fn borrow(&self) -> &IntervalEndSorted<T> {
         &self.end_sorted
@@ -99,17 +125,40 @@ impl<T> Deref for Interval<T> {
     }
 }
 
-impl<T> From<Range<T>> for Interval<T> {
+impl<T> DerefMut for Interval<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.end_sorted
+    }
+}
+
+impl<T> std::convert::From<Range<T>> for Interval<T> {
     fn from(value: Range<T>) -> Self {
         Interval::new(value)
     }
 }
 
+impl<T> std::convert::From<Interval<T>> for Range<T> {
+    fn from(val: Interval<T>) -> Self {
+        val.end_sorted.range
+    }
+}
+
+impl<T> std::convert::AsMut<Range<T>> for Interval<T> {
+    fn as_mut(&mut self) -> &mut Range<T> {
+        &mut self.end_sorted.range
+    }
+}
+
+impl<T> std::convert::AsRef<Range<T>> for Interval<T> {
+    fn as_ref(&self) -> &Range<T> {
+        &self.end_sorted.range
+    }
+}
 //
 // Range wrapper end sorted
 //
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct IntervalEndSorted<T> {
     pub range: Range<T>,
 }
@@ -159,6 +208,11 @@ impl<T> Deref for IntervalEndSorted<T> {
     }
 }
 
+impl<T> DerefMut for IntervalEndSorted<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.range
+    }
+}
 #[cfg(test)]
 mod test {
     use super::Interval;

@@ -37,7 +37,7 @@ fn get_interp(val: z3::ast::Dynamic) -> Result<u64> {
             Some(true) => Ok(1),
             Some(false) => Ok(0),
             None => {
-                return Err(RiseError::Z3(
+                Err(RiseError::Z3(
                     "returned invalid model (not concretized).".to_owned(),
                 ))
             }
@@ -46,7 +46,7 @@ fn get_interp(val: z3::ast::Dynamic) -> Result<u64> {
         match v.as_u64() {
             Some(val) => Ok(val),
             None => {
-                return Err(RiseError::Z3(
+                Err(RiseError::Z3(
                     "returned invalid model (not concretized).".to_owned(),
                 ))
             }
@@ -145,7 +145,7 @@ impl Solver for Z3Solver {
                     Some(val) => get_interp(val)?,
                     None => return Err(RiseError::Z3("returned no model.".to_owned())),
                 };
-                results.push(val.clone());
+                results.push(val);
                 let val = rzil.new_const(op.get_sort(), val);
                 let eq = rzil.new_eq(op.clone(), val)?;
                 let ex_c = rzil.new_boolinv(eq)?;
@@ -160,14 +160,14 @@ impl Solver for Z3Solver {
 
     fn get_min(&self, mem: &Memory, rzil: &RzILBuilder, op: PureRef) -> Result<u64> {
         match self.evaluate(mem, rzil, op, 10)?.first() {
-            Some(val) => Ok(val.clone()),
+            Some(val) => Ok(*val),
             None => Err(RiseError::Unsat),
         }
     }
 
     fn get_max(&self, mem: &Memory, rzil: &RzILBuilder, op: PureRef) -> Result<u64> {
         match self.evaluate(mem, rzil, op, 10)?.last() {
-            Some(val) => Ok(val.clone()),
+            Some(val) => Ok(*val),
             None => Err(RiseError::Unsat),
         }
     }

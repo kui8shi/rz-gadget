@@ -1,11 +1,11 @@
 use crate::error::Result;
 use crate::paged_map::PagedIntervalMap;
+use crate::map::interval_map::IntervalMap;
 use crate::rzil::{
     ast::{PureRef, Sort},
     builder::RzILBuilder,
 };
 use crate::solver::Solver;
-use rangemap::RangeMap;
 use rzapi::structs::Endian;
 use std::cell::Cell;
 use std::fmt::Debug;
@@ -23,7 +23,7 @@ struct MemoryEntry {
 #[derive(Clone, Debug)]
 pub struct Memory {
     symbolic: PagedIntervalMap<MemoryEntry>,
-    concrete: Rc<RangeMap<u64, MemoryEntry>>,
+    concrete: Rc<IntervalMap<u64, MemoryEntry>>,
     t_pos: Cell<i64>, // timestamp which increases
     t_neg: Cell<i64>, // timestamp which decreases
     endian: Endian,
@@ -37,7 +37,7 @@ impl Memory {
         Memory {
             //solver: Rc::downgrade(&solver),
             symbolic: PagedIntervalMap::<MemoryEntry>::new(),
-            concrete: Rc::new(RangeMap::new()),
+            concrete: Rc::new(IntervalMap::new()),
             t_pos: Cell::new(0),
             t_neg: Cell::new(0),
             endian,
@@ -89,6 +89,7 @@ impl Memory {
             if a == b {
                 Rc::make_mut(&mut self.concrete).insert(a..a + 1, entry);
             } else {
+                debug_assert!(a < b);
                 self.symbolic.insert(a..b, entry);
             }
         }

@@ -66,10 +66,7 @@ where
     }
 
     pub fn get_range_page(&self, key: &u64) -> Option<(&Range<u64>, &IntervalMap<u64, V>)> {
-        match self.pages.get_key_value(key) {
-            Some((page_range, page)) => Some((page_range, page.as_ref())),
-            None => None,
-        }
+        self.pages.get_key_value(key).map(|(page_range, page)| (page_range, page.as_ref()))
     }
 
     pub fn get_range(&self, key: &u64) -> Option<(&Range<u64>, &V)> {
@@ -131,7 +128,7 @@ where
     /// Panics if range `start >= end`.
     pub fn insert(&mut self, range: Range<u64>, value: V) {
         assert!(range.start < range.end);
-        let mut start = range.start.clone() & !(Self::PAGE_SIZE - 1);
+        let mut start = range.start & !(Self::PAGE_SIZE - 1);
         while range.end > start {
             let page_range = start..start + Self::PAGE_SIZE;
             let entry_range = start..u64::min(start + Self::PAGE_SIZE, range.end);

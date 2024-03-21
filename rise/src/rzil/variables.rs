@@ -37,7 +37,7 @@ impl Variables {
             .latest_var_ids
             .iter()
             .filter(|(_, v)| v.1 != Scope::Global)
-            .map(|(_, v)| v.0.clone())
+            .map(|(_, v)| v.0)
             .collect();
         self.latest_var_ids.retain(|_, v| v.1 == Scope::Global);
         self.vars.retain(|k, _| !ids_to_remove.contains(k));
@@ -45,7 +45,7 @@ impl Variables {
 
     pub fn get_scope(&self, name: &str) -> Option<Scope> {
         if let Some((_, scope)) = self.latest_var_ids.get(name) {
-            Some(scope.clone())
+            Some(*scope)
         } else {
             None
         }
@@ -58,7 +58,7 @@ impl Variables {
     pub fn get_var(&self, name: &str) -> Option<(Scope, PureRef)> {
         if let Some((id, scope)) = self.latest_var_ids.get(name) {
             if let Some(var) = self.vars.get(id) {
-                return Some((scope.clone(), var.clone()));
+                return Some((*scope, var.clone()));
             }
         }
         None
