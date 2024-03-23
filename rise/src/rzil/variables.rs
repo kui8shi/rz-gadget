@@ -3,8 +3,8 @@ use std::cell::Cell;
 use std::collections::HashMap;
 
 use super::{
-    ast::{PureRef, Scope, PureCode},
-    error::{Result,RzILError}
+    ast::{PureCode, PureRef, Scope},
+    error::{Result, RzILError},
 };
 
 #[derive(Clone, Debug)]

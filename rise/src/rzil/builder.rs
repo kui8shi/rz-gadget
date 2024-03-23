@@ -7,8 +7,8 @@ use std::{cell::Cell, rc::Rc};
 
 #[derive(Debug, Clone)]
 pub struct RzILBuilder {
-    pure_cache: Rc<Cache<u64, PureRef>>,
-    uniq_var_id: Cell<u64>,
+    pure_cache: Rc<Cache<u64, PureRef>>, // cache pure ops by their semantics
+    uniq_var_id: Cell<u64>,              // unique variable id
 }
 
 impl RzILBuilder {
@@ -683,7 +683,7 @@ impl RzILBuilder {
         key.expect_bitv()?;
 
         let symbolized = true;
-        let sort = Sort::Bitv(8); //TODO Symbolize 8 as BIT or some
+        let sort = Sort::Bitv(u8::BITS as usize);
         let eval = 0;
         Ok(self.new_pure(PureCode::Load, vec![key], symbolized, sort, eval))
     }

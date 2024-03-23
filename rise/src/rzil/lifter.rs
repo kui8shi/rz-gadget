@@ -176,55 +176,6 @@ impl RzILLifter {
         }
     }
 
-    /*
-    pub fn bind_registers(&mut self, rzil: &RzIL, api: &mut RzApi) -> RzILResult<()> {
-        let rzilvm_status = self.api_result(api.get_rzil_vm_status())?;
-        for (key, val) in &rzilvm_status {
-            let sort = match val {
-                RzILVMRegValue::String(string) => {
-                    if !string.starts_with("0x") {
-                        return Err(RzILError::ParseHex(string.clone()));
-                    }
-                    let size = (string.len() - 2) * 4;
-                    Sort::Bitv(size)
-                }
-                RzILVMRegValue::Bool(_) => Sort::Bool,
-                _ => {
-                    continue;
-                }
-            };
-            let scope = Scope::Global;
-            let symbolized = true;
-            let eval = 0;
-            let id = self.get_uniq_var_id();
-            let reg = rzil.new_pure(PureCode::Var(scope, id), vec![], symbolized, sort, eval);
-            self.set_var(key, reg)?;
-        }
-        Ok(())
-    }
-
-    pub fn lift_inst(&mut self, api: &mut RzApi, addr: u64) -> RzILResult<Rc<Effect>> {
-        match self.lift_n_insts(api, addr, 1) {
-            Ok(vec) => Ok(vec.into_iter().nth(0).unwrap()),
-            Err(e) => Err(e),
-        }
-    }
-    pub fn lift_n_insts(
-        &mut self,
-        api: &mut RzApi,
-        addr: u64,
-        n: u64,
-    ) -> RzILResult<Vec<Rc<Effect>>> {
-        let insts = self.api_result(api.get_n_insts(Some(n), Some(addr)))?;
-        let mut vec = Vec::new();
-        for inst in insts {
-            self.partial_clear();
-            vec.push(self.parse_effect(rzil, vars, &inst.rzil)?);
-        }
-        Ok(vec)
-    }
-    */
-
     fn parse_pure(
         &mut self,
         rzil: &RzILBuilder,
