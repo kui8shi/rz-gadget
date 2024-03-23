@@ -30,7 +30,6 @@ fn parse_reg_info(rzapi: &mut RzApi) -> Result<Vec<RegSpec>> {
         match min_offsets.get(&r.type_id) {
             Some((offset, _)) => {
                 if r.offset > *offset {
-                    
                 } else {
                     min_offsets.insert(r.type_id, (r.offset, &r.name));
                 }

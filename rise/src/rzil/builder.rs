@@ -109,6 +109,17 @@ impl RzILBuilder {
             eval,
         )
     }
+
+    pub fn new_unconstrained(&self, sort: Sort, name: &str) -> PureRef {
+        self.new_pure(
+            PureCode::Var(Scope::Global, name.to_string()),
+            vec![],
+            false,
+            sort,
+            0,
+        )
+    }
+
     /*
     pub fn new_symbol(&self, name: &str, sort: Sort) -> PureRef {
         match sort {

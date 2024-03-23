@@ -6,8 +6,8 @@ use std::rc::Rc;
 #[derive(Clone, Debug)]
 pub struct PagedIntervalMap<V> {
     /*
-     * Risee internally uses IntervalMap to represent the symbolic memory.
-     * The IntervalMap holds byte-wise memory entires for feasible address ranges,
+     * rise internally uses IntervalMap to represent the symbolic memory.
+     * IntervalMap holds byte-wise memory entires for feasible address ranges,
      * and is cloned whenever the symbolic state encounters branches and forks itself.
      * To suppress the cost of the fork operations, we introduce this struct; PagedIntervalMap.
      * It wraps IntervalMaps and enable it to clone itself without full-copy. Like a unix process,
@@ -66,7 +66,9 @@ where
     }
 
     pub fn get_range_page(&self, key: &u64) -> Option<(&Range<u64>, &IntervalMap<u64, V>)> {
-        self.pages.get_key_value(key).map(|(page_range, page)| (page_range, page.as_ref()))
+        self.pages
+            .get_key_value(key)
+            .map(|(page_range, page)| (page_range, page.as_ref()))
     }
 
     pub fn get_range(&self, key: &u64) -> Option<(&Range<u64>, &V)> {
@@ -125,6 +127,7 @@ where
     const PAGE_SIZE: u64 = 128; // should be power of 2.
 
     /// Insert a pair of key range and value into the map.
+    ///
     /// Panics if range `start >= end`.
     pub fn insert(&mut self, range: Range<u64>, value: V) {
         assert!(range.start < range.end);

@@ -36,20 +36,16 @@ fn get_interp(val: z3::ast::Dynamic) -> Result<u64> {
         match v.as_bool() {
             Some(true) => Ok(1),
             Some(false) => Ok(0),
-            None => {
-                Err(RiseError::Z3(
-                    "returned invalid model (not concretized).".to_owned(),
-                ))
-            }
+            None => Err(RiseError::Z3(
+                "returned invalid model (not concretized).".to_owned(),
+            )),
         }
     } else if let Some(v) = val.as_bv() {
         match v.as_u64() {
             Some(val) => Ok(val),
-            None => {
-                Err(RiseError::Z3(
-                    "returned invalid model (not concretized).".to_owned(),
-                ))
-            }
+            None => Err(RiseError::Z3(
+                "returned invalid model (not concretized).".to_owned(),
+            )),
         }
     } else {
         return Err(RiseError::Z3(

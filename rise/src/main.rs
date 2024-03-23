@@ -20,7 +20,7 @@ mod rzil;
 mod solver;
 mod to_z3;
 
-use anyhow::Result;
+use error::Result;
 fn main() -> Result<()> {
     /*
     println!("Hello, world!");

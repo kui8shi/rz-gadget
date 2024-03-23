@@ -127,7 +127,7 @@ impl BranchSetToSetIte {
                 });
             }
         };
-        vars.set_var(name, dst)?;
+        vars.set_var(dst)?;
         Ok(())
     }
 
@@ -545,7 +545,7 @@ impl RzILLifter {
                     None => {
                         let var = rzil.new_var(Scope::Local, name, &src);
                         if src.is_concretized() {
-                            vars.set_var(name, var)?;
+                            vars.set_var(var)?;
                             return Err(RzILError::None);
                         }
                         var
@@ -555,7 +555,7 @@ impl RzILLifter {
                     self.bs_to_si.add_entry(rzil, vars, name, src, dst)?;
                     return Err(RzILError::None);
                 }
-                vars.set_var(name, dst.clone())?;
+                vars.set_var(dst.clone())?;
                 Ok(rzil.new_effect(Effect::Set { dst, src }))
             }
 

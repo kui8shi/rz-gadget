@@ -3,8 +3,8 @@ use std::cell::Cell;
 use std::collections::HashMap;
 
 use super::{
-    ast::{PureRef, Scope},
-    error::Result,
+    ast::{PureRef, Scope, PureCode},
+    error::{Result,RzILError}
 };
 
 #[derive(Clone, Debug)]
@@ -33,14 +33,14 @@ impl Variables {
     }
 
     pub fn partial_clear(&mut self) {
-        let ids_to_remove: std::collections::HashSet<u64> = self
+        let ids_to_be_removed: std::collections::HashSet<u64> = self
             .latest_var_ids
             .iter()
             .filter(|(_, v)| v.1 != Scope::Global)
             .map(|(_, v)| v.0)
             .collect();
         self.latest_var_ids.retain(|_, v| v.1 == Scope::Global);
-        self.vars.retain(|k, _| !ids_to_remove.contains(k));
+        self.vars.retain(|k, _| !ids_to_be_removed.contains(k));
     }
 
     pub fn get_scope(&self, name: &str) -> Option<Scope> {
@@ -64,16 +64,15 @@ impl Variables {
         None
     }
 
-    pub fn set_var(&mut self, name: &str, var: PureRef) -> Result<()> {
-        let id = self.get_uniq_var_id();
-        let scope = if self.reg_specs.contains_key(name) {
-            Scope::Global
+    pub fn set_var(&mut self, var: PureRef) -> Result<()> {
+        if let PureCode::Var(scope, name) = var.get_code() {
+            let id = self.get_uniq_var_id();
+            self.vars.insert(id, var);
+            self.latest_var_ids.insert(name, (id, scope));
+            Ok(())
         } else {
-            Scope::Local
-        };
-        self.vars.insert(id, var);
-        self.latest_var_ids.insert(name.to_string(), (id, scope));
-        Ok(())
+            Err(RzILError::UnexpectedCode("Var".to_string(), var.get_code()))
+        }
     }
 
     pub fn add_register(&mut self, reg: RegSpec) {

@@ -4,15 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.80"
-bitflags = "2.4.2"
 log = "0.4.21"
-owning_ref = "0.4.1"
-petgraph = "0.6.4"
 quick_cache = "0.4.1"
-rangemap = "1.5.1"
 rzapi = { path = "../rzapi" }
-serde = { version = "1.0.197", features = ["derive"] }
-serde_json = "1.0.114"
 thiserror = "1.0.57"
 z3 = "0.12.1"

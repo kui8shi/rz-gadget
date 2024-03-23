@@ -5,12 +5,12 @@ edition = "2021"
 authors = [ "pancake <pancake@nopcode.org>",
 "sushant94 <sushant.dinesh94@gmail.com>",
 "chinmaydd <chinmay1dd@gmail.com>",
-"ez2take <gbiifvrc517@gmail.com>",]
+"kui8shi <gbiifvrc517@gmail.com>",]
 
 description = "rz-pipe.rs api abstraction layer"
 
 # Repository
-#repository = "https://github.com/ez2take/rz-gadget"
+#repository = "https://github.com/kui8shi/rz-gadget"
 
 # License information
 license = "MIT OR Apache-2.0"

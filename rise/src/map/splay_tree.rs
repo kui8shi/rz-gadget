@@ -338,8 +338,6 @@ impl<K: Ord, V> SplayTree<K, V> {
             lower_bound = None;
             upper_bound = None;
         }
-        dbg!(lower_bound);
-        dbg!(upper_bound);
         Iter::new(self, lower_bound, upper_bound)
     }
 
