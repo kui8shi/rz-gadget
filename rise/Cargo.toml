@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bitflags = "2.5.0"
 log = "0.4.21"
 quick_cache = "0.4.1"
 rzapi = { path = "../rzapi" }

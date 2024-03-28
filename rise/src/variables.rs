@@ -2,7 +2,7 @@ use crate::registers::RegSpec;
 use std::cell::Cell;
 use std::collections::HashMap;
 
-use super::{
+use crate::rzil::{
     ast::{PureCode, PureRef, Scope},
     error::{Result, RzILError},
 };
@@ -75,7 +75,7 @@ impl Variables {
         }
     }
 
-    pub fn add_register(&mut self, reg: RegSpec) {
+    pub fn add_register_spec(&mut self, reg: RegSpec) {
         self.reg_specs.insert(reg.get_name(), reg);
     }
 

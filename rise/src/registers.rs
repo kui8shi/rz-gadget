@@ -1,5 +1,6 @@
 use crate::error::{Result, RiseError};
-use crate::rzil::{ast::Sort, variables::Variables};
+use crate::rzil::ast::Sort;
+use crate::variables::Variables;
 use rzapi::{api::RzApi, structs::RegisterType};
 use std::collections::HashMap;
 
@@ -68,7 +69,7 @@ fn parse_reg_info(rzapi: &mut RzApi) -> Result<Vec<RegSpec>> {
 pub fn bind_registers(rzapi: &mut RzApi, vars: &mut Variables) -> Result<()> {
     let reg_specs = parse_reg_info(rzapi)?;
     for r in reg_specs.into_iter() {
-        vars.add_register(r);
+        vars.add_register_spec(r);
     }
     Ok(())
 }

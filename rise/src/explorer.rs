@@ -1,22 +1,21 @@
 use crate::context::Context;
 use crate::error::{Result, RiseError};
-use crate::solver::Solver;
 
-pub struct PathExplorer<S: Solver> {
-    ctx_pool: Vec<Context<S>>,
+pub struct PathExplorer<C: Context> {
+    ctx_pool: Vec<C>,
 }
 
-impl<S: Solver> PathExplorer<S> {
+impl<C: Context> PathExplorer<C> {
     pub fn new() -> Self {
         PathExplorer {
             ctx_pool: Vec::new(),
         }
     }
-    pub fn push_ctx(&mut self, ctx: Context<S>) {
+    pub fn push_ctx(&mut self, ctx: C) {
         self.ctx_pool.push(ctx)
     }
 
-    pub fn pop_ctx(&mut self) -> Result<Context<S>> {
+    pub fn pop_ctx(&mut self) -> Result<C> {
         match self.ctx_pool.pop() {
             Some(ctx) => Ok(ctx),
             None => Err(RiseError::Explorer(

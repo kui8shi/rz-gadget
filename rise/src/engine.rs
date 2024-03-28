@@ -2,18 +2,15 @@ use crate::context::{Context, Status};
 use crate::error::Result;
 use crate::explorer::PathExplorer;
 use crate::registers;
-use crate::rzil::{
-    ast::Effect, builder::RzILBuilder, error::RzILError, lifter::RzILLifter, variables::Variables,
-};
-use crate::solver::Solver;
+use crate::rzil::{ast::Effect, builder::RzILCache, error::RzILError, lifter::RzILLifter};
+use crate::variables::Variables;
 use rzapi::api::RzApi;
 use std::rc::Rc;
-//use crate::memory::Memory;
-pub struct Rise<S: Solver> {
+pub struct Rise<C: Context> {
     api: RzApi,
-    explorer: PathExplorer<S>,
+    explorer: PathExplorer<C>,
     lifter: RzILLifter,
-    builder: RzILBuilder,
+    cache: RzILCache,
     vars: Variables,
     addr: u64,
 }
@@ -49,7 +46,7 @@ pub enum Mode {
     Explore,
 }
 
-impl<S: Solver> Rise<S> {
+impl<C: Context> Rise<C> {
     /*
      * Panics if stream has not loaded any sources yet.
      */
@@ -57,7 +54,7 @@ impl<S: Solver> Rise<S> {
         let mut api = RzApi::new(path)?;
         let explorer = PathExplorer::new();
         let lifter = RzILLifter::new();
-        let builder = RzILBuilder::new();
+        let builder = RzILCache::new();
         let mut vars = Variables::new();
         let addr = 0;
         registers::bind_registers(&mut api, &mut vars)?;
@@ -65,7 +62,7 @@ impl<S: Solver> Rise<S> {
             api,
             explorer,
             lifter,
-            builder,
+            cache: builder,
             vars,
             addr,
         })
@@ -98,9 +95,9 @@ impl<S: Solver> Rise<S> {
         Ok(status)
     }
 
-    fn process(&mut self, ctx: &mut Context<S>, ops: Vec<Rc<Effect>>) -> Result<()> {
+    fn process(&mut self, ctx: &mut C, ops: Vec<Rc<Effect>>) -> Result<()> {
         for op in ops {
-            process_op(ctx, &self.builder, op)?;
+            self.process_op(ctx, op)?;
         }
         Ok(())
     }
@@ -110,7 +107,7 @@ impl<S: Solver> Rise<S> {
         for inst in self.api.get_n_insts(Some(n), Some(pc))? {
             ops.push(
                 self.lifter
-                    .parse_effect(&self.builder, &mut self.vars, &inst.rzil)?,
+                    .parse_effect(&self.cache, &mut self.vars, &inst.rzil)?,
             );
         }
         Ok(ops)
@@ -127,52 +124,48 @@ impl<S: Solver> Rise<S> {
     fn is_stopped(&self) -> bool {
         false
     }
-}
 
-fn process_op<S: Solver>(
-    ctx: &mut Context<S>,
-    rzil: &RzILBuilder,
-    op: Rc<Effect>,
-) -> Result<Status> {
-    let op = op.as_ref();
-    match op {
-        Effect::Nop => Ok(Status::Continue),
-        Effect::Set { dst: _, src: _ } => Ok(Status::Continue), //TODO add Set handling
-        Effect::Jmp { dst } => {
-            if dst.is_concretized() {
-                Ok(Status::DirectJump(dst.evaluate()))
-            } else {
-                Ok(Status::SymbolicJump(dst.clone()))
-            }
-        }
-        Effect::Goto { label } => Ok(Status::Goto(label.clone())),
-        Effect::Seq { args } => {
-            for arg in args {
-                let status = process_op(ctx, rzil, arg.clone())?;
-                match status {
-                    Status::Continue => continue,
-                    _ => {
-                        return Ok(status);
-                    }
+    fn process_op(&mut self, ctx: &mut C, op: Rc<Effect>) -> Result<Status> {
+        let op = op.as_ref();
+        match op {
+            Effect::Nop => Ok(Status::Continue),
+            Effect::Set { dst: _, src: _ } => Ok(Status::Continue), //TODO add Set handling
+            Effect::Jmp { dst } => {
+                if dst.is_concretized() {
+                    Ok(Status::DirectJump(dst.evaluate()))
+                } else {
+                    Ok(Status::SymbolicJump(dst.clone()))
                 }
             }
-            Ok(Status::Continue)
+            Effect::Goto { label } => Ok(Status::Goto(label.clone())),
+            Effect::Seq { args } => {
+                for arg in args {
+                    let status = self.process_op(ctx, arg.clone())?;
+                    match status {
+                        Status::Continue => continue,
+                        _ => {
+                            return Ok(status);
+                        }
+                    }
+                }
+                Ok(Status::Continue)
+            }
+            Effect::Blk => Err(RzILError::UnimplementedRzILEffect("Blk".to_string()).into()),
+            Effect::Repeat => Err(RzILError::UnimplementedRzILEffect("Repeat".to_string()).into()),
+            Effect::Branch {
+                condition,
+                then,
+                otherwise,
+            } => Ok(Status::Branch(
+                condition.clone(),
+                then.clone(),
+                otherwise.clone(),
+            )),
+            Effect::Store { key, value } => {
+                ctx.store(key.clone(), value.clone())?;
+                Ok(Status::Continue)
+            }
+            Effect::Empty => Ok(Status::Continue),
         }
-        Effect::Blk => Err(RzILError::UnimplementedRzILEffect("Blk".to_string()).into()),
-        Effect::Repeat => Err(RzILError::UnimplementedRzILEffect("Repeat".to_string()).into()),
-        Effect::Branch {
-            condition,
-            then,
-            otherwise,
-        } => Ok(Status::Branch(
-            condition.clone(),
-            then.clone(),
-            otherwise.clone(),
-        )),
-        Effect::Store { key, value } => {
-            ctx.store(rzil, key.clone(), value.clone())?;
-            Ok(Status::Continue)
-        }
-        Effect::Empty => Ok(Status::Continue),
     }
 }

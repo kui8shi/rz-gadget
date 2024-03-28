@@ -1,11 +1,13 @@
 //! Define break;
-use crate::error::Result;
-use crate::memory::Memory;
+pub(crate) mod memory;
+pub(crate) mod solver;
 use crate::rzil::{
     ast::{Effect, PureRef},
-    builder::RzILBuilder,
+    builder::RzILCache,
 };
-use crate::solver::Solver;
+use memory::{Memory, MemoryRead, MemoryWrite};
+use solver::{Solver, Z3Solver};
+
 use rzapi::structs::Endian;
 use std::rc::Rc;
 //use std::rc::Rc;
@@ -19,47 +21,43 @@ pub enum Status {
     Branch(PureRef, Rc<Effect>, Rc<Effect>),
 }
 
-#[derive(Clone, Debug)]
-pub struct Context<S: Solver> {
-    pc: u64,
-    memory: Memory,
-    solver: S,
-    status: Status,
+pub trait Context: MemoryRead + MemoryWrite + Solver {
+    fn get_pc(&self) -> u64;
+    fn set_pc(&mut self, pc: u64) -> u64;
+    fn get_status(&self) -> Status;
 }
 
-impl<S: Solver> Context<S> {
-    pub fn new(solver: S) -> Self {
-        Context {
-            pc: 0,
-            memory: Memory::new(Endian::Little),
-            solver,
-            status: Status::Continue,
-        }
-    }
-    pub fn get_pc(&self) -> u64 {
+impl Context for RiseContext {
+    fn get_pc(&self) -> u64 {
         self.pc
     }
-
-    pub fn set_pc(&mut self, pc: u64) -> u64 {
+    fn set_pc(&mut self, pc: u64) -> u64 {
         let old_pc = self.pc;
         self.pc = pc;
         old_pc
     }
-
-    pub fn get_solver(&self) -> &S {
-        &self.solver
-    }
-
-    pub fn get_memory(&self) -> &Memory {
-        &self.memory
-    }
-
-    pub fn get_status(&self) -> Status {
+    fn get_status(&self) -> Status {
         self.status.clone()
     }
-    //pub fn assert(&self, rzil: &RzILGenerator, )
+}
 
-    pub fn store(&mut self, rzil: &RzILBuilder, addr: PureRef, val: PureRef) -> Result<()> {
-        self.memory.store(&self.solver, rzil, addr, val)
+#[derive(Clone, Debug)]
+pub struct RiseContext {
+    pc: u64,
+    memory: Memory,
+    solver: Z3Solver,
+    rzil: RzILCache,
+    status: Status,
+}
+
+impl RiseContext {
+    pub fn new(solver: Z3Solver, rzil: RzILCache) -> Self {
+        RiseContext {
+            pc: 0,
+            memory: Memory::new(Endian::Little),
+            solver,
+            rzil,
+            status: Status::Continue,
+        }
     }
 }

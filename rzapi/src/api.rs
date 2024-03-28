@@ -161,7 +161,7 @@ impl RzApi {
         for prefix in &["", "sym.", "sym.imp.", "sym.unk."] {
             let cmd = format!("%v {}{}", prefix, symbol);
             let val = self.cmd(&cmd).unwrap_or_default();
-            if val != "" && val != "0x0\n" {
+            if !val.is_empty() && val != "0x0\n" {
                 // TODO Handle ParseIntError
                 return Ok(u64::from_str_radix(&val[2..val.len() - 1], 16).unwrap());
             }
@@ -175,7 +175,7 @@ impl RzApi {
         let n = n.unwrap_or(16);
         let mut cmd = format!("aoj {}", n);
         if let Some(o) = offset {
-            cmd = format!("{} @ {}", cmd, o.to_string());
+            cmd = format!("{} @ {}", cmd, o);
         }
         self.cmdj(&cmd)
     }

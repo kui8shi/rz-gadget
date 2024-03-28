@@ -1,24 +1,13 @@
-/*
-pub mod regstore {
-    pub mod regstore;
-    pub mod regfile;
-}
-pub mod explorer {
-    //pub mod explorer;
-}
-*/
-//pub mod context;
 mod context;
 mod engine;
 mod error;
 mod explorer;
 mod map;
-mod memory;
 mod paged_map;
 mod registers;
 mod rzil;
-mod solver;
 mod to_z3;
+mod variables;
 
 use error::Result;
 fn main() -> Result<()> {

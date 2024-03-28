@@ -2,8 +2,8 @@ use super::{
     ast::{Effect, PureCode, PureRef, Scope, Sort},
     builder::RzILBuilder,
     error::{Result, RzILError},
-    variables::Variables,
 };
+use crate::variables::Variables;
 use bitflags::bitflags;
 use rzapi::structs::RzILInfo;
 use std::{collections::HashMap, rc::Rc};
@@ -18,7 +18,7 @@ bitflags! {
 }
 
 #[derive(Clone, Debug)]
-struct BranchSetToSetIteEntry {
+struct SetInBranchEntry {
     name: String,
     dst: PureRef,
     condition: PureRef,
@@ -31,7 +31,7 @@ struct BranchSetToSetIteEntry {
 struct BranchSetToSetIte {
     conditions: Vec<PureRef>,
     taken: Vec<bool>,
-    entries: Vec<BranchSetToSetIteEntry>,
+    entries: Vec<SetInBranchEntry>,
 }
 
 impl BranchSetToSetIte {
@@ -60,7 +60,7 @@ impl BranchSetToSetIte {
         self.conditions.pop();
     }
 
-    fn connect_condition(&self, rzil: &RzILBuilder) -> Result<PureRef> {
+    fn connect_condition(&self, rzil: &impl RzILBuilder) -> Result<PureRef> {
         let len = self.conditions.len();
         let mut x = self.conditions.last().unwrap().clone();
         for i in (0..len - 1).rev() {
@@ -78,7 +78,7 @@ impl BranchSetToSetIte {
 
     fn add_entry(
         &mut self,
-        rzil: &RzILBuilder,
+        rzil: &impl RzILBuilder,
         vars: &mut Variables,
         name: &str,
         src: PureRef,
@@ -117,7 +117,7 @@ impl BranchSetToSetIte {
                 } else {
                     otherwise = Some(src);
                 }
-                self.entries.push(BranchSetToSetIteEntry {
+                self.entries.push(SetInBranchEntry {
                     name: name.to_owned(),
                     dst: dst.clone(),
                     condition,
@@ -131,8 +131,8 @@ impl BranchSetToSetIte {
         Ok(())
     }
 
-    fn drain(&mut self, rzil: &RzILBuilder) -> Result<Vec<Rc<Effect>>> {
-        let entries: Vec<BranchSetToSetIteEntry> = self.entries.drain(..).collect();
+    fn drain(&mut self, rzil: &impl RzILBuilder) -> Result<Vec<Rc<Effect>>> {
+        let entries: Vec<SetInBranchEntry> = self.entries.drain(..).collect();
         let mut set_ite = Vec::new();
         self.clear();
         for e in entries {
@@ -178,7 +178,7 @@ impl RzILLifter {
 
     fn parse_pure(
         &mut self,
-        rzil: &RzILBuilder,
+        rzil: &impl RzILBuilder,
         vars: &mut Variables,
         op: &RzILInfo,
     ) -> Result<PureRef> {
@@ -476,7 +476,7 @@ impl RzILLifter {
 
     pub fn parse_effect(
         &mut self,
-        rzil: &RzILBuilder,
+        rzil: &impl RzILBuilder,
         vars: &mut Variables,
         op: &RzILInfo,
     ) -> Result<Rc<Effect>> {
@@ -495,7 +495,7 @@ impl RzILLifter {
                     }
                     None => {
                         let var = rzil.new_var(Scope::Local, name, &src);
-                        if src.is_concretized() {
+                        if var.is_concretized() {
                             vars.set_var(var)?;
                             return Err(RzILError::None);
                         }
@@ -586,7 +586,7 @@ impl RzILLifter {
 
     fn parse_seq_arg(
         &mut self,
-        rzil: &RzILBuilder,
+        rzil: &impl RzILBuilder,
         vars: &mut Variables,
         seq_arg: &RzILInfo,
         vec: &mut Vec<Rc<Effect>>,
