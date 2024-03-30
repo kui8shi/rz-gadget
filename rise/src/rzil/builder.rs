@@ -1,5 +1,5 @@
 use super::{
-    ast::{Effect, Pure, PureCode, PureRef, Scope, Sort},
+    ast::{Effect, Pure, PureCode, PureRef, Scope, Sort, VarId},
     error::{Result, RzILError},
 };
 use quick_cache::sync::Cache;
@@ -75,7 +75,7 @@ pub trait RzILBuilder {
 
     fn new_var(&self, scope: Scope, name: &str, val: &Pure) -> PureRef {
         self.new_pure(
-            PureCode::Var(scope, name.to_string()),
+            PureCode::Var(scope, VarId::new(name)),
             vec![],
             val.is_symbolized(),
             val.get_sort(),
@@ -88,7 +88,7 @@ pub trait RzILBuilder {
         let sort = val.get_sort();
         let eval = val.evaluate();
         self.new_pure(
-            PureCode::Var(Scope::Let, name.to_string()),
+            PureCode::Var(Scope::Let, VarId::new(name)),
             vec![val], // will be unwrapped
             symbolized,
             sort,
@@ -98,7 +98,7 @@ pub trait RzILBuilder {
 
     fn new_unconstrained(&self, sort: Sort, name: &str) -> PureRef {
         self.new_pure(
-            PureCode::Var(Scope::Global, name.to_string()),
+            PureCode::Var(Scope::Global, VarId::new(name)),
             vec![],
             false,
             sort,

@@ -65,9 +65,37 @@ pub enum Scope {
     Let,    // variables valid inside a Let expression
 }
 
+#[derive(Eq, PartialEq, Clone, Debug, Hash)]
+pub struct VarId {
+    name: String,
+    id: u32, // 0-index id that is unique among a set of variables with the same name
+             // it works for registers as a counting number of write accesses
+}
+
+impl VarId {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            id: 0,
+        }
+    }
+
+    pub fn get_name(&self) -> &str {
+        &self.name
+    }
+
+    fn get_count(&self) -> u32 {
+        self.id
+    }
+
+    pub fn get_uniq_name(&self) -> String {
+        format!("{}_{}", self.get_name(), self.get_count())
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum PureCode {
-    Var(Scope, String), // (scope, name)
+    Var(Scope, VarId), // (scope, id)
     Ite,
     Let,
     Bool,
