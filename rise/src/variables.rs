@@ -1,24 +1,55 @@
 use crate::registers::RegSpec;
-use std::cell::Cell;
 use std::collections::HashMap;
 
 use crate::rzil::{
-    ast::{PureCode, PureRef, Scope},
-    error::{Result, RzILError},
+    ast::{PureRef, Scope},
+    error::Result,
 };
+
+#[derive(Eq, PartialEq, Clone, Debug, Hash)]
+pub struct VarId {
+    name: String,
+    id: u32, // 0-index id that is unique among a set of variables with the same name
+             // it works for registers as a counting number of write accesses
+}
+
+impl VarId {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            id: 0,
+        }
+    }
+
+    pub fn get_name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn get_uniq_name(&self) -> String {
+        format!("{}_{}", self.get_name(), self.get_count())
+    }
+
+    pub(self) fn get_count(&self) -> u32 {
+        self.id
+    }
+
+    pub(self) fn set_count(&mut self, id: u32) {
+        self.id = id
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Variables {
-    uniq_var_id: Cell<u64>,
-    latest_var_ids: HashMap<String, (u64, Scope)>,
-    vars: HashMap<u64, PureRef>,
+    scopes: HashMap<String, Scope>,
+    latest_var_ids: HashMap<String, VarId>,
+    vars: HashMap<VarId, PureRef>,
     reg_specs: HashMap<String, RegSpec>,
 }
 
 impl Variables {
     pub fn new() -> Self {
         Variables {
-            uniq_var_id: Cell::new(0),
+            scopes: HashMap::new(),
             latest_var_ids: HashMap::new(),
             vars: HashMap::new(),
             reg_specs: HashMap::new(),
@@ -26,69 +57,54 @@ impl Variables {
     }
 
     pub fn clear(&mut self) {
-        self.uniq_var_id.set(0);
+        self.scopes.clear();
         self.latest_var_ids.clear();
         self.vars.clear();
         self.reg_specs.clear();
     }
 
     pub fn partial_clear(&mut self) {
-        let ids_to_be_removed: std::collections::HashSet<u64> = self
-            .latest_var_ids
-            .iter()
-            .filter(|(_, v)| v.1 != Scope::Global)
-            .map(|(_, v)| v.0)
-            .collect();
-        self.latest_var_ids.retain(|_, v| v.1 == Scope::Global);
-        self.vars.retain(|k, _| !ids_to_be_removed.contains(k));
+        // clear vars with a local or smaller scope
+        self.scopes.retain(|_, v| *v == Scope::Global);
+        // sync with scopes
+        self.latest_var_ids
+            .retain(|_, v| self.scopes.contains_key(v.get_name()));
+        // sync with latest_var_ids
+        self.vars
+            .retain(|k, _| self.latest_var_ids.contains_key(k.get_name()));
     }
 
     pub fn get_scope(&self, name: &str) -> Option<Scope> {
-        if let Some((_, scope)) = self.latest_var_ids.get(name) {
-            Some(*scope)
-        } else {
-            None
-        }
+        self.scopes.get(name).map(|scope| *scope)
     }
 
     pub fn get_reg_spec(&self, name: &str) -> Option<&RegSpec> {
         self.reg_specs.get(name)
     }
 
-    pub fn get_var(&self, name: &str) -> Option<(Scope, PureRef)> {
-        if let Some((id, scope)) = self.latest_var_ids.get(name) {
-            if let Some(var) = self.vars.get(id) {
-                return Some((*scope, var.clone()));
-            }
-        }
-        None
+    pub fn get_var(&self, name: &str) -> Option<PureRef> {
+        self.latest_var_ids
+            .get(name)
+            .and_then(|id| self.vars.get(id).map(|v| v.clone()))
     }
 
     pub fn set_var(&mut self, var: PureRef) -> Result<()> {
-        if let PureCode::Var(scope, name) = var.get_code() {
-            let id = self.get_uniq_var_id();
-            self.vars.insert(id, var);
-            self.latest_var_ids.insert(name, (id, scope));
-            Ok(())
-        } else {
-            Err(RzILError::UnexpectedCode("Var".to_string(), var.get_code()))
+        let (scope, mut id) = var.expect_var()?;
+        if let Some(latest) = self.latest_var_ids.get(id.get_name()) {
+            id.set_count(latest.get_count() + 1);
         }
+        self.latest_var_ids.insert(id.get_name().to_string(), id);
+        self.vars.insert(id, var);
+        Ok(())
     }
 
     pub fn add_register_spec(&mut self, reg: RegSpec) {
         self.reg_specs.insert(reg.get_name(), reg);
     }
 
-    fn get_uniq_var_id(&self) -> u64 {
-        let id = self.uniq_var_id.get();
-        self.uniq_var_id.set(self.uniq_var_id.get() + 1);
-        id
-    }
-
     fn remove_var(&mut self, name: &str) -> Option<PureRef> {
-        if let Some((id, _)) = self.latest_var_ids.remove(name) {
-            return self.vars.remove(&id);
-        }
-        None
+        self.latest_var_ids
+            .remove(name)
+            .and_then(|id| self.vars.remove(&id))
     }
 }

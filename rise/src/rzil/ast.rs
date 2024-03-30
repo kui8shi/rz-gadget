@@ -1,4 +1,5 @@
 use super::error::{Result, RzILError};
+use crate::variables::VarId;
 use std::collections::hash_map::DefaultHasher;
 use std::fmt::Display;
 use std::hash::{Hash, Hasher};
@@ -63,34 +64,6 @@ pub enum Scope {
     Global, // represent physical registers
     Local,  // variables valid inside an Instruction
     Let,    // variables valid inside a Let expression
-}
-
-#[derive(Eq, PartialEq, Clone, Debug, Hash)]
-pub struct VarId {
-    name: String,
-    id: u32, // 0-index id that is unique among a set of variables with the same name
-             // it works for registers as a counting number of write accesses
-}
-
-impl VarId {
-    pub fn new(name: &str) -> Self {
-        Self {
-            name: name.to_string(),
-            id: 0,
-        }
-    }
-
-    pub fn get_name(&self) -> &str {
-        &self.name
-    }
-
-    fn get_count(&self) -> u32 {
-        self.id
-    }
-
-    pub fn get_uniq_name(&self) -> String {
-        format!("{}_{}", self.get_name(), self.get_count())
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -257,6 +230,9 @@ impl Pure {
     pub fn get_size(&self) -> usize {
         self.sort.get_size()
     }
+    pub fn num_args(&self) -> usize {
+        self.args.len()
+    }
     pub fn get_arg(&self, i: usize) -> PureRef {
         self.args[i].clone()
     }
@@ -266,7 +242,6 @@ impl Pure {
     pub fn get_bitmask(&self) -> u64 {
         u64::MAX >> (u64::BITS as usize - self.get_size())
     }
-
     pub fn is_bitv(&self) -> bool {
         self.get_sort().is_bitv()
     }
@@ -286,7 +261,6 @@ impl Pure {
         self.symbolized = false;
         self.eval = eval;
     }
-
     pub fn expect_bool(&self) -> Result<()> {
         if !self.is_bool() {
             return Err(RzILError::UnexpectedSort(Sort::Bool, self.get_sort()));
@@ -304,6 +278,12 @@ impl Pure {
             return Err(RzILError::SortIntegrity(self.get_sort(), other.get_sort()));
         }
         Ok(())
+    }
+    pub fn expect_var(&self) -> Result<(Scope, VarId)> {
+        match self.get_code() {
+            PureCode::Var(scope, id) => Ok((scope, id)),
+            other => Err(RzILError::UnexpectedCode("Var".to_string(), other)),
+        }
     }
 }
 
