@@ -141,7 +141,7 @@ impl BranchSetToSetIte {
             let then = e.then.clone().unwrap_or(e.default.clone());
             let otherwise = e.otherwise.clone().unwrap_or(e.default.clone());
             let ite = rzil.new_ite(condition, then, otherwise)?;
-            set_ite.push(rzil.new_effect(Effect::Set { dst, src: ite }));
+            set_ite.push(rzil.new_effect(Effect::Set { var: dst }));
         }
         Ok(set_ite)
     }
@@ -485,7 +485,7 @@ impl RzILLifter {
             RzILInfo::Set { dst, src } => {
                 let name = dst;
                 let src = self.parse_pure(rzil, vars, src)?;
-                let dst = match vars.get_var(name) {
+                let var = match vars.get_var(name) {
                     Some((Scope::Global, var)) => {
                         src.expect_same_sort_with(&var)?;
                         rzil.new_var(Scope::Global, name, &src)
@@ -503,11 +503,11 @@ impl RzILLifter {
                     }
                 };
                 if !self.bs_to_si.in_root_branch() {
-                    self.bs_to_si.add_entry(rzil, vars, name, src, dst)?;
+                    self.bs_to_si.add_entry(rzil, vars, name, src, var)?;
                     return Err(RzILError::None);
                 }
-                vars.set_var(dst.clone())?;
-                Ok(rzil.new_effect(Effect::Set { dst, src }))
+                vars.set_var(var.clone())?;
+                Ok(rzil.new_effect(Effect::Set { var }))
             }
 
             RzILInfo::Jmp { dst } => {

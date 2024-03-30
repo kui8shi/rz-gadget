@@ -1,5 +1,6 @@
 //! Define break;
 pub(crate) mod memory;
+pub(crate) mod process;
 pub(crate) mod solver;
 use crate::rzil::{
     ast::{Effect, PureRef},

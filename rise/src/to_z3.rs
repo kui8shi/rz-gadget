@@ -8,9 +8,19 @@ use crate::rzil::{
 };
 use z3::ast::{Ast, Bool, Dynamic, BV};
 
-impl RzILToZ3 for RiseContext {}
+pub trait ConvertRzIL {
+    type Any;
+    type Bool;
+    type Bitv;
+    fn convert(&self, op: PureRef) -> Result<Self::Any>;
+    fn convert_bool(&self, op: PureRef) -> Result<Self::Bool>;
+    fn convert_bitv(&self, op: PureRef) -> Result<Self::Bitv>;
+}
 
-pub trait RzILToZ3: Z3 + MemoryRead {
+impl ConvertRzIL for RiseContext {
+    type Any = Dynamic;
+    type Bool = Bool;
+    type Bitv = BV;
     // ======== provided methods ========
     fn convert(&self, op: PureRef) -> Result<Dynamic> {
         //if op.is_concretized()
@@ -71,84 +81,84 @@ pub trait RzILToZ3: Z3 + MemoryRead {
             }
             PureCode::Bitv => Ok(BV::from_u64(self.get_z3_ctx(), op.evaluate(), size).into()),
             PureCode::Msb => {
-                let bv = self.convert_bv(op.get_arg(0))?;
+                let bv = self.convert_bitv(op.get_arg(0))?;
                 Ok(bv.extract(size - 1, size - 1).into())
             }
             PureCode::Lsb => {
-                let bv = self.convert_bv(op.get_arg(0))?;
+                let bv = self.convert_bitv(op.get_arg(0))?;
                 Ok(bv.extract(0, 0).into())
             }
             PureCode::IsZero => {
-                let bv = self.convert_bv(op.get_arg(0))?;
+                let bv = self.convert_bitv(op.get_arg(0))?;
                 let zero = BV::from_u64(self.get_z3_ctx(), 0, size);
                 Ok(bv._eq(&zero).into())
             }
             PureCode::Neg => {
-                let bv = self.convert_bv(op.get_arg(0))?;
+                let bv = self.convert_bitv(op.get_arg(0))?;
                 Ok(bv.bvneg().into())
             }
             PureCode::LogNot => {
-                let bv = self.convert_bv(op.get_arg(0))?;
+                let bv = self.convert_bitv(op.get_arg(0))?;
                 Ok(Dynamic::from_ast(&!bv))
             }
             PureCode::Add => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok((x.bvadd(&y)).into())
             }
             PureCode::Sub => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok((x.bvsub(&y)).into())
             }
             PureCode::Mul => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok((x.bvmul(&y)).into())
             }
             PureCode::Div => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok(x.bvudiv(&y).into())
             }
             PureCode::Sdiv => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok(x.bvsdiv(&y).into())
             }
             PureCode::Mod => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok(x.bvurem(&y).into())
             }
             PureCode::Smod => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok(x.bvsmod(&y).into()) // ? This could be bvsrem but bvsmod for now.
             }
             PureCode::LogAnd => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok(x.bvand(&y).into())
             }
             PureCode::LogOr => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok(x.bvor(&y).into())
             }
             PureCode::LogXor => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok(x.bvxor(&y).into())
             }
             PureCode::ShiftRight => {
                 let fill_bit = op.get_arg(0);
-                let x = self.convert_bv(op.get_arg(1))?;
-                let y = self.convert_bv(op.get_arg(2))?;
+                let x = self.convert_bitv(op.get_arg(1))?;
+                let y = self.convert_bitv(op.get_arg(2))?;
                 if fill_bit.is_zero() {
                     Ok(x.bvlshr(&y).into())
                 } else {
-                    let fill_bit = self.convert_bv(fill_bit)?;
+                    let fill_bit = self.convert_bitv(fill_bit)?;
                     let expanded = BV::concat(&fill_bit, &x);
                     let shifted = expanded.bvashr(&y);
                     Ok(shifted.extract(size - 1, 0).into())
@@ -156,12 +166,12 @@ pub trait RzILToZ3: Z3 + MemoryRead {
             }
             PureCode::ShiftLeft => {
                 let fill_bit = op.get_arg(0);
-                let x = self.convert_bv(op.get_arg(1))?;
-                let y = self.convert_bv(op.get_arg(2))?;
+                let x = self.convert_bitv(op.get_arg(1))?;
+                let y = self.convert_bitv(op.get_arg(2))?;
                 if fill_bit.is_zero() {
                     Ok(x.bvshl(&y).into())
                 } else {
-                    let fill_bit = self.convert_bv(fill_bit)?;
+                    let fill_bit = self.convert_bitv(fill_bit)?;
                     let least_bits = fill_bit.sign_ext(size);
                     let expanded = BV::concat(&x, &least_bits);
                     let shifted = expanded.bvshl(&y);
@@ -171,23 +181,23 @@ pub trait RzILToZ3: Z3 + MemoryRead {
                 }
             }
             PureCode::Equal => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok(x._eq(&y).into())
             }
             PureCode::Sle => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok(x.bvsle(&y).into())
             }
             PureCode::Ule => {
-                let x = self.convert_bv(op.get_arg(0))?;
-                let y = self.convert_bv(op.get_arg(1))?;
+                let x = self.convert_bitv(op.get_arg(0))?;
+                let y = self.convert_bitv(op.get_arg(1))?;
                 Ok(x.bvule(&y).into())
             }
             PureCode::Cast(expand) => {
                 let fill_bit = op.get_arg(0);
-                let value = self.convert_bv(op.get_arg(1))?;
+                let value = self.convert_bitv(op.get_arg(1))?;
                 if expand {
                     let size_gap = u32::abs_diff(size, value.get_size());
                     let most_bits = if fill_bit.is_concretized() {
@@ -197,7 +207,7 @@ pub trait RzILToZ3: Z3 + MemoryRead {
                             size_gap,
                         )
                     } else {
-                        let fill_bit = self.convert_bv(op.get_arg(0))?;
+                        let fill_bit = self.convert_bitv(op.get_arg(0))?;
                         fill_bit.sign_ext(size_gap)
                     };
                     Ok(most_bits.concat(&value).into())
@@ -207,13 +217,13 @@ pub trait RzILToZ3: Z3 + MemoryRead {
                 }
             }
             PureCode::Append => {
-                let high = self.convert_bv(op.get_arg(0))?;
-                let low = self.convert_bv(op.get_arg(1))?;
+                let high = self.convert_bitv(op.get_arg(0))?;
+                let low = self.convert_bitv(op.get_arg(1))?;
                 Ok(BV::concat(&high, &low).into())
             }
             PureCode::Load => {
                 let value = self.load(op.get_arg(0), 8)?;
-                Ok(self.convert_bv(value)?.into())
+                Ok(self.convert_bitv(value)?.into())
             }
             _ => {
                 unimplemented!()
@@ -221,7 +231,7 @@ pub trait RzILToZ3: Z3 + MemoryRead {
         }
     }
 
-    fn convert_bool(&self, op: PureRef) -> Result<Bool> {
+    fn convert_bool(&self, op: PureRef) -> Result<Self::Bool> {
         if !op.is_bool() {
             return Err(RzILError::UnexpectedSort(Sort::Bool, op.get_sort()).into());
         }
@@ -233,7 +243,7 @@ pub trait RzILToZ3: Z3 + MemoryRead {
             ))
         }
     }
-    fn convert_bv(&self, op: PureRef) -> Result<BV> {
+    fn convert_bitv(&self, op: PureRef) -> Result<Self::Bitv> {
         if !op.is_bitv() {
             return Err(RzILError::UnexpectedSort(Sort::Bitv(0), op.get_sort()).into());
         }

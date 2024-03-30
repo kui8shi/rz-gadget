@@ -1,7 +1,7 @@
 use super::RiseContext;
 use crate::error::{Result, RiseError};
 use crate::rzil::{ast::PureRef, builder::RzILBuilder};
-use crate::to_z3::RzILToZ3;
+use crate::to_z3::ConvertRzIL;
 use quick_cache::sync::Cache;
 use std::collections::{BinaryHeap, HashMap};
 use std::rc::Rc;

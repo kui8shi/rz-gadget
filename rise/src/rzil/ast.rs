@@ -311,8 +311,7 @@ impl Pure {
 pub enum Effect {
     Nop,
     Set {
-        dst: PureRef,
-        src: PureRef,
+        var: PureRef,
     },
     Jmp {
         dst: PureRef,

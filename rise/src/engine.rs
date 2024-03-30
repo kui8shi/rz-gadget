@@ -95,13 +95,6 @@ impl<C: Context> Rise<C> {
         Ok(status)
     }
 
-    fn process(&mut self, ctx: &mut C, ops: Vec<Rc<Effect>>) -> Result<()> {
-        for op in ops {
-            self.process_op(ctx, op)?;
-        }
-        Ok(())
-    }
-
     fn read_insts(&mut self, pc: u64, n: u64) -> Result<Vec<Rc<Effect>>> {
         let mut ops = Vec::new();
         for inst in self.api.get_n_insts(Some(n), Some(pc))? {
@@ -123,49 +116,5 @@ impl<C: Context> Rise<C> {
 
     fn is_stopped(&self) -> bool {
         false
-    }
-
-    fn process_op(&mut self, ctx: &mut C, op: Rc<Effect>) -> Result<Status> {
-        let op = op.as_ref();
-        match op {
-            Effect::Nop => Ok(Status::Continue),
-            Effect::Set { dst: _, src: _ } => Ok(Status::Continue), //TODO add Set handling
-            Effect::Jmp { dst } => {
-                if dst.is_concretized() {
-                    Ok(Status::DirectJump(dst.evaluate()))
-                } else {
-                    Ok(Status::SymbolicJump(dst.clone()))
-                }
-            }
-            Effect::Goto { label } => Ok(Status::Goto(label.clone())),
-            Effect::Seq { args } => {
-                for arg in args {
-                    let status = self.process_op(ctx, arg.clone())?;
-                    match status {
-                        Status::Continue => continue,
-                        _ => {
-                            return Ok(status);
-                        }
-                    }
-                }
-                Ok(Status::Continue)
-            }
-            Effect::Blk => Err(RzILError::UnimplementedRzILEffect("Blk".to_string()).into()),
-            Effect::Repeat => Err(RzILError::UnimplementedRzILEffect("Repeat".to_string()).into()),
-            Effect::Branch {
-                condition,
-                then,
-                otherwise,
-            } => Ok(Status::Branch(
-                condition.clone(),
-                then.clone(),
-                otherwise.clone(),
-            )),
-            Effect::Store { key, value } => {
-                ctx.store(key.clone(), value.clone())?;
-                Ok(Status::Continue)
-            }
-            Effect::Empty => Ok(Status::Continue),
-        }
     }
 }
