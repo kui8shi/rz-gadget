@@ -2,6 +2,7 @@ use crate::context::memory::MemoryRead;
 use crate::context::solver::Z3;
 use crate::context::RiseContext;
 use crate::error::{Result, RiseError};
+use crate::rzil::ast::Scope;
 use crate::rzil::{
     ast::{PureCode, PureRef, Sort},
     error::RzILError,
@@ -15,6 +16,7 @@ pub trait ConvertRzIL {
     fn convert(&self, op: PureRef) -> Result<Self::Any>;
     fn convert_bool(&self, op: PureRef) -> Result<Self::Bool>;
     fn convert_bitv(&self, op: PureRef) -> Result<Self::Bitv>;
+    fn convert_set(&self, var: PureRef) -> Result<Self::Any>;
 }
 
 impl ConvertRzIL for RiseContext {
@@ -261,6 +263,24 @@ impl ConvertRzIL for RiseContext {
                 "Bitv rzil was somehow converted to non-bitv z3 ast".to_string(),
             ))
         }
+    }
+
+    fn convert_set(&self, var: PureRef) -> Result<Self::Any> {
+        let (scope, id) = var.expect_var()?;
+        debug_assert!(var.num_args() == 1);
+        debug_assert!(self.get_z3_trasnlation(&var).is_none());
+        if scope == Scope::Let {
+            return Err(RzILError::ImmutableVariable(id.get_name().to_string()).into());
+        }
+        let sort = match var.get_sort() {
+            Sort::Bool => z3::Sort::bool(self.get_z3_ctx()),
+            Sort::Bitv(size) => z3::Sort::bitvector(self.get_z3_ctx(), size as u32),
+        };
+        let func_decl = z3::FuncDecl::new(self.get_z3_ctx(), id.get_uniq_name(), &[], &sort);
+        let val = self.convert(var.get_arg(0))?;
+        let z3_var = func_decl.apply(&[&val]);
+        self.set_z3_trasnlation(var, z3_var.clone());
+        Ok(z3_var)
     }
 }
 //fn effect_to_z3<'a>

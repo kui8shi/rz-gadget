@@ -19,7 +19,10 @@ pub trait Process: ConvertRzIL + Solver + MemoryWrite {
         let op = op.as_ref();
         match op {
             Effect::Nop => Ok(Status::Continue),
-            Effect::Set { var } => Ok(Status::Continue), //TODO add Set handling
+            Effect::Set { var } => {
+                self.convert_set(var.clone())?;
+                Ok(Status::Continue)
+            }
             Effect::Jmp { dst } => {
                 if dst.is_concretized() {
                     Ok(Status::DirectJump(dst.evaluate()))
