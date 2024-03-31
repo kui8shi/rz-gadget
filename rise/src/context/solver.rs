@@ -40,6 +40,14 @@ impl Z3Solver {
     pub fn cache_z3_var(&self, var: PureRef, z3_ast: Dynamic) {
         self.translate.insert(var, z3_ast)
     }
+
+    pub(self) fn get_z3_trasnlation(&self, var: &PureRef) -> Option<Dynamic> {
+        self.translate.get(var)
+    }
+
+    pub(self) fn set_z3_trasnlation(&self, var: PureRef, z3_var: Dynamic) {
+        self.translate.insert(var, z3_var)
+    }
 }
 
 fn get_interp(val: z3::ast::Dynamic) -> Result<u64> {
@@ -70,6 +78,10 @@ pub trait Z3 {
 
     fn get_z3_solver(&self) -> &z3::Solver;
 
+    fn get_z3_trasnlation(&self, var: &PureRef) -> Option<Dynamic>;
+
+    fn set_z3_trasnlation(&self, var: PureRef, z3_var: Dynamic);
+
     fn z3_get_model(&self, extra_constraint: &[z3::ast::Bool]) -> Result<Option<z3::Model>> {
         let solver = self.get_z3_solver();
         for ast in extra_constraint {
@@ -90,6 +102,14 @@ impl Z3 for RiseContext {
 
     fn get_z3_solver(&self) -> &z3::Solver {
         self.solver.get_z3_solver()
+    }
+
+    fn get_z3_trasnlation(&self, var: &PureRef) -> Option<Dynamic> {
+        self.solver.get_z3_trasnlation(var)
+    }
+
+    fn set_z3_trasnlation(&self, var: PureRef, z3_var: Dynamic) {
+        self.solver.set_z3_trasnlation(var, z3_var)
     }
 }
 

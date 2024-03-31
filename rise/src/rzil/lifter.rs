@@ -108,7 +108,7 @@ impl BranchSetToSetIte {
             }
             None => {
                 let default = match vars.get_var(name) {
-                    Some((_, var)) => var.clone(),
+                    Some(var) => var.clone(),
                     None => rzil.new_const(dst.get_sort(), 0),
                 };
                 let (mut then, mut otherwise) = (None, None);
@@ -184,7 +184,7 @@ impl RzILLifter {
     ) -> Result<PureRef> {
         match op {
             RzILInfo::Var { value } => {
-                if let Some((_, var)) = vars.get_var(value) {
+                if let Some(var) = vars.get_var(value) {
                     Ok(var)
                 } else {
                     Err(RzILError::UndefinedVariableReferenced(value.clone()))
@@ -485,12 +485,13 @@ impl RzILLifter {
             RzILInfo::Set { dst, src } => {
                 let name = dst;
                 let src = self.parse_pure(rzil, vars, src)?;
-                let var = match vars.get_var(name) {
-                    Some((Scope::Global, var)) => {
+                let var = match vars.get_scope(name) {
+                    Some(Scope::Global) => {
+                        let var = vars.get_var(name).unwrap();
                         src.expect_same_sort_with(&var)?;
                         rzil.new_var(Scope::Global, name, &src)
                     }
-                    Some(_) => {
+                    Some(Scope::Local | Scope::Let) => {
                         return Err(RzILError::ImmutableVariable(name.to_string()));
                     }
                     None => {

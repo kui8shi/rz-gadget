@@ -26,20 +26,26 @@ impl ConvertRzIL for RiseContext {
         //if op.is_concretized()
         let size: u32 = op.get_size().try_into().unwrap();
         match op.get_code() {
-            PureCode::Var(_, name) => match op.get_sort() {
+            PureCode::Var(_, id) => match op.get_sort() {
                 Sort::Bool => {
                     if op.is_concretized() {
                         Ok(Bool::from_bool(self.get_z3_ctx(), op.evaluate_bool()).into())
+                    } else if let Some(z3_var) = self.get_z3_trasnlation(&op) {
+                        Ok(z3_var)
                     } else {
-                        Ok(Bool::new_const(self.get_z3_ctx(), name).into())
+                        let z3_var = Bool::new_const(self.get_z3_ctx(), id.get_uniq_name()).into();
+                        self.set_z3_trasnlation(op, z3_var);
+                        Ok(z3_var)
                     }
                 }
                 Sort::Bitv(_) => {
                     if op.is_concretized() {
                         Ok(BV::from_u64(self.get_z3_ctx(), op.evaluate(), size).into())
                     } else {
-                        // is 'new_const' the right option to reference variables for real??
-                        Ok(BV::new_const(self.get_z3_ctx(), name, size).into())
+                        let z3_var =
+                            BV::new_const(self.get_z3_ctx(), id.get_uniq_name(), size).into();
+                        self.set_z3_trasnlation(op, z3_var);
+                        Ok(z3_var)
                     }
                 }
             },
