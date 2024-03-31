@@ -93,7 +93,8 @@ impl Variables {
         if let Some(latest) = self.latest_var_ids.get(id.get_name()) {
             id.set_count(latest.get_count() + 1);
         }
-        self.latest_var_ids.insert(id.get_name().to_string(), id);
+        self.latest_var_ids
+            .insert(id.get_name().to_string(), id.clone());
         self.vars.insert(id, var);
         Ok(())
     }

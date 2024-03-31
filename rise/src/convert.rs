@@ -33,8 +33,9 @@ impl ConvertRzIL for RiseContext {
                     } else if let Some(z3_var) = self.get_z3_trasnlation(&op) {
                         Ok(z3_var)
                     } else {
-                        let z3_var = Bool::new_const(self.get_z3_ctx(), id.get_uniq_name()).into();
-                        self.set_z3_trasnlation(op, z3_var);
+                        let z3_var: Dynamic =
+                            Bool::new_const(self.get_z3_ctx(), id.get_uniq_name()).into();
+                        self.set_z3_trasnlation(op, z3_var.clone());
                         Ok(z3_var)
                     }
                 }
@@ -42,9 +43,9 @@ impl ConvertRzIL for RiseContext {
                     if op.is_concretized() {
                         Ok(BV::from_u64(self.get_z3_ctx(), op.evaluate(), size).into())
                     } else {
-                        let z3_var =
+                        let z3_var: Dynamic =
                             BV::new_const(self.get_z3_ctx(), id.get_uniq_name(), size).into();
-                        self.set_z3_trasnlation(op, z3_var);
+                        self.set_z3_trasnlation(op, z3_var.clone());
                         Ok(z3_var)
                     }
                 }
