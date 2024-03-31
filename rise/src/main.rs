@@ -1,4 +1,5 @@
 mod context;
+mod convert;
 mod engine;
 mod error;
 mod explorer;
@@ -6,7 +7,6 @@ mod map;
 mod paged_map;
 mod registers;
 mod rzil;
-mod to_z3;
 mod variables;
 
 use error::Result;

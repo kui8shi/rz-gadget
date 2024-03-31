@@ -1,8 +1,8 @@
 use super::RiseContext;
 use super::{memory::MemoryWrite, solver::Solver, Status};
+use crate::convert::ConvertRzIL;
 use crate::error::Result;
 use crate::rzil::{ast::Effect, error::RzILError};
-use crate::to_z3::ConvertRzIL;
 use std::rc::Rc;
 
 impl Process for RiseContext {}
