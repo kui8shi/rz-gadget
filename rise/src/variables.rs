@@ -152,4 +152,27 @@ mod test {
             Err(RzILError::InconsistentScope(_, Scope::Global, Scope::Let))
         ));
     }
+
+    #[test]
+    fn clear() {
+        let mut vars = Variables::new();
+        let builder = RzILCache::new();
+        let false_ = builder.new_const(Sort::Bool, 0);
+        vars.set_var(builder.new_unconstrained(Sort::Bool, "a"))
+            .unwrap();
+        vars.set_var(builder.new_var(Scope::Local, "b", &false_))
+            .unwrap();
+        assert!(vars.get_scope("a").is_some());
+        assert!(vars.get_scope("b").is_some());
+        assert!(vars.get_var("a").is_some());
+        assert!(vars.get_var("b").is_some());
+        vars.partial_clear();
+        assert!(vars.get_scope("a").is_some());
+        assert!(vars.get_scope("b").is_none());
+        assert!(vars.get_var("a").is_some());
+        assert!(vars.get_var("b").is_none());
+        vars.clear();
+        assert!(vars.get_scope("a").is_none());
+        assert!(vars.get_var("a").is_none());
+    }
 }
