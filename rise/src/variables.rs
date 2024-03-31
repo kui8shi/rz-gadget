@@ -75,7 +75,7 @@ impl Variables {
     }
 
     pub fn get_scope(&self, name: &str) -> Option<Scope> {
-        self.scopes.get(name).map(|scope| *scope)
+        self.scopes.get(name).copied()
     }
 
     pub fn get_reg_spec(&self, name: &str) -> Option<&RegSpec> {
@@ -85,7 +85,7 @@ impl Variables {
     pub fn get_var(&self, name: &str) -> Option<PureRef> {
         self.latest_var_ids
             .get(name)
-            .and_then(|id| self.vars.get(id).map(|v| v.clone()))
+            .and_then(|id| self.vars.get(id).cloned())
     }
 
     pub fn set_var(&mut self, var: PureRef) -> Result<()> {
