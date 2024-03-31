@@ -1,4 +1,4 @@
-use super::ast::{PureCode, Sort};
+use super::ast::{PureCode, Scope, Sort};
 use std::num::ParseIntError;
 
 pub type Result<T> = std::result::Result<T, RzILError>;
@@ -37,6 +37,9 @@ pub enum RzILError {
 
     #[error("Variable {0} is immutable but changed.")]
     ImmutableVariable(String),
+
+    #[error("Variable {0}'s scope has changed from {1} to {2}.")]
+    InconsistentScope(String, Scope, Scope),
 
     #[error("Currently Unable to handle Set operations with a duplicate target in a Branch.")]
     DuplicateSetInBranch,

@@ -1,4 +1,4 @@
-use crate::registers::RegSpec;
+use crate::{registers::RegSpec, rzil::error::RzILError};
 use std::collections::HashMap;
 
 use crate::rzil::{
@@ -90,6 +90,17 @@ impl Variables {
 
     pub fn set_var(&mut self, var: PureRef) -> Result<()> {
         let (scope, mut id) = var.expect_var()?;
+        if let Some(old_scope) = self.scopes.get(id.get_name()) {
+            if *old_scope != scope {
+                return Err(RzILError::InconsistentScope(
+                    id.get_name().to_string(),
+                    *old_scope,
+                    scope,
+                ));
+            }
+        } else {
+            self.scopes.insert(id.get_name().to_string(), scope);
+        }
         if let Some(latest) = self.latest_var_ids.get(id.get_name()) {
             id.set_count(latest.get_count() + 1);
         }
@@ -100,6 +111,7 @@ impl Variables {
     }
 
     pub fn add_register_spec(&mut self, reg: RegSpec) {
+        self.scopes.insert(reg.get_name(), Scope::Global);
         self.reg_specs.insert(reg.get_name(), reg);
     }
 
@@ -107,5 +119,37 @@ impl Variables {
         self.latest_var_ids
             .remove(name)
             .and_then(|id| self.vars.remove(&id))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Variables;
+    use crate::rzil::{
+        ast::{Scope, Sort},
+        builder::{RzILBuilder, RzILCache},
+        error::RzILError,
+    };
+
+    #[test]
+    fn set_var() {
+        let mut vars = Variables::new();
+        let builder = RzILCache::new();
+        assert_eq!(vars.get_var("a"), None); // no variables set
+        vars.set_var(builder.new_unconstrained(Sort::Bool, "a"))
+            .unwrap();
+        assert_eq!(vars.get_scope("a"), Some(Scope::Global)); // scope is global
+        assert_eq!(
+            // able to get the variable
+            vars.get_var("a"),
+            Some(builder.new_unconstrained(Sort::Bool, "a"))
+        );
+        let false_ = builder.new_const(Sort::Bool, 0);
+        let invalid_var = builder.new_let_var("a", false_);
+        assert!(matches!(
+            // unable to set vars with the same name and different scopes
+            vars.set_var(invalid_var),
+            Err(RzILError::InconsistentScope(_, Scope::Global, Scope::Let))
+        ));
     }
 }

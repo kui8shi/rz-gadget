@@ -1,7 +1,7 @@
 use super::error::{Result, RzILError};
 use crate::variables::VarId;
 use std::collections::hash_map::DefaultHasher;
-use std::fmt::Display;
+use std::fmt::{write, Display};
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use std::rc::Rc;
@@ -64,6 +64,12 @@ pub enum Scope {
     Global, // represent physical registers
     Local,  // variables valid inside an Instruction
     Let,    // variables valid inside a Let expression
+}
+
+impl std::fmt::Display for Scope {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
