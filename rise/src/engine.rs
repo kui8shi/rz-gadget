@@ -74,12 +74,12 @@ impl<C: Context> Rise<C> {
         match mode {
             Mode::Step => {
                 let ops = self.read_insts(pc, 1)?;
-                self.process(&mut ctx, ops)?;
+                ctx.process(ops)?;
             }
             Mode::Block => {
                 let n = self.num_insts_in_current_block()?;
                 let ops = self.read_insts(pc, n)?;
-                self.process(&mut ctx, ops)?;
+                ctx.process(ops)?;
             }
             Mode::Explore => {
                 while self.is_stopped() {

@@ -11,6 +11,8 @@ use solver::{Solver, Z3Solver};
 
 use rzapi::structs::Endian;
 use std::rc::Rc;
+
+use self::process::Process;
 //use std::rc::Rc;
 //use regstore::regfile::RzRegFile;
 #[derive(Clone, Debug)]
@@ -22,7 +24,7 @@ pub enum Status {
     Branch(PureRef, Rc<Effect>, Rc<Effect>),
 }
 
-pub trait Context: MemoryRead + MemoryWrite + Solver {
+pub trait Context: Process {
     fn get_pc(&self) -> u64;
     fn set_pc(&mut self, pc: u64) -> u64;
     fn get_status(&self) -> Status;
