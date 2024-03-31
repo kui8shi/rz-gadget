@@ -1,7 +1,8 @@
 use super::{
-    ast::{Effect, Pure, PureCode, PureRef, Scope, Sort, VarId},
+    ast::{Effect, Pure, PureCode, PureRef, Scope, Sort},
     error::{Result, RzILError},
 };
+use crate::variables::VarId;
 use quick_cache::sync::Cache;
 use std::rc::Rc;
 
