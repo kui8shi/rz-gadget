@@ -140,9 +140,12 @@ impl MemoryWrite for RiseContext {
             0,
             "cannot store bitvector that is not byte-sized."
         );
-        let min_addr = self.get_min(addr.clone())?;
-        let max_addr = self.get_max(addr.clone())?;
-        assert!(min_addr > max_addr);
+        let (min_addr, max_addr) = if addr.is_symbolized() {
+            (self.get_min(addr.clone())?, self.get_max(addr.clone())?)
+        } else {
+            (addr.evaluate(), addr.evaluate())
+        };
+        assert!(min_addr <= max_addr);
         let n = (val.get_size() / 8) as u64;
         for k in 0..n {
             let k_: u32 = k.try_into().unwrap();
@@ -184,9 +187,12 @@ impl MemoryRead for RiseContext {
     /// # Panics if n == 0
     fn load(&self, addr: PureRef, n: usize) -> Result<PureRef> {
         assert!(n > 0);
-        let min_addr = self.get_min(addr.clone())?;
-        let max_addr = self.get_max(addr.clone())?;
-        assert!(min_addr > max_addr);
+        let (min_addr, max_addr) = if addr.is_symbolized() {
+            (self.get_min(addr.clone())?, self.get_max(addr.clone())?)
+        } else {
+            (addr.evaluate(), addr.evaluate())
+        };
+        assert!(min_addr <= max_addr);
         let offsets: Vec<u64> = match self.memory.endian() {
             Endian::Little => (0..n as u64).collect(),
             Endian::Big => (0..n as u64).rev().collect(),
@@ -231,5 +237,29 @@ impl MemoryRead for RiseContext {
             };
         }
         Ok(loaded_value.unwrap())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{
+        context::solver::Z3Solver,
+        rzil::{
+            ast::Sort,
+            builder::{RzILBuilder, RzILCache},
+        },
+    };
+
+    use super::{MemoryRead, MemoryWrite, RiseContext};
+
+    #[test]
+    fn concrete() {
+        let solver = Z3Solver::new();
+        let rzil = RzILCache::new();
+        let mut ctx = RiseContext::new(solver, rzil.clone());
+        let addr = rzil.new_const(Sort::Bitv(64), 0x40000);
+        let val = rzil.new_const(Sort::Bitv(64), 0xdeadbeaf);
+        ctx.store(addr.clone(), val.clone()).unwrap();
+        assert_eq!(ctx.load(addr, 8).unwrap(), val);
     }
 }

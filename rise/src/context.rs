@@ -6,15 +6,13 @@ use crate::rzil::{
     ast::{Effect, PureRef},
     builder::RzILCache,
 };
-use memory::{Memory, MemoryRead, MemoryWrite};
-use solver::{Solver, Z3Solver};
+use memory::Memory;
+use solver::Z3Solver;
 
 use rzapi::structs::Endian;
 use std::rc::Rc;
 
 use self::process::Process;
-//use std::rc::Rc;
-//use regstore::regfile::RzRegFile;
 #[derive(Clone, Debug)]
 pub enum Status {
     Continue,
