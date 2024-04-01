@@ -3,7 +3,7 @@ use crate::variables::VarId;
 use std::collections::hash_map::DefaultHasher;
 use std::fmt::{write, Display};
 use std::hash::{Hash, Hasher};
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 
 /*
@@ -290,6 +290,16 @@ impl Pure {
             PureCode::Var(scope, id) => Ok((scope, id)),
             other => Err(RzILError::UnexpectedCode("Var".to_string(), other)),
         }
+    }
+    pub fn set_var_scope(&mut self, scope: Scope) -> Result<()> {
+        let (_, id) = self.expect_var()?;
+        self.code = PureCode::Var(scope, id);
+        Ok(())
+    }
+    pub fn set_var_id(&mut self, id: VarId) -> Result<()> {
+        let (scope, _) = self.expect_var()?;
+        self.code = PureCode::Var(scope, id);
+        Ok(())
     }
 }
 

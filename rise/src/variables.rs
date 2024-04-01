@@ -78,6 +78,16 @@ impl Variables {
         self.scopes.get(name).copied()
     }
 
+    pub fn get_uniq_id(&self, name: &str) -> VarId {
+        if let Some(latest) = self.latest_var_ids.get(name) {
+            let mut tmp = VarId::new(name);
+            tmp.set_count(latest.get_count() + 1);
+            tmp
+        } else {
+            VarId::new(name)
+        }
+    }
+
     pub fn get_reg_spec(&self, name: &str) -> Option<&RegSpec> {
         self.reg_specs.get(name)
     }
@@ -89,23 +99,20 @@ impl Variables {
     }
 
     pub fn set_var(&mut self, var: PureRef) -> Result<()> {
-        let (scope, mut id) = var.expect_var()?;
-        if let Some(old_scope) = self.scopes.get(id.get_name()) {
+        let (scope, id) = var.expect_var()?;
+        let name = id.get_name();
+        if let Some(old_scope) = self.scopes.get(name) {
             if *old_scope != scope {
                 return Err(RzILError::InconsistentScope(
-                    id.get_name().to_string(),
+                    name.to_string(),
                     *old_scope,
                     scope,
                 ));
             }
         } else {
-            self.scopes.insert(id.get_name().to_string(), scope);
+            self.scopes.insert(name.to_string(), scope);
         }
-        if let Some(latest) = self.latest_var_ids.get(id.get_name()) {
-            id.set_count(latest.get_count() + 1);
-        }
-        self.latest_var_ids
-            .insert(id.get_name().to_string(), id.clone());
+        self.latest_var_ids.insert(name.to_string(), id.clone());
         self.vars.insert(id, var);
         Ok(())
     }
@@ -124,7 +131,7 @@ impl Variables {
 
 #[cfg(test)]
 mod test {
-    use super::Variables;
+    use super::{VarId, Variables};
     use crate::rzil::{
         ast::{Scope, Sort},
         builder::{RzILBuilder, RzILCache},
@@ -136,16 +143,16 @@ mod test {
         let mut vars = Variables::new();
         let builder = RzILCache::new();
         assert_eq!(vars.get_var("a"), None); // no variables set
-        vars.set_var(builder.new_unconstrained(Sort::Bool, "a"))
-            .unwrap();
+        let var = builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a"));
+        vars.set_var(var.clone()).unwrap();
         assert_eq!(vars.get_scope("a"), Some(Scope::Global)); // scope is global
         assert_eq!(
             // able to get the variable
             vars.get_var("a"),
-            Some(builder.new_unconstrained(Sort::Bool, "a"))
+            Some(var)
         );
         let false_ = builder.new_const(Sort::Bool, 0);
-        let invalid_var = builder.new_let_var("a", false_);
+        let invalid_var = builder.new_let_var(VarId::new("a"), false_);
         assert!(matches!(
             // unable to set vars with the same name and different scopes
             vars.set_var(invalid_var),
@@ -158,9 +165,9 @@ mod test {
         let mut vars = Variables::new();
         let builder = RzILCache::new();
         let false_ = builder.new_const(Sort::Bool, 0);
-        vars.set_var(builder.new_unconstrained(Sort::Bool, "a"))
+        vars.set_var(builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a")))
             .unwrap();
-        vars.set_var(builder.new_var(Scope::Local, "b", &false_))
+        vars.set_var(builder.new_var(Scope::Local, VarId::new("b"), false_))
             .unwrap();
         assert!(vars.get_scope("a").is_some());
         assert!(vars.get_scope("b").is_some());
@@ -174,5 +181,33 @@ mod test {
         vars.clear();
         assert!(vars.get_scope("a").is_none());
         assert!(vars.get_var("a").is_none());
+    }
+
+    #[test]
+    fn var_id_new() {
+        let id = VarId::new("test");
+        assert_eq!(id.get_name(), "test");
+        assert_eq!(id.get_count(), 0);
+        assert_eq!(id.get_uniq_name(), "test_0");
+    }
+
+    #[test]
+    fn var_id_count() {
+        let mut vars = Variables::new();
+        let builder = RzILCache::new();
+
+        vars.set_var(builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a")))
+            .unwrap();
+        let (_, id) = vars.get_var("a").unwrap().expect_var().unwrap();
+        assert_eq!(id.get_name(), "a");
+        assert_eq!(id.get_count(), 0);
+        assert_eq!(id.get_uniq_name(), "a_0");
+
+        vars.set_var(builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a")))
+            .unwrap();
+        let (_, id) = vars.get_var("a").unwrap().expect_var().unwrap();
+        assert_eq!(id.get_name(), "a");
+        assert_eq!(id.get_count(), 1);
+        assert_eq!(id.get_uniq_name(), "a_1");
     }
 }

@@ -200,7 +200,7 @@ impl RzILLifter {
                 // currently we can't convert Let to z3 expression due to library issues.(?)
                 // so exp will be directly assigned to body.
                 let exp = self.parse_pure(rzil, vars, exp)?;
-                let tmp_var = rzil.new_let_var(dst, exp);
+                let tmp_var = rzil.new_let_var(vars.get_uniq_id(dst), exp);
                 if self.tmp_vars.insert(dst.to_string(), tmp_var).is_some() {
                     return Err(RzILError::ImmutableVariable(dst.to_string()));
                 }
@@ -489,13 +489,13 @@ impl RzILLifter {
                     Some(Scope::Global) => {
                         let var = vars.get_var(name).unwrap();
                         src.expect_same_sort_with(&var)?;
-                        rzil.new_var(Scope::Global, name, &src)
+                        rzil.new_var(Scope::Global, vars.get_uniq_id(name), src.clone())
                     }
                     Some(Scope::Local | Scope::Let) => {
                         return Err(RzILError::ImmutableVariable(name.to_string()));
                     }
                     None => {
-                        let var = rzil.new_var(Scope::Local, name, &src);
+                        let var = rzil.new_var(Scope::Local, vars.get_uniq_id(name), src.clone());
                         if var.is_concretized() {
                             vars.set_var(var)?;
                             return Err(RzILError::None);

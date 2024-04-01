@@ -74,22 +74,19 @@ pub trait RzILBuilder {
         }
     }
 
-    fn new_var(&self, scope: Scope, name: &str, val: &Pure) -> PureRef {
-        self.new_pure(
-            PureCode::Var(scope, VarId::new(name)),
-            vec![],
-            val.is_symbolized(),
-            val.get_sort(),
-            val.evaluate(),
-        )
+    fn new_var(&self, scope: Scope, id: VarId, val: PureRef) -> PureRef {
+        let symbolized = val.is_symbolized();
+        let sort = val.get_sort();
+        let eval = val.evaluate();
+        self.new_pure(PureCode::Var(scope, id), vec![val], symbolized, sort, eval)
     }
 
-    fn new_let_var(&self, name: &str, val: PureRef) -> PureRef {
+    fn new_let_var(&self, id: VarId, val: PureRef) -> PureRef {
         let symbolized = val.is_symbolized();
         let sort = val.get_sort();
         let eval = val.evaluate();
         self.new_pure(
-            PureCode::Var(Scope::Let, VarId::new(name)),
+            PureCode::Var(Scope::Let, id),
             vec![val], // will be unwrapped
             symbolized,
             sort,
@@ -97,14 +94,8 @@ pub trait RzILBuilder {
         )
     }
 
-    fn new_unconstrained(&self, sort: Sort, name: &str) -> PureRef {
-        self.new_pure(
-            PureCode::Var(Scope::Global, VarId::new(name)),
-            vec![],
-            false,
-            sort,
-            0,
-        )
+    fn new_unconstrained(&self, sort: Sort, id: VarId) -> PureRef {
+        self.new_pure(PureCode::Var(Scope::Global, id), vec![], false, sort, 0)
     }
 
     fn convert_bool_to_bitv(&self, op: PureRef) -> Result<PureRef> {
@@ -733,5 +724,46 @@ pub trait RzILBuilder {
         key.expect_bitv()?;
         value.expect_bitv()?;
         Ok(self.new_effect(Effect::Store { key, value }))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{
+        rzil::ast::{PureCode, Scope, Sort},
+        variables::VarId,
+    };
+
+    use super::{RzILBuilder, RzILCache};
+
+    #[test]
+    fn var() {
+        let r = RzILCache::new();
+        let val = r.new_const(Sort::Bitv(64), 0xdeadbeaf);
+        let var = r.new_var(Scope::Global, VarId::new("hoge"), val.clone());
+        assert_eq!(var.evaluate(), 0xdeadbeaf);
+        assert_eq!(var.get_sort(), Sort::Bitv(64));
+        assert_eq!(var.get_size(), 64);
+        assert_eq!(var.get_bitmask(), u64::MAX);
+        assert_eq!(var.num_args(), 1);
+        assert_eq!(var.get_arg(0), val);
+        assert_eq!(var.iter_args().next(), Some(&val));
+        assert!(var.is_bitv());
+        assert!(!var.is_bool());
+        assert!(!var.is_zero());
+        assert!(var.is_concretized());
+        assert!(var.evaluate_bool());
+        assert!(var.expect_var().is_ok());
+    }
+
+    #[test]
+    fn let_var() {
+        let r = RzILCache::new();
+        let val = r.new_const(Sort::Bitv(64), 0xdeadbeaf);
+        let var = r.new_let_var(VarId::new("hoge"), val.clone());
+        let (scope, id) = var.expect_var().unwrap();
+        assert_eq!(scope, Scope::Let);
+        assert_eq!(id.get_name(), "hoge");
+        assert_eq!(id.get_uniq_name(), "hoge_0");
     }
 }

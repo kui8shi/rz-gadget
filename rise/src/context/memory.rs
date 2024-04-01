@@ -5,6 +5,7 @@ use crate::map::interval_map::IntervalMap;
 use crate::paged_map::PagedIntervalMap;
 use crate::rzil::ast::{PureRef, Sort};
 use crate::rzil::builder::RzILBuilder;
+use crate::variables::VarId;
 use rzapi::structs::Endian;
 use std::cell::Cell;
 use std::fmt::Debug;
@@ -212,7 +213,7 @@ impl MemoryRead for RiseContext {
                 // (the length is 10 chars, including "0x")
                 let implicit_store = self.rzil.new_unconstrained(
                     Sort::Bitv(8),
-                    format!("mem_{:#010x}", min_addr + k).as_ref(),
+                    VarId::new(format!("mem_{:#010x}", min_addr + k).as_ref()), // TODO uniq var id
                 );
                 /*
                 let entry = MemoryEntry {
