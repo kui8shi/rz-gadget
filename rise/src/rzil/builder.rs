@@ -766,4 +766,24 @@ mod test {
         assert_eq!(id.get_name(), "hoge");
         assert_eq!(id.get_uniq_name(), "hoge_0");
     }
+
+    #[test]
+    fn extract() {
+        let r = RzILCache::new();
+        let val = r.new_const(Sort::Bitv(32), 0xaabbccdd);
+        for (i, v) in (0..4).rev().zip([0xaa, 0xbb, 0xcc, 0xdd]) {
+            let extract = r.new_extract(val.clone(), (i + 1) * 8 - 1, i * 8).unwrap();
+            assert_eq!(extract.evaluate(), v);
+        }
+    }
+
+    #[test]
+    fn append() {
+        let r = RzILCache::new();
+        let high = r.new_const(Sort::Bitv(20), 0xdead);
+        let low = r.new_const(Sort::Bitv(16), 0xbeaf);
+        let concat = r.new_append(high, low).unwrap();
+        assert_eq!(concat.get_sort(), Sort::Bitv(36));
+        assert_eq!(concat.evaluate(), 0xdeadbeaf);
+    }
 }
