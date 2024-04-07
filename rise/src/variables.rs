@@ -1,4 +1,7 @@
-use crate::{registers::RegSpec, rzil::error::RzILError};
+use crate::{
+    registers::RegSpec,
+    rzil::{builder::RzILBuilder, error::RzILError},
+};
 use std::collections::HashMap;
 
 use crate::rzil::{
@@ -9,15 +12,22 @@ use crate::rzil::{
 #[derive(Eq, PartialEq, Clone, Debug, Hash)]
 pub struct VarId {
     name: String,
-    id: u32, // 0-index id that is unique among a set of variables with the same name
-             // it works for registers as a counting number of write accesses
+    count: u32, // 0-index id that is unique among a set of variables with the same name
+                // it works for registers as a counting number of write accesses
 }
 
 impl VarId {
     pub fn new(name: &str) -> Self {
         Self {
             name: name.to_string(),
-            id: 0,
+            count: 0,
+        }
+    }
+
+    pub fn new_with_count(name: &str, count: u32) -> Self {
+        Self {
+            name: name.to_string(),
+            count,
         }
     }
 
@@ -30,11 +40,11 @@ impl VarId {
     }
 
     pub(self) fn get_count(&self) -> u32 {
-        self.id
+        self.count
     }
 
     pub(self) fn set_count(&mut self, id: u32) {
-        self.id = id
+        self.count = id
     }
 }
 
@@ -101,25 +111,31 @@ impl Variables {
     pub fn set_var(&mut self, var: PureRef) -> Result<()> {
         let (scope, id) = var.expect_var()?;
         let name = id.get_name();
-        if let Some(old_scope) = self.scopes.get(name) {
-            if *old_scope != scope {
+        if let Some(old_scope) = self.scopes.insert(name.to_string(), scope) {
+            if old_scope != scope {
                 return Err(RzILError::InconsistentScope(
                     name.to_string(),
-                    *old_scope,
+                    old_scope,
                     scope,
                 ));
             }
-        } else {
-            self.scopes.insert(name.to_string(), scope);
         }
-        self.latest_var_ids.insert(name.to_string(), id.clone());
-        self.vars.insert(id, var);
+        if let Some(old_id) = self.latest_var_ids.insert(name.to_string(), id.clone()) {
+            if old_id == id {
+                return Err(RzILError::ImmutableVariable(old_id.get_uniq_name()));
+            }
+        }
+        if self.vars.insert(id.clone(), var).is_some() {
+            return Err(RzILError::ImmutableVariable(id.get_uniq_name()));
+        }
         Ok(())
     }
 
-    pub fn add_register_spec(&mut self, reg: RegSpec) {
-        self.scopes.insert(reg.get_name(), Scope::Global);
-        self.reg_specs.insert(reg.get_name(), reg);
+    pub fn add_register(&mut self, reg: &RegSpec) {
+        self.scopes
+            .insert(reg.get_name().to_string(), Scope::Global);
+        self.reg_specs
+            .insert(reg.get_name().to_string(), reg.clone());
     }
 
     fn remove_var(&mut self, name: &str) -> Option<PureRef> {
@@ -140,8 +156,8 @@ mod test {
 
     #[test]
     fn set_var() {
-        let mut vars = Variables::new();
         let builder = RzILCache::new();
+        let mut vars = Variables::new();
         assert_eq!(vars.get_var("a"), None); // no variables set
         let var = builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a"));
         vars.set_var(var.clone()).unwrap();
@@ -162,8 +178,8 @@ mod test {
 
     #[test]
     fn clear() {
-        let mut vars = Variables::new();
         let builder = RzILCache::new();
+        let mut vars = Variables::new();
         let false_ = builder.new_const(Sort::Bool, 0);
         vars.set_var(builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a")))
             .unwrap();
@@ -193,8 +209,8 @@ mod test {
 
     #[test]
     fn var_id_count() {
-        let mut vars = Variables::new();
         let builder = RzILCache::new();
+        let mut vars = Variables::new();
 
         vars.set_var(builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a")))
             .unwrap();

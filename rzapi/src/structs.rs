@@ -498,7 +498,7 @@ pub enum RegisterRole {
 }
 */
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum RegisterType {
     Gpr, // General purpose
@@ -526,7 +526,7 @@ pub struct AliasInfo {
     pub role_str: String,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RegisterInfo {
     pub name: String,
     pub offset: u64,

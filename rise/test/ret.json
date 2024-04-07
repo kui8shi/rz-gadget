@@ -1,0 +1,50 @@
+{
+  "opcode": "seq",
+  "x": {
+    "opcode": "set",
+    "dst": "_target",
+    "src": {
+      "opcode": "loadw",
+      "mem": 0,
+      "key": {
+        "opcode": "+",
+        "x": {
+          "opcode": "var",
+          "value": "rsp"
+        },
+        "y": {
+          "opcode": "bitv",
+          "bits": "0x0",
+          "len": 64
+        }
+      },
+      "bits": 64
+    }
+  },
+  "y": {
+    "opcode": "seq",
+    "x": {
+      "opcode": "set",
+      "dst": "rsp",
+      "src": {
+        "opcode": "+",
+        "x": {
+          "opcode": "var",
+          "value": "rsp"
+        },
+        "y": {
+          "opcode": "bitv",
+          "bits": "0x8",
+          "len": 64
+        }
+      }
+    },
+    "y": {
+      "opcode": "jmp",
+      "dst": {
+        "opcode": "var",
+        "value": "_target"
+      }
+    }
+  }
+}

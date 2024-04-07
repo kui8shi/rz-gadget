@@ -2,7 +2,7 @@ use crate::context::{Context, Status};
 use crate::error::Result;
 use crate::explorer::PathExplorer;
 use crate::registers;
-use crate::rzil::{ast::Effect, builder::RzILCache, error::RzILError, lifter::RzILLifter};
+use crate::rzil::{ast::Effect, builder::RzILCache, lifter::RzILLifter};
 use crate::variables::Variables;
 use rzapi::api::RzApi;
 use std::rc::Rc;
@@ -10,7 +10,7 @@ pub struct Rise<C: Context> {
     api: RzApi,
     explorer: PathExplorer<C>,
     lifter: RzILLifter,
-    cache: RzILCache,
+    builder: RzILCache,
     vars: Variables,
     addr: u64,
 }
@@ -57,12 +57,12 @@ impl<C: Context> Rise<C> {
         let builder = RzILCache::new();
         let mut vars = Variables::new();
         let addr = 0;
-        registers::bind_registers(&mut api, &mut vars)?;
+        registers::bind_registers(&mut api, &mut vars, &builder)?;
         Ok(Rise {
             api,
             explorer,
             lifter,
-            cache: builder,
+            builder,
             vars,
             addr,
         })
@@ -100,7 +100,7 @@ impl<C: Context> Rise<C> {
         for inst in self.api.get_n_insts(Some(n), Some(pc))? {
             ops.push(
                 self.lifter
-                    .parse_effect(&self.cache, &mut self.vars, &inst.rzil)?,
+                    .parse_effect(&self.builder, &mut self.vars, &inst.rzil)?,
             );
         }
         Ok(ops)

@@ -50,10 +50,7 @@ impl<V> PagedIntervalMap<V> {
     }
 }
 
-impl<V> PagedIntervalMap<V>
-where
-    u64: Ord + Clone,
-{
+impl<V> PagedIntervalMap<V> {
     pub fn get_page(&self, key: &u64) -> Option<Rc<IntervalMap<u64, V>>> {
         self.pages.get(key).cloned()
     }
@@ -122,7 +119,7 @@ where
 
 impl<V> PagedIntervalMap<V>
 where
-    V: Eq + Clone,
+    V: Eq + Clone + Debug,
 {
     const PAGE_SIZE: u64 = 128; // should be power of 2.
 

@@ -1,7 +1,7 @@
 use super::error::{Result, RzILError};
 use crate::variables::VarId;
 use std::collections::hash_map::DefaultHasher;
-use std::fmt::{write, Display};
+use std::fmt::{write, Debug, Display};
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
@@ -50,6 +50,13 @@ impl Sort {
             Sort::Bitv(len) => *len,
             Sort::Bool => 1,
         }
+    }
+
+    pub fn expect_same_with(self, other: Self) -> Result<()> {
+        if self != other {
+            return Err(RzILError::SortIntegrity(self, other));
+        }
+        Ok(())
     }
 }
 
@@ -280,10 +287,7 @@ impl Pure {
         Ok(())
     }
     pub fn expect_same_sort_with(&self, other: &Pure) -> Result<()> {
-        if self.get_sort() != other.get_sort() {
-            return Err(RzILError::SortIntegrity(self.get_sort(), other.get_sort()));
-        }
-        Ok(())
+        self.get_sort().expect_same_with(other.get_sort())
     }
     pub fn expect_var(&self) -> Result<(Scope, VarId)> {
         match self.get_code() {
@@ -353,5 +357,30 @@ impl Display for Effect {
 impl Effect {
     pub fn is_nop(&self) -> bool {
         matches!(self, Effect::Nop)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::hash::{DefaultHasher, Hash, Hasher};
+
+    use crate::variables::VarId;
+
+    use super::{PureCode, Scope};
+
+    #[test]
+    fn pure_code_eq() {
+        let id0 = VarId::new_with_count("v", 0);
+        let id1 = VarId::new_with_count("v", 1);
+        let v0 = PureCode::Var(Scope::Global, id0);
+        let v1 = PureCode::Var(Scope::Global, id1);
+        let mut state0 = DefaultHasher::new();
+        let mut state1 = DefaultHasher::new();
+        v0.hash(&mut state0);
+        v1.hash(&mut state1);
+        let hash0 = state0.finish();
+        let hash1 = state1.finish();
+        assert_ne!(v0, v1);
+        assert_ne!(hash0, hash1);
     }
 }

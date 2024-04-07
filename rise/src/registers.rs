@@ -1,8 +1,10 @@
 use crate::error::{Result, RiseError};
-use crate::rzil::ast::Sort;
+use crate::map::interval_map::IntervalMap;
+use crate::rzil::ast::{PureRef, Sort};
+use crate::rzil::builder::RzILBuilder;
 use crate::variables::Variables;
+use rzapi::structs::RegisterInfo;
 use rzapi::{api::RzApi, structs::RegisterType};
-use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct RegSpec {
@@ -11,65 +13,82 @@ pub struct RegSpec {
     upper: u32,
     lower: u32,
     parent: String,
+    primary: bool,
     reg_type: RegisterType,
 }
 
 impl RegSpec {
-    pub fn get_name(&self) -> String {
-        self.name.to_string()
+    pub fn get_name(&self) -> &str {
+        &self.name
+    }
+    pub fn get_sort(&self) -> Sort {
+        self.sort
     }
 }
 
 fn parse_reg_info(rzapi: &mut RzApi) -> Result<Vec<RegSpec>> {
-    let mut min_offsets = HashMap::<u64, (u64, &str)>::new();
+    let mut largest_regs = IntervalMap::<u64, &RegisterInfo>::new();
     let mut reg_specs = Vec::new();
     let reg_info = match rzapi.get_analysis_registers() {
         Ok(reg_profile) => reg_profile.reg_info,
         Err(e) => return Err(RiseError::RzApi(e)),
     };
     for r in &reg_info {
-        match min_offsets.get(&r.type_id) {
-            Some((offset, _)) => {
-                if r.offset > *offset {
-                } else {
-                    min_offsets.insert(r.type_id, (r.offset, &r.name));
-                }
-            }
-            None => {
-                min_offsets.insert(r.type_id, (r.offset, &r.name));
-            }
-        };
+        let range = r.offset..r.offset + r.size as u64;
+        let largest = largest_regs.get_key_value(&r.offset);
+        if largest.is_none()
+            || largest.is_some_and(|(k, v)| {
+                (range.start < k.start || k.end < range.start) && v.size < r.size
+            })
+        {
+            largest_regs.insert(range, r);
+        }
     }
     for r in &reg_info {
-        let (min_offset, parent) = min_offsets.get(&r.type_id).unwrap();
-        let lower: u32 = (r.offset - min_offset).try_into().unwrap();
+        let largest = largest_regs.get(&r.offset).unwrap();
+        let lower: u32 = (r.offset - largest.offset).try_into().unwrap();
         let upper: u32 = (lower as usize + r.size - 1).try_into().unwrap();
-        let sort = match r.reg_type {
+        let (sort, primary) = match r.reg_type {
+            // primary register is
+            // if flg -> smallest register
+            // else -> largest regsiter
             RegisterType::Flg => {
                 if r.size == 1 {
-                    Sort::Bool
+                    (Sort::Bool, true)
                 } else {
-                    Sort::Bitv(r.size)
+                    (Sort::Bitv(r.size), false)
                 }
             }
-            _ => Sort::Bitv(r.size),
+            _ => {
+                let is_largest = largest.name == r.name;
+                (Sort::Bitv(r.size), is_largest)
+            }
         };
         reg_specs.push(RegSpec {
             name: r.name.to_string(),
             sort,
             upper,
             lower,
-            parent: parent.to_string(),
+            parent: largest.name.to_string(),
+            primary,
             reg_type: r.reg_type.clone(),
         })
     }
     Ok(reg_specs)
 }
 
-pub fn bind_registers(rzapi: &mut RzApi, vars: &mut Variables) -> Result<()> {
+pub fn bind_registers(
+    rzapi: &mut RzApi,
+    vars: &mut Variables,
+    rzil: &impl RzILBuilder,
+) -> Result<()> {
     let reg_specs = parse_reg_info(rzapi)?;
-    for r in reg_specs.into_iter() {
-        vars.add_register_spec(r);
+    for r in reg_specs.iter() {
+        vars.add_register(r);
+        if r.primary {
+            let reg_var = rzil.new_unconstrained(r.get_sort(), vars.get_uniq_id(r.get_name()));
+            vars.set_var(reg_var).unwrap();
+        }
     }
     Ok(())
 }

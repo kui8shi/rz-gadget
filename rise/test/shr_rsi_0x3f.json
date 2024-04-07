@@ -1,0 +1,181 @@
+{
+  "opcode": "seq",
+  "x": {
+    "opcode": "seq",
+    "x": {
+      "opcode": "set",
+      "dst": "_cnt",
+      "src": {
+        "opcode": "bitv",
+        "bits": "0x3f",
+        "len": 8
+      }
+    },
+    "y": {
+      "opcode": "seq",
+      "x": {
+        "opcode": "set",
+        "dst": "_cnt_mask",
+        "src": {
+          "opcode": "bitv",
+          "bits": "0x3f",
+          "len": 8
+        }
+      },
+      "y": {
+        "opcode": "seq",
+        "x": {
+          "opcode": "set",
+          "dst": "_masked",
+          "src": {
+            "opcode": "&",
+            "x": {
+              "opcode": "var",
+              "value": "_cnt"
+            },
+            "y": {
+              "opcode": "var",
+              "value": "_cnt_mask"
+            }
+          }
+        },
+        "y": {
+          "opcode": "set",
+          "dst": "_dest",
+          "src": {
+            "opcode": "var",
+            "value": "rsi"
+          }
+        }
+      }
+    }
+  },
+  "y": {
+    "opcode": "seq",
+    "x": {
+      "opcode": "set",
+        "dst": "rsi",
+        "src": {
+          "opcode": "|",
+          "x": {
+            "opcode": "&",
+            "x": {
+              "opcode": "var",
+              "value": "rsi"
+            },
+            "y": {
+              "opcode": "~",
+              "bv": {
+                "opcode": "bitv",
+                "bits": "0xff",
+                "len": 64
+              }
+            }
+          },
+          "y": {
+            "opcode": "cast",
+            "value": {
+              "opcode": ">>",
+              "fill_bit": {
+                "opcode": "bool",
+                "value": false
+              },
+              "x": {
+                "opcode": "var",
+                "value": "_dest"
+              },
+              "y": {
+                "opcode": "var",
+                "value": "_masked"
+              }
+            },
+            "length": 64,
+            "fill": {
+              "opcode": "bool",
+              "value": false
+            }
+          }
+        }
+    },
+    "y": {
+      "opcode": "seq",
+      "x": {
+        "opcode": "set",
+        "dst": "cf",
+        "src": {
+          "opcode": "ite",
+          "condition": {
+            "opcode": "!",
+            "x": {
+              "opcode": "is_zero",
+              "bv": {
+                "opcode": "var",
+                "value": "_masked"
+              }
+            }
+          },
+          "x": {
+            "opcode": "lsb",
+            "bv": {
+              "opcode": ">>",
+              "x": {
+                "opcode": "var",
+                "value": "_dest"
+              },
+              "y": {
+                "opcode": "-",
+                "x": {
+                  "opcode": "var",
+                  "value": "_masked"
+                },
+                "y": {
+                  "opcode": "bitv",
+                  "bits": "0x1",
+                  "len": 8
+                }
+              },
+              "fill_bit": {
+                "opcode": "bool",
+                "value": false
+              }
+            }
+          },
+          "y": {
+            "opcode": "var",
+            "value": "cf"
+          }
+        }
+      },
+      "y": {
+        "opcode": "set",
+        "dst": "of",
+        "src": {
+          "opcode": "ite",
+          "condition": {
+            "opcode": "==",
+            "x": {
+              "opcode": "var",
+              "value": "_masked"
+            },
+            "y": {
+              "opcode": "bitv",
+              "bits": "0x1",
+              "len": 8
+            }
+          },
+          "x": {
+            "opcode": "msb",
+            "bv": {
+              "opcode": "var",
+              "value": "_dest"
+            }
+          },
+          "y": {
+            "opcode": "var",
+            "value": "of"
+          }
+        }
+      }
+    }
+  }
+}

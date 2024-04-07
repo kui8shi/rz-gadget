@@ -3,6 +3,8 @@ use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::ops::{Bound, RangeBounds};
 
+use serde_json::de;
+
 #[derive(Clone, Debug)]
 struct Node<K, V> {
     key: K,
@@ -22,6 +24,7 @@ impl<K: Ord, V> Node<K, V> {
 pub struct SplayTree<K, V> {
     array: Vec<Node<K, V>>,
     root: Option<usize>,
+    allow_duplication: bool,
 }
 
 impl<K: Clone, V: Clone> Clone for SplayTree<K, V> {
@@ -29,6 +32,7 @@ impl<K: Clone, V: Clone> Clone for SplayTree<K, V> {
         Self {
             array: self.array.to_vec(),
             root: self.root,
+            allow_duplication: self.allow_duplication,
         }
     }
 }
@@ -62,11 +66,15 @@ impl<K: Debug, V: Debug> SplayTree<K, V> {
     }
 }
 impl<K, V> SplayTree<K, V> {
-    pub fn new() -> Self {
+    pub fn new_with_option(allow_duplication: bool) -> Self {
         Self {
             array: Vec::new(),
             root: None,
+            allow_duplication,
         }
+    }
+    pub fn new() -> Self {
+        Self::new_with_option(true)
     }
 
     pub fn len(&self) -> usize {
@@ -75,6 +83,10 @@ impl<K, V> SplayTree<K, V> {
 
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+
+    pub fn is_duplication_allowed(&self) -> bool {
+        self.allow_duplication
     }
 
     pub fn new_node(
@@ -167,14 +179,15 @@ impl<K, V> SplayTree<K, V> {
         let right_leftmost = self.left_most_of(self.right_of(id));
         if right_leftmost.is_some() {
             right_leftmost
-        } else if self.is_left_child(id) {
-            // current node is a left child without any right nodes
-            // the next node with a larger key is the parent
-            self.parent_of(id)
         } else {
-            // current node is a right child without any right nodes
-            // the next node with a larger key is the grandparent
-            self.parent_of(self.parent_of(id))
+            let mut traverse = id;
+            while self.is_right_child(traverse) {
+                // current node is a right child without any valid right nodes
+                // the node with a larger key is the first parent
+                // of which 'traverse' is a left child
+                traverse = self.parent_of(traverse);
+            }
+            self.parent_of(traverse)
         }
     }
 
@@ -263,15 +276,25 @@ impl<K, V> SplayTree<K, V> {
         }
         right
     }
+
+    fn add_value(&mut self, id: Option<usize>, value: V) {
+        if self.is_duplication_allowed() {
+            self.mut_at(id).unwrap().values.push(value);
+        } else {
+            let _ = std::mem::replace(&mut self.mut_at(id).unwrap().values[0], value);
+        }
+    }
 }
 
 impl<K: Ord, V> SplayTree<K, V> {
     pub fn insert(&mut self, key: K, value: V) -> bool {
         self.root = self.splay(&key, self.root);
-        if self.at(self.root).is_none() {
+        if self.is_empty() {
+            debug_assert!(self.root.is_none());
             self.root = self.new_node(key, value, None, None);
             return true;
         }
+        debug_assert!(self.root.is_some());
         match key.cmp(&self.at(self.root).unwrap().key) {
             Ordering::Less => {
                 // split at the left edge of root and
@@ -291,7 +314,7 @@ impl<K: Ord, V> SplayTree<K, V> {
             }
             Ordering::Equal => {
                 // complete the insertion as the addition of 'value' to root
-                self.mut_at(self.root).unwrap().add_value(value);
+                self.add_value(self.root, value);
                 true
             }
         }
@@ -307,6 +330,7 @@ impl<K: Ord, V> SplayTree<K, V> {
         }
     }
 
+    #[rustfmt::skip]
     // returns node iterator which fit in 'range'
     // this is meaningful only if the tree is ordered by 'T'
     pub fn range<T, R>(&self, range: R) -> Iter<'_, K, V>
@@ -329,10 +353,8 @@ impl<K: Ord, V> SplayTree<K, V> {
         }
         let mut lower_bound = self.lower_bound(self.root, &start);
         let mut upper_bound = self.upper_bound(self.root, &end);
-        if !self.at(lower_bound).is_some_and(|lower| {
-            self.at(upper_bound)
-                .is_some_and(|upper| lower.key <= upper.key)
-        }) {
+        if !self.at(lower_bound).is_some_and(|lower|
+            self.at(upper_bound).is_some_and(|upper| lower.key <= upper.key)) {
             // if either bound is none or lower exceeds upper,
             // the tree has no keys in the range.
             lower_bound = None;
@@ -427,7 +449,7 @@ impl<K: Ord, V> SplayTree<K, V> {
 
                 // make the root of right-right subtree the new root by double left rotations
                 let new_root = self.rotate_left(root);
-                if self.left_of(new_root).is_some() {
+                if self.right_of(new_root).is_some() {
                     self.rotate_left(new_root)
                 } else {
                     new_root
@@ -623,6 +645,7 @@ impl<'a, K: 'a, V: 'a> Iterator for Iter<'a, K, V> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let (front, val_idx) = self.front;
+        debug_assert!(front.is_none() == self.tree.at(front).is_none());
         if val_idx < self.tree.at(front)?.values.len() - 1 {
             self.front = (front, val_idx + 1);
         } else if self.front == self.back {
@@ -756,8 +779,44 @@ impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Values<'a, K, V> {
     }
 }
 
+pub fn detect_cycle<K, V>(tree: &SplayTree<K, V>) -> bool {
+    debug_assert!(tree.root.is_none() == tree.is_empty());
+    tree.root.is_some_and(|root| {
+        let mut visited = vec![false; tree.len()];
+        let mut finished = vec![false; tree.len()];
+        dfs(tree, root, &mut visited, &mut finished)
+    })
+}
+
+// return true if a cycle in the subtree of 'root' is detected.
+fn dfs<K, V>(
+    tree: &SplayTree<K, V>,
+    root: usize,
+    visited: &mut [bool],
+    finished: &mut [bool],
+) -> bool {
+    visited[root] = true;
+    for child in [tree.left_of(Some(root)), tree.right_of(Some(root))] {
+        if let Some(child) = child {
+            if finished[child] {
+                continue;
+            }
+            if visited[child] && !finished[child] {
+                return true;
+            }
+            if dfs(tree, child, visited, finished) {
+                return true;
+            }
+        }
+    }
+    finished[root] = true;
+    false
+}
+
 #[cfg(test)]
 mod test {
+    use crate::map::splay_tree::detect_cycle;
+
     use super::SplayTree;
     #[test]
     fn rotation() {
@@ -769,6 +828,7 @@ mod test {
         assert!(root != tree.root);
         tree.root = tree.rotate_left(tree.root);
         assert!(root == tree.root);
+        assert!(!detect_cycle(&tree));
     }
 
     #[test]
@@ -783,6 +843,7 @@ mod test {
         assert!(tree.get(&200) == Some(&["bar"]));
         assert!(tree.get(&0) == Some(&["zero"]));
         assert!(tree.get(&9200) == Some(&["big"]));
+        assert!(!detect_cycle(&tree));
     }
 
     #[test]
@@ -794,6 +855,7 @@ mod test {
         assert!(tree.remove(&200) == Some(Vec::from_iter(["bar"])));
         assert!(tree.is_empty());
         assert!(tree.root.is_none());
+        assert!(!detect_cycle(&tree));
     }
 
     #[test]
@@ -818,6 +880,7 @@ mod test {
         assert!(iter.next() == Some((&60, &"f")));
         assert!(iter.next().is_none());
         assert!(iter.next_back().is_none());
+        assert!(!detect_cycle(&tree));
     }
 
     #[test]
@@ -831,6 +894,7 @@ mod test {
         tree.insert(40, "d");
         tree.insert(50, "e");
         tree.insert(60, "f");
+        assert!(!detect_cycle(&tree));
         let mut iter = tree.into_iter();
         assert!(iter.next_back() == Some((60, "f")));
         assert!(iter.next() == Some((10, "a")));
@@ -855,6 +919,7 @@ mod test {
         tree.insert(40, "d");
         tree.insert(50, "e");
         tree.insert(60, "f");
+        assert!(!detect_cycle(&tree));
 
         let mut range = tree.range(20..60);
         assert!(range.next() == Some((&20, &"b")));

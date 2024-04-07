@@ -41,8 +41,8 @@ impl BranchSetToSetIte {
         self.entries.clear();
     }
 
-    fn in_root_branch(&self) -> bool {
-        self.conditions.is_empty() && self.taken.is_empty()
+    fn in_branch(&self) -> bool {
+        !self.conditions.is_empty()
     }
 
     fn begin(&mut self, condition: PureRef) {
@@ -183,13 +183,27 @@ impl RzILLifter {
         op: &RzILInfo,
     ) -> Result<PureRef> {
         match op {
-            RzILInfo::Var { value } => {
-                if let Some(var) = vars.get_var(value) {
-                    Ok(var)
-                } else {
-                    Err(RzILError::UndefinedVariableReferenced(value.clone()))
+            RzILInfo::Var { value } => match vars.get_var(value) {
+                Some(var) => {
+                    if var.is_concretized() {
+                        Ok(rzil.new_const(var.get_sort(), var.evaluate()))
+                    } else {
+                        Ok(var)
+                    }
                 }
-            }
+                None => match self.tmp_vars.get(value) {
+                    Some(var) => {
+                        if var.is_concretized() {
+                            Ok(rzil.new_const(var.get_sort(), var.evaluate()))
+                        } else {
+                            Ok(var.clone())
+                        }
+                    }
+                    None => vars
+                        .get_var(value)
+                        .ok_or(RzILError::UndefinedVariableReferenced(value.clone())),
+                },
+            },
             RzILInfo::Ite { condition, x, y } => {
                 let condition = self.parse_pure(rzil, vars, condition)?;
                 let x = self.parse_pure(rzil, vars, x)?;
@@ -341,7 +355,7 @@ impl RzILLifter {
             } => {
                 let fill_bit = self.parse_pure(rzil, vars, fill)?;
                 let value = self.parse_pure(rzil, vars, value)?;
-                rzil.new_cast(value, fill_bit, *length)
+                rzil.new_cast(fill_bit, value, *length)
             }
             RzILInfo::Append { high, low } => {
                 let high = self.parse_pure(rzil, vars, high)?;
@@ -485,30 +499,44 @@ impl RzILLifter {
             RzILInfo::Set { dst, src } => {
                 let name = dst;
                 let src = self.parse_pure(rzil, vars, src)?;
-                let var = match vars.get_scope(name) {
+                let dst = match vars.get_scope(name) {
+                    Some(Scope::Let) => {
+                        // let var is immutable
+                        return Err(RzILError::ImmutableVariable(name.to_string()));
+                    }
                     Some(Scope::Global) => {
+                        // overwrite global(register) var
                         let var = vars.get_var(name).unwrap();
                         src.expect_same_sort_with(&var)?;
                         rzil.new_var(Scope::Global, vars.get_uniq_id(name), src.clone())
                     }
-                    Some(Scope::Local | Scope::Let) => {
-                        return Err(RzILError::ImmutableVariable(name.to_string()));
+                    Some(Scope::Local) => {
+                        // overwrite local var
+                        let sort = vars.get_var(name).unwrap().get_sort();
+                        src.get_sort().expect_same_with(sort)?;
+                        let var = rzil.new_var(Scope::Local, vars.get_uniq_id(name), src.clone());
+                        if var.is_concretized() && !self.bs_to_si.in_branch() {
+                            vars.set_var(var)?;
+                            return Err(RzILError::None);
+                        }
+                        var
                     }
                     None => {
+                        // declare local var
                         let var = rzil.new_var(Scope::Local, vars.get_uniq_id(name), src.clone());
-                        if var.is_concretized() {
+                        if var.is_concretized() && !self.bs_to_si.in_branch() {
                             vars.set_var(var)?;
                             return Err(RzILError::None);
                         }
                         var
                     }
                 };
-                if !self.bs_to_si.in_root_branch() {
-                    self.bs_to_si.add_entry(rzil, vars, name, src, var)?;
+                if self.bs_to_si.in_branch() {
+                    self.bs_to_si.add_entry(rzil, vars, name, src, dst)?;
                     return Err(RzILError::None);
                 }
-                vars.set_var(var.clone())?;
-                Ok(rzil.new_effect(Effect::Set { var }))
+                vars.set_var(dst.clone())?;
+                Ok(rzil.new_effect(Effect::Set { var: dst }))
             }
 
             RzILInfo::Jmp { dst } => {
@@ -546,7 +574,7 @@ impl RzILLifter {
                 self.bs_to_si.end();
 
                 let mut args = Vec::new();
-                if self.bs_to_si.in_root_branch() {
+                if !self.bs_to_si.in_branch() {
                     args.append(&mut self.bs_to_si.drain(rzil)?);
                 }
                 let need_branch = !then.is_nop() || !otherwise.is_nop();
@@ -616,33 +644,89 @@ impl RzILLifter {
     }
 }
 
-/*
 #[cfg(test)]
 mod test {
-    use super::*;
-    use rzapi::api;
-    fn init(rzapi: &mut api::RzApi) -> RzIL {
-        let mut ctx = RzIL::new();
-        ctx.bind_registers(rzapi).expect("failed to bind_registers");
-        ctx
+    use std::{fs, rc::Rc};
+
+    use rzapi::{api::RzApi, structs::RzILInfo};
+
+    use super::RzILLifter;
+    use crate::{
+        registers::bind_registers,
+        rzil::{
+            ast::{Effect, PureRef},
+            builder::{RzILBuilder, RzILCache},
+        },
+        variables::Variables,
+    };
+    /*
+    fn init(rzapi: &mut RzApi) -> (RiseContext, Variables) {
+        let s = Z3Solver::new();
+        let r = RzILCache::new();
+        let mut ctx = RiseContext::new(s, r);
+        let mut vars = Variables::new();
+        bind_registers(rzapi, &mut vars).unwrap();
+        (ctx, vars)
     }
+    */
+
+    fn read_rzil_info(path: &str) -> RzILInfo {
+        let file = fs::File::open(path).expect("unable to open file");
+        serde_json::from_reader(file).expect("invalid json file")
+    }
+
+    fn parse_ops(target: Vec<&str>) -> Vec<Rc<Effect>> {
+        let rzil = RzILCache::new();
+        let mut lifter = RzILLifter::new();
+        let mut rzapi = RzApi::new(Some("test/sample")).unwrap();
+        let mut vars = Variables::new();
+        bind_registers(&mut rzapi, &mut vars, &rzil).unwrap();
+        let mut ret = Vec::new();
+        for t in target {
+            let path = format!("test/{}.json", t);
+            let op_info = read_rzil_info(&path);
+            ret.push(lifter.parse_effect(&rzil, &mut vars, &op_info).unwrap());
+            vars.partial_clear();
+        }
+        ret
+    }
+
+    fn parse_op(target: &str) -> Rc<Effect> {
+        parse_ops(vec![target]).pop().unwrap()
+    }
+
     #[test]
     fn xor() {
-        let mut rzapi = api::RzApi::new(Some("/bin/ls"), None).unwrap();
-        let mut ctx = init(&mut rzapi);
-        dbg!(ctx.lift_inst(&mut rzapi, 0x67d4).unwrap());
+        dbg!(parse_op("xor_eax_eax"));
     }
+
     #[test]
     fn sub() {
-        let mut rzapi = api::RzApi::new(Some("/bin/ls"), None).unwrap();
-        let mut ctx = init(&mut rzapi);
-        dbg!(ctx.lift_inst(&mut rzapi, 0x4e04).unwrap());
+        dbg!(parse_op("sub_al_0x20"));
     }
+
     #[test]
-    fn shl() {
-        let mut rzapi = api::RzApi::new(Some("/bin/ls"), None).unwrap();
-        let mut ctx = init(&mut rzapi);
-        dbg!(ctx.lift_inst(&mut rzapi, 0x6a44).unwrap());
+    fn ret() {
+        dbg!(parse_op("ret"));
+    }
+
+    #[test]
+    fn shr() {
+        dbg!(parse_op("shr_rsi_0x3f"));
+    }
+
+    #[test]
+    fn push() {
+        dbg!(parse_op("push_qword_rip+0x2fa2"));
+    }
+
+    #[test]
+    fn and() {
+        dbg!(parse_op("and_rsp_-0xf"));
+    }
+
+    #[test]
+    fn multiple() {
+        dbg!(parse_ops(vec!["sub_al_0x20", "xor_eax_eax",]));
     }
 }
-*/

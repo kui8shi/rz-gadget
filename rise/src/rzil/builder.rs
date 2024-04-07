@@ -226,7 +226,7 @@ pub trait RzILBuilder {
         bitv.expect_bitv()?;
 
         let symbolized = bitv.is_symbolized();
-        let sort = Sort::Bool;
+        let sort = Sort::Bitv(bitv.get_size());
         let eval = -(bitv.evaluate() as i64) as u64;
 
         Ok(self.new_pure_maybe_const(PureCode::Neg, vec![bitv], symbolized, sort, eval))
@@ -236,7 +236,7 @@ pub trait RzILBuilder {
         bitv.expect_bitv()?;
 
         let symbolized = bitv.is_symbolized();
-        let sort = Sort::Bool;
+        let sort = Sort::Bitv(bitv.get_size());
         let eval = !bitv.evaluate();
 
         Ok(self.new_pure_maybe_const(PureCode::LogNot, vec![bitv], symbolized, sort, eval))
@@ -274,7 +274,7 @@ pub trait RzILBuilder {
         let symbolized = x.is_symbolized() | y.is_symbolized();
         let sort = Sort::Bitv(x.get_size());
         let eval = if !symbolized {
-            (x.evaluate() - y.evaluate()) & x.get_bitmask()
+            (x.evaluate().wrapping_sub(y.evaluate())) & x.get_bitmask()
         } else {
             0
         };
@@ -483,8 +483,6 @@ pub trait RzILBuilder {
         x.expect_bitv()?;
         y.expect_bitv()?;
 
-        x.expect_same_sort_with(&y)?;
-
         let fill_bit = self.convert_bool_to_bitv(fill_bit)?;
         let symbolized = fill_bit.is_symbolized() | x.is_symbolized() | y.is_symbolized();
         let sort = Sort::Bitv(x.get_size());
@@ -512,8 +510,6 @@ pub trait RzILBuilder {
     fn new_bvshl(&self, fill_bit: PureRef, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bitv()?;
         y.expect_bitv()?;
-
-        x.expect_same_sort_with(&y)?;
 
         let fill_bit = self.convert_bool_to_bitv(fill_bit)?;
         let symbolized = fill_bit.is_symbolized() | x.is_symbolized() | y.is_symbolized();
@@ -730,8 +726,8 @@ pub trait RzILBuilder {
 #[cfg(test)]
 mod test {
     use crate::{
-        rzil::ast::{PureCode, Scope, Sort},
-        variables::VarId,
+        rzil::ast::{Scope, Sort},
+        variables::{VarId, Variables},
     };
 
     use super::{RzILBuilder, RzILCache};
@@ -785,5 +781,22 @@ mod test {
         let concat = r.new_append(high, low).unwrap();
         assert_eq!(concat.get_sort(), Sort::Bitv(36));
         assert_eq!(concat.evaluate(), 0xdeadbeaf);
+    }
+
+    #[test]
+    fn var_identity() {
+        let r = RzILCache::new();
+        let mut vars = Variables::new();
+        let zero = r.new_const(Sort::Bitv(64), 0);
+
+        let id0 = vars.get_uniq_id("x");
+        let x0 = r.new_var(Scope::Global, id0.clone(), zero.clone());
+        vars.set_var(x0.clone()).unwrap();
+
+        let id1 = vars.get_uniq_id("x");
+        let x1 = r.new_var(Scope::Global, id1.clone(), zero);
+        vars.set_var(x1.clone()).unwrap();
+        assert_ne!(id0, id1);
+        assert_ne!(x0, x1);
     }
 }

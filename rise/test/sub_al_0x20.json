@@ -1,0 +1,522 @@
+{
+  "opcode": "seq",
+  "x": {
+    "opcode": "set",
+    "dst": "op1",
+    "src": {
+      "opcode": "cast",
+      "value": {
+        "opcode": "var",
+        "value": "rax"
+      },
+      "length": 8,
+      "fill": {
+        "opcode": "bool",
+        "value": false
+      }
+    }
+  },
+  "y": {
+    "opcode": "seq",
+    "x": {
+      "opcode": "set",
+      "dst": "op2",
+      "src": {
+        "opcode": "bitv",
+        "bits": "0x20",
+        "len": 8
+      }
+    },
+    "y": {
+      "opcode": "seq",
+      "x": {
+        "opcode": "set",
+        "dst": "sub",
+        "src": {
+          "opcode": "-",
+          "x": {
+            "opcode": "var",
+            "value": "op1"
+          },
+          "y": {
+            "opcode": "var",
+            "value": "op2"
+          }
+        }
+      },
+      "y": {
+        "opcode": "seq",
+        "x": {
+          "opcode": "set",
+          "dst": "rax",
+          "src": {
+            "opcode": "|",
+            "x": {
+              "opcode": "&",
+              "x": {
+                "opcode": "var",
+                "value": "rax"
+              },
+              "y": {
+                "opcode": "~",
+                "bv": {
+                  "opcode": "bitv",
+                  "bits": "0xff",
+                  "len": 64
+                }
+              }
+            },
+            "y": {
+              "opcode": "cast",
+              "value": {
+                "opcode": "var",
+                "value": "sub"
+              },
+              "length": 64,
+              "fill": {
+                "opcode": "bool",
+                "value": false
+              }
+            }
+          }
+        },
+        "y": {
+          "opcode": "seq",
+          "x": {
+            "opcode": "seq",
+            "x": {
+              "opcode": "set",
+              "dst": "_result",
+              "src": {
+                "opcode": "var",
+                "value": "sub"
+              }
+            },
+            "y": {
+              "opcode": "seq",
+              "x": {
+                "opcode": "set",
+                "dst": "pf",
+                "src": {
+                  "opcode": "!",
+                  "x": {
+                    "opcode": "lsb",
+                    "bv": {
+                      "opcode": "let",
+                      "dst": "_val",
+                      "exp": {
+                        "opcode": "cast",
+                        "value": {
+                          "opcode": "var",
+                          "value": "_result"
+                        },
+                        "length": 8,
+                        "fill": {
+                          "opcode": "bool",
+                          "value": false
+                        }
+                      },
+                      "body": {
+                        "opcode": "let",
+                        "dst": "_c4",
+                        "exp": {
+                          "opcode": "^",
+                          "x": {
+                            "opcode": "var",
+                            "value": "_val"
+                          },
+                          "y": {
+                            "opcode": ">>",
+                            "x": {
+                              "opcode": "var",
+                              "value": "_val"
+                            },
+                            "y": {
+                              "opcode": "bitv",
+                              "bits": "0x4",
+                              "len": 8
+                            },
+                            "fill_bit": {
+                              "opcode": "bool",
+                              "value": false
+                            }
+                          }
+                        },
+                        "body": {
+                          "opcode": "let",
+                          "dst": "_c2",
+                          "exp": {
+                            "opcode": "^",
+                            "x": {
+                              "opcode": "var",
+                              "value": "_c4"
+                            },
+                            "y": {
+                              "opcode": ">>",
+                              "x": {
+                                "opcode": "var",
+                                "value": "_c4"
+                              },
+                              "y": {
+                                "opcode": "bitv",
+                                "bits": "0x2",
+                                "len": 8
+                              },
+                              "fill_bit": {
+                                "opcode": "bool",
+                                "value": false
+                              }
+                            }
+                          },
+                          "body": {
+                            "opcode": "^",
+                            "x": {
+                              "opcode": "var",
+                              "value": "_c2"
+                            },
+                            "y": {
+                              "opcode": ">>",
+                              "x": {
+                                "opcode": "var",
+                                "value": "_c2"
+                              },
+                              "y": {
+                                "opcode": "bitv",
+                                "bits": "0x1",
+                                "len": 8
+                              },
+                              "fill_bit": {
+                                "opcode": "bool",
+                                "value": false
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "y": {
+                "opcode": "seq",
+                "x": {
+                  "opcode": "set",
+                  "dst": "zf",
+                  "src": {
+                    "opcode": "is_zero",
+                    "bv": {
+                      "opcode": "var",
+                      "value": "_result"
+                    }
+                  }
+                },
+                "y": {
+                  "opcode": "set",
+                  "dst": "sf",
+                  "src": {
+                    "opcode": "msb",
+                    "bv": {
+                      "opcode": "var",
+                      "value": "_result"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "y": {
+            "opcode": "seq",
+            "x": {
+              "opcode": "set",
+              "dst": "_result",
+              "src": {
+                "opcode": "var",
+                "value": "sub"
+              }
+            },
+            "y": {
+              "opcode": "seq",
+              "x": {
+                "opcode": "set",
+                "dst": "_x",
+                "src": {
+                  "opcode": "var",
+                  "value": "op1"
+                }
+              },
+              "y": {
+                "opcode": "seq",
+                "x": {
+                  "opcode": "set",
+                  "dst": "_y",
+                  "src": {
+                    "opcode": "var",
+                    "value": "op2"
+                  }
+                },
+                "y": {
+                  "opcode": "seq",
+                  "x": {
+                    "opcode": "set",
+                    "dst": "cf",
+                    "src": {
+                      "opcode": "||",
+                      "x": {
+                        "opcode": "||",
+                        "x": {
+                          "opcode": "&&",
+                          "x": {
+                            "opcode": "!",
+                            "x": {
+                              "opcode": "msb",
+                              "bv": {
+                                "opcode": "var",
+                                "value": "_x"
+                              }
+                            }
+                          },
+                          "y": {
+                            "opcode": "msb",
+                            "bv": {
+                              "opcode": "var",
+                              "value": "_y"
+                            }
+                          }
+                        },
+                        "y": {
+                          "opcode": "&&",
+                          "x": {
+                            "opcode": "msb",
+                            "bv": {
+                              "opcode": "var",
+                              "value": "_y"
+                            }
+                          },
+                          "y": {
+                            "opcode": "msb",
+                            "bv": {
+                              "opcode": "var",
+                              "value": "_result"
+                            }
+                          }
+                        }
+                      },
+                      "y": {
+                        "opcode": "&&",
+                        "x": {
+                          "opcode": "msb",
+                          "bv": {
+                            "opcode": "var",
+                            "value": "_result"
+                          }
+                        },
+                        "y": {
+                          "opcode": "!",
+                          "x": {
+                            "opcode": "msb",
+                            "bv": {
+                              "opcode": "var",
+                              "value": "_x"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "y": {
+                    "opcode": "seq",
+                    "x": {
+                      "opcode": "set",
+                      "dst": "of",
+                      "src": {
+                        "opcode": "||",
+                        "x": {
+                          "opcode": "&&",
+                          "x": {
+                            "opcode": "&&",
+                            "x": {
+                              "opcode": "!",
+                              "x": {
+                                "opcode": "msb",
+                                "bv": {
+                                  "opcode": "var",
+                                  "value": "_result"
+                                }
+                              }
+                            },
+                            "y": {
+                              "opcode": "msb",
+                              "bv": {
+                                "opcode": "var",
+                                "value": "_x"
+                              }
+                            }
+                          },
+                          "y": {
+                            "opcode": "!",
+                            "x": {
+                              "opcode": "msb",
+                              "bv": {
+                                "opcode": "var",
+                                "value": "_y"
+                              }
+                            }
+                          }
+                        },
+                        "y": {
+                          "opcode": "&&",
+                          "x": {
+                            "opcode": "&&",
+                            "x": {
+                              "opcode": "msb",
+                              "bv": {
+                                "opcode": "var",
+                                "value": "_result"
+                              }
+                            },
+                            "y": {
+                              "opcode": "!",
+                              "x": {
+                                "opcode": "msb",
+                                "bv": {
+                                  "opcode": "var",
+                                  "value": "_x"
+                                }
+                              }
+                            }
+                          },
+                          "y": {
+                            "opcode": "msb",
+                            "bv": {
+                              "opcode": "var",
+                              "value": "_y"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "y": {
+                      "opcode": "set",
+                      "dst": "af",
+                      "src": {
+                        "opcode": "||",
+                        "x": {
+                          "opcode": "||",
+                          "x": {
+                            "opcode": "&&",
+                            "x": {
+                              "opcode": "!",
+                              "x": {
+                                "opcode": "msb",
+                                "bv": {
+                                  "opcode": "cast",
+                                  "value": {
+                                    "opcode": "var",
+                                    "value": "_x"
+                                  },
+                                  "length": 4,
+                                  "fill": {
+                                    "opcode": "bool",
+                                    "value": false
+                                  }
+                                }
+                              }
+                            },
+                            "y": {
+                              "opcode": "msb",
+                              "bv": {
+                                "opcode": "cast",
+                                "value": {
+                                  "opcode": "var",
+                                  "value": "_y"
+                                },
+                                "length": 4,
+                                "fill": {
+                                  "opcode": "bool",
+                                  "value": false
+                                }
+                              }
+                            }
+                          },
+                          "y": {
+                            "opcode": "&&",
+                            "x": {
+                              "opcode": "msb",
+                              "bv": {
+                                "opcode": "cast",
+                                "value": {
+                                  "opcode": "var",
+                                  "value": "_y"
+                                },
+                                "length": 4,
+                                "fill": {
+                                  "opcode": "bool",
+                                  "value": false
+                                }
+                              }
+                            },
+                            "y": {
+                              "opcode": "msb",
+                              "bv": {
+                                "opcode": "cast",
+                                "value": {
+                                  "opcode": "var",
+                                  "value": "_result"
+                                },
+                                "length": 4,
+                                "fill": {
+                                  "opcode": "bool",
+                                  "value": false
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "y": {
+                          "opcode": "&&",
+                          "x": {
+                            "opcode": "msb",
+                            "bv": {
+                              "opcode": "cast",
+                              "value": {
+                                "opcode": "var",
+                                "value": "_result"
+                              },
+                              "length": 4,
+                              "fill": {
+                                "opcode": "bool",
+                                "value": false
+                              }
+                            }
+                          },
+                          "y": {
+                            "opcode": "!",
+                            "x": {
+                              "opcode": "msb",
+                              "bv": {
+                                "opcode": "cast",
+                                "value": {
+                                  "opcode": "var",
+                                  "value": "_x"
+                                },
+                                "length": 4,
+                                "fill": {
+                                  "opcode": "bool",
+                                  "value": false
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

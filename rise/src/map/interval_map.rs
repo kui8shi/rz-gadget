@@ -1,3 +1,5 @@
+use crate::map::splay_tree::detect_cycle;
+
 use super::interval::Interval;
 use super::splay_tree;
 use std::cmp::Ordering;
@@ -164,8 +166,8 @@ where
 
 impl<K, V> IntervalMap<K, V>
 where
-    K: Ord + Clone,
-    V: Eq + Clone,
+    K: Ord + Clone + Debug,
+    V: Eq + Clone + Debug,
 {
     /// Insert a pair of key range and value into the map.
     ///
@@ -211,6 +213,7 @@ where
                 &value,
             );
         }
+        debug_assert!(!detect_cycle(&self.binary_tree));
 
         // Are there any stored ranges whose heads overlap or immediately
         // follow the range to insert?
@@ -440,8 +443,8 @@ impl<K: Debug, V: Debug> Debug for IntervalMap<K, V> {
 
 impl<K, V> FromIterator<(Range<K>, V)> for IntervalMap<K, V>
 where
-    K: Ord + Clone,
-    V: Eq + Clone,
+    K: Ord + Clone + Debug,
+    V: Eq + Clone + Debug,
 {
     fn from_iter<T: IntoIterator<Item = (Range<K>, V)>>(iter: T) -> Self {
         let mut interval_map = IntervalMap::<K, V>::new();
@@ -452,8 +455,8 @@ where
 
 impl<K, V> Extend<(Range<K>, V)> for IntervalMap<K, V>
 where
-    K: Ord + Clone,
-    V: Eq + Clone,
+    K: Ord + Clone + Debug,
+    V: Eq + Clone + Debug,
 {
     fn extend<T: IntoIterator<Item = (Range<K>, V)>>(&mut self, iter: T) {
         iter.into_iter().for_each(move |(k, v)| {
@@ -576,5 +579,20 @@ mod test {
         assert!(imap.get(&7) == Some(&"b"));
         assert!(imap.get(&8) == Some(&"a"));
         assert!(imap.get(&9) == None);
+    }
+
+    #[test]
+    fn insertion_overlap() {
+        let mut imap = IntervalMap::new();
+        imap.insert(640..704, "a");
+        assert!(imap.get(&650) == Some(&"a"));
+        imap.insert(320..384, "b");
+        assert!(imap.get(&650) == Some(&"a"));
+        imap.insert(704..768, "c");
+        assert!(imap.get(&650) == Some(&"a"));
+        assert!(imap.get(&700) == Some(&"a"));
+        assert!(imap.get(&750) == Some(&"c"));
+        assert!(imap.get(&600) == None);
+        assert!(imap.get(&350) == Some(&"b"));
     }
 }
