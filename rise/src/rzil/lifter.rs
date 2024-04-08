@@ -199,9 +199,7 @@ impl RzILLifter {
                             Ok(var.clone())
                         }
                     }
-                    None => vars
-                        .get_var(value)
-                        .ok_or(RzILError::UndefinedVariableReferenced(value.clone())),
+                    None => Err(RzILError::UndefinedVariableReferenced(value.clone())),
                 },
             },
             RzILInfo::Ite { condition, x, y } => {
@@ -727,6 +725,21 @@ mod test {
 
     #[test]
     fn multiple() {
-        dbg!(parse_ops(vec!["sub_al_0x20", "xor_eax_eax",]));
+        let ops = parse_ops(vec![
+            "sub_al_0x20",
+            "shr_rsi_0x3f",
+            "xor_eax_eax",
+            "push_qword_rip+0x2fa2",
+            "and_rsp_-0xf",
+            "ret",
+        ]);
+        for op in ops {
+            dbg!(op);
+        }
+    }
+
+    #[test]
+    fn testes() {
+        dbg!(parse_op("test"));
     }
 }

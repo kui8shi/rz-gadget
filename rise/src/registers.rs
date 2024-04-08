@@ -86,7 +86,8 @@ pub fn bind_registers(
     for r in reg_specs.iter() {
         vars.add_register(r);
         if r.primary {
-            let reg_var = rzil.new_unconstrained(r.get_sort(), vars.get_uniq_id(r.get_name()));
+            let id = vars.get_uniq_id(r.get_name());
+            let reg_var = rzil.new_unconstrained(r.get_sort(), id);
             vars.set_var(reg_var).unwrap();
         }
     }

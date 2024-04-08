@@ -95,7 +95,7 @@ pub trait RzILBuilder {
     }
 
     fn new_unconstrained(&self, sort: Sort, id: VarId) -> PureRef {
-        self.new_pure(PureCode::Var(Scope::Global, id), vec![], false, sort, 0)
+        self.new_pure(PureCode::Var(Scope::Global, id), vec![], true, sort, 0)
     }
 
     fn convert_bool_to_bitv(&self, op: PureRef) -> Result<PureRef> {
@@ -251,7 +251,7 @@ pub trait RzILBuilder {
         let symbolized = x.is_symbolized() | y.is_symbolized();
         let sort = Sort::Bitv(x.get_size());
         let eval = if !symbolized {
-            (x.evaluate() + y.evaluate()) & x.get_bitmask()
+            x.evaluate().wrapping_add(y.evaluate()) & x.get_bitmask()
         } else {
             0
         };
@@ -297,7 +297,7 @@ pub trait RzILBuilder {
         let symbolized = x.is_symbolized() | y.is_symbolized();
         let sort = Sort::Bitv(x.get_size());
         let eval = if !symbolized {
-            (x.evaluate() * y.evaluate()) & x.get_bitmask()
+            x.evaluate().wrapping_mul(y.evaluate()) & x.get_bitmask()
         } else {
             0
         };
@@ -472,7 +472,7 @@ pub trait RzILBuilder {
         } else if y.is_zero() {
             Ok(x)
         } else if x.get_hash() == y.get_hash() {
-            // xor eax, eax
+            // for example, 'xor eax, eax' is just zero
             Ok(self.new_const(sort, 0))
         } else {
             Ok(self.new_pure_maybe_const(PureCode::LogXor, vec![x, y], symbolized, sort, eval))

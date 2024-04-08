@@ -1,0 +1,8 @@
+{
+  "opcode": "jmp",
+  "dst": {
+    "opcode": "bitv",
+    "bits": "0x0",
+    "len": 64
+  }
+}

@@ -36,7 +36,7 @@ impl VarId {
     }
 
     pub fn get_uniq_name(&self) -> String {
-        format!("{}_{}", self.get_name(), self.get_count())
+        format!("{}!{}", self.get_name(), self.get_count())
     }
 
     pub(self) fn get_count(&self) -> u32 {

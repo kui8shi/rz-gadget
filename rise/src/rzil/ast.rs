@@ -1,9 +1,9 @@
 use super::error::{Result, RzILError};
 use crate::variables::VarId;
 use std::collections::hash_map::DefaultHasher;
-use std::fmt::{write, Debug, Display};
+use std::fmt::{Debug, Display, Write};
 use std::hash::{Hash, Hasher};
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 use std::rc::Rc;
 
 /*
@@ -60,7 +60,7 @@ impl Sort {
     }
 }
 
-impl std::fmt::Display for Sort {
+impl Display for Sort {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
@@ -73,13 +73,13 @@ pub enum Scope {
     Let,    // variables valid inside a Let expression
 }
 
-impl std::fmt::Display for Scope {
+impl Display for Scope {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum PureCode {
     Var(Scope, VarId), // (scope, id)
     Ite,
@@ -157,7 +157,7 @@ impl Display for PureCode {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct PureRef {
     pure: Rc<Pure>,
     hash: u64, // unique per semantics
@@ -168,6 +168,12 @@ impl Deref for PureRef {
 
     fn deref(&self) -> &Self::Target {
         &self.pure
+    }
+}
+
+impl Debug for PureRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.pure.fmt(f)
     }
 }
 
@@ -202,7 +208,7 @@ impl Hash for PureRef {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct Pure {
     code: PureCode,
     args: Vec<PureRef>,
@@ -307,7 +313,45 @@ impl Pure {
     }
 }
 
-#[derive(Clone, Debug)]
+impl Debug for Pure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.get_code() {
+            PureCode::Var(scope, id) => write!(
+                f,
+                "Var({}:{})",
+                id.get_uniq_name(),
+                match scope {
+                    Scope::Global => "g",
+                    Scope::Local => "l",
+                    Scope::Let => "let",
+                }
+            ),
+            PureCode::Bool => write!(f, "Bool({})", self.evaluate_bool()),
+            PureCode::Bitv => write!(f, "Bitv(0x{:x})", self.evaluate()),
+            _ => {
+                if self.is_concretized() {
+                    if self.is_bool() {
+                        f.debug_tuple(&format!("{:?}", self.get_code()))
+                            .field(&self.evaluate_bool())
+                            .field(&self.args)
+                            .finish()
+                    } else {
+                        f.debug_tuple(&format!("{:?}", self.get_code()))
+                            .field(&format_args!("0x{:x}", self.evaluate()))
+                            .field(&self.args)
+                            .finish()
+                    }
+                } else {
+                    f.debug_tuple(&format!("{:?}", self.get_code()))
+                        .field(&self.args)
+                        .finish()
+                }
+            }
+        }
+    }
+}
+
+#[derive(Clone)]
 pub enum Effect {
     Nop,
     Set {
@@ -336,21 +380,37 @@ pub enum Effect {
     Empty,
 }
 
-impl Display for Effect {
+impl Debug for Effect {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let code = match self {
-            Effect::Nop => "Nop".to_string(),
-            Effect::Set { .. } => "Set".to_string(),
-            Effect::Jmp { .. } => "Jmp".to_string(),
-            Effect::Goto { .. } => "Goto".to_string(),
-            Effect::Seq { .. } => "Seq".to_string(),
-            Effect::Blk => "Blk".to_string(),
-            Effect::Repeat => "Repeat".to_string(),
-            Effect::Branch { .. } => "Branch".to_string(),
-            Effect::Store { .. } => "Store".to_string(),
-            Effect::Empty => "Empty".to_string(),
-        };
-        write!(f, "{}", code)
+        match self {
+            Effect::Set { var } => f
+                .debug_struct("Set")
+                .field("dst", &var)
+                .field("src", &var.get_arg(0))
+                .finish(),
+            Effect::Jmp { dst } => f.debug_struct("Jmp").field("dst", &dst).finish(),
+            Effect::Goto { label } => f.debug_struct("Goto").field("label", &label).finish(),
+            Effect::Seq { args } => f.debug_struct("Seq").field("args", &args).finish(),
+            Effect::Branch {
+                condition,
+                then,
+                otherwise,
+            } => f
+                .debug_struct("Branch")
+                .field("condition", &condition)
+                .field("then", &then)
+                .field("otherwise", &otherwise)
+                .finish(),
+            Effect::Store { key, value } => f
+                .debug_struct("Store")
+                .field("key", &key)
+                .field("value", &value)
+                .finish(),
+            Effect::Nop => f.debug_struct("Nop").finish(),
+            Effect::Blk => f.debug_struct("Blk").finish(),
+            Effect::Repeat => f.debug_struct("Repeat").finish(),
+            Effect::Empty => f.debug_struct("Empty").finish(),
+        }
     }
 }
 
