@@ -209,8 +209,8 @@ impl RzILLifter {
                 rzil.new_ite(condition, x, y)
             }
             RzILInfo::Let { dst, exp, body } => {
-                // currently we can't convert Let to z3 expression due to library issues.(?)
-                // so exp will be directly assigned to body.
+                // we can't convert Let to z3 expression since the c/c++ api doesn't support this.
+                // so, exp will be directly assigned to body.
                 let exp = self.parse_pure(rzil, vars, exp)?;
                 let tmp_var = rzil.new_let_var(vars.get_uniq_id(dst), exp);
                 if self.tmp_vars.insert(dst.to_string(), tmp_var).is_some() {
