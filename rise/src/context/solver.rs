@@ -7,7 +7,7 @@ use std::collections::{BinaryHeap, HashMap};
 use std::rc::Rc;
 use std::vec;
 use z3::ast::Dynamic;
-//use owning_ref::OwningHandle;
+use z3::SatResult;
 
 #[derive(Clone, Debug)]
 pub struct Z3Solver {
@@ -117,16 +117,16 @@ pub trait Solver {
     fn solver_name(&self) -> &'static str;
     fn assert(&self, constriant: PureRef) -> Result<()>;
     fn assert_n(&self, constraints: Vec<PureRef>) -> Result<()>;
+    fn get_model(&self, extra_constraint: &[PureRef]) -> Result<HashMap<String, u64>>;
     fn get_models(
-        &mut self,
-        extra_constraint: Vec<PureRef>,
+        &self,
+        extra_constraint: &[PureRef],
         n: usize,
     ) -> Result<Vec<HashMap<String, u64>>>;
     fn evaluate(&self, target: PureRef, n: usize) -> Result<Vec<u64>>;
     fn get_min(&self, target: PureRef) -> Result<u64>;
     fn get_max(&self, target: PureRef) -> Result<u64>;
-    fn is_sat(&self) -> Result<bool>;
-    fn is_unsat(&self) -> Result<bool>;
+    fn check(&self) -> SatResult;
 }
 
 impl Solver for RiseContext {
@@ -145,18 +145,21 @@ impl Solver for RiseContext {
         }
         Ok(())
     }
+    fn get_model(&self, extra_constraints: &[PureRef]) -> Result<HashMap<String, u64>> {
+        Ok(self.get_models(extra_constraints, 1)?.pop().unwrap())
+    }
 
-    // extract n models from current context.
+    // extract up to n models from current context.
     fn get_models(
-        &mut self,
-        extra_constraints: Vec<PureRef>,
+        &self,
+        extra_constraints: &[PureRef],
         n: usize,
     ) -> Result<Vec<HashMap<String, u64>>> {
-        //TODO
+        //TODO add ex_cons negations of already generated models
         let mut ex_cons = Vec::new();
         let mut models = Vec::new();
         for op in extra_constraints {
-            let ast = self.convert_bool(op)?;
+            let ast = self.convert_bool(op.clone())?;
             ex_cons.push(ast);
         }
         for _ in 0..n {
@@ -169,13 +172,17 @@ impl Solver for RiseContext {
                         kv.insert(func_decl.name(), get_interp(val)?);
                     }
                 }
+                models.push(kv);
             }
-            models.push(kv);
         }
-        Ok(models)
+        if models.is_empty() {
+            Err(RiseError::Unsat)
+        } else {
+            Ok(models)
+        }
     }
 
-    // extract n models of op from current context.
+    // extract up to n models of op from current context.
     // returned vector has distinct and sorted values.
     fn evaluate(&self, op: PureRef, n: usize) -> Result<Vec<u64>> {
         let ast = self.convert(op.clone())?;
@@ -214,12 +221,53 @@ impl Solver for RiseContext {
         }
     }
 
-    fn is_sat(&self) -> Result<bool> {
-        //Ok(z3.get_model(&[])?.is_some())
-        Ok(true)
+    fn check(&self) -> SatResult {
+        self.get_z3_solver().check()
     }
-    fn is_unsat(&self) -> Result<bool> {
-        //Ok(z3.get_model(&[])?.is_none())
-        Ok(true)
+}
+
+#[cfg(test)]
+mod test {
+    use z3::SatResult;
+
+    use super::{Solver, Z3Solver};
+    use crate::{
+        context::RiseContext,
+        rzil::{
+            ast::Sort,
+            builder::{RzILBuilder, RzILCache},
+        },
+        variables::VarId,
+    };
+
+    #[test]
+    fn unsat() {
+        let rzil = RzILCache::new();
+        let solver = Z3Solver::new();
+        let ctx = RiseContext::new(solver, rzil.clone());
+        let ten = rzil.new_const(Sort::Bitv(64), 10);
+        let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));
+        ctx.assert(rzil.new_eq(x.clone(), ten.clone()).unwrap())
+            .unwrap();
+        assert_eq!(ctx.check(), SatResult::Sat);
+        ctx.assert(
+            rzil.new_boolinv(rzil.new_eq(x.clone(), ten.clone()).unwrap())
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(ctx.check(), SatResult::Unsat);
+    }
+
+    #[test]
+    fn get_model() {
+        let rzil = RzILCache::new();
+        let solver = Z3Solver::new();
+        let ctx = RiseContext::new(solver, rzil.clone());
+        let ten = rzil.new_const(Sort::Bitv(64), 10);
+        let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));
+        ctx.assert(rzil.new_eq(x.clone(), ten.clone()).unwrap())
+            .unwrap();
+        dbg!(ctx.get_model(&[]).unwrap());
+        // TODO pass this test
     }
 }
