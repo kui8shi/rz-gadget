@@ -1,7 +1,4 @@
-use crate::{
-    registers::RegSpec,
-    rzil::{builder::RzILBuilder, error::RzILError},
-};
+use crate::{registers::RegSpec, rzil::error::RzILError};
 use std::collections::HashMap;
 
 use crate::rzil::{

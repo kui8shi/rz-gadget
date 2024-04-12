@@ -2,7 +2,7 @@ use super::{
     ast::{Effect, Pure, PureCode, PureRef, Scope, Sort},
     error::{Result, RzILError},
 };
-use crate::variables::VarId;
+use crate::variables::{VarId, Variables};
 use quick_cache::sync::Cache;
 use std::rc::Rc;
 
@@ -694,6 +694,43 @@ pub trait RzILBuilder {
         Ok(self.new_effect(Effect::Jmp { dst }))
     }
 
+    fn new_set(&self, vars: &mut Variables, name: &str, src: PureRef) -> Result<Rc<Effect>> {
+        let dst = match vars.get_scope(name) {
+            Some(Scope::Let) => {
+                // let var is immutable
+                return Err(RzILError::ImmutableVariable(name.to_string()));
+            }
+            Some(Scope::Global) => {
+                // overwrite global(register) var
+                let var = vars.get_var(name).unwrap();
+                src.expect_same_sort_with(&var)?;
+                self.new_var(Scope::Global, vars.get_uniq_id(name), src.clone())
+            }
+            Some(Scope::Local) => {
+                // overwrite local var
+                let sort = vars.get_var(name).unwrap().get_sort();
+                src.get_sort().expect_same_with(sort)?;
+                let var = self.new_var(Scope::Local, vars.get_uniq_id(name), src.clone());
+                if var.is_concretized() {
+                    vars.set_var(var)?;
+                    return Err(RzILError::None);
+                }
+                var
+            }
+            None => {
+                // declare local var
+                let var = self.new_var(Scope::Local, vars.get_uniq_id(name), src.clone());
+                if var.is_concretized() {
+                    vars.set_var(var)?;
+                    return Err(RzILError::None);
+                }
+                var
+            }
+        };
+        vars.set_var(dst.clone())?;
+        Ok(self.new_effect(Effect::Set { var: dst }))
+    }
+
     fn new_branch(
         &self,
         condition: PureRef,
@@ -743,7 +780,6 @@ mod test {
         assert_eq!(var.get_bitmask(), u64::MAX);
         assert_eq!(var.num_args(), 1);
         assert_eq!(var.get_arg(0), val);
-        assert_eq!(var.iter_args().next(), Some(&val));
         assert!(var.is_bitv());
         assert!(!var.is_bool());
         assert!(!var.is_zero());

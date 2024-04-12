@@ -19,8 +19,6 @@ bitflags! {
 
 #[derive(Clone, Debug)]
 struct SetInBranchEntry {
-    name: String,
-    dst: PureRef,
     condition: PureRef,
     then: Option<PureRef>,
     otherwise: Option<PureRef>,
@@ -31,7 +29,7 @@ struct SetInBranchEntry {
 struct BranchSetToSetIte {
     conditions: Vec<PureRef>,
     taken: Vec<bool>,
-    entries: Vec<SetInBranchEntry>,
+    entries: HashMap<String, SetInBranchEntry>,
 }
 
 impl BranchSetToSetIte {
@@ -41,8 +39,8 @@ impl BranchSetToSetIte {
         self.entries.clear();
     }
 
-    fn in_branch(&self) -> bool {
-        !self.conditions.is_empty()
+    fn inside_branch(&self) -> bool {
+        self.conditions.len() > 0
     }
 
     fn begin(&mut self, condition: PureRef) {
@@ -82,26 +80,24 @@ impl BranchSetToSetIte {
         vars: &mut Variables,
         name: &str,
         src: PureRef,
-        dst: PureRef,
     ) -> Result<()> {
         let condition = self.connect_condition(rzil)?;
         let taken = *self.taken.first().unwrap();
-        let mut entry = None;
-        for e in self.entries.iter_mut() {
-            if e.name.eq(name) {
-                entry = Some(e);
-            }
+        let mut entry = self.entries.get(name);
+        if let Some(Scope::Let) = vars.get_scope(name) {
+            // let var is immutable
+            return Err(RzILError::ImmutableVariable(name.to_string()));
         }
         match entry {
             Some(e) => {
                 if taken {
                     if e.then.is_some() {
-                        return Err(RzILError::DuplicateSetInBranch);
+                        return Err(RzILError::DoubleSetInBranch);
                     }
                     e.then = Some(src);
                 } else {
                     if e.otherwise.is_some() {
-                        return Err(RzILError::DuplicateSetInBranch);
+                        return Err(RzILError::DoubleSetInBranch);
                     }
                     e.otherwise = Some(src);
                 }
@@ -109,7 +105,10 @@ impl BranchSetToSetIte {
             None => {
                 let default = match vars.get_var(name) {
                     Some(var) => var.clone(),
-                    None => rzil.new_const(dst.get_sort(), 0),
+                    None => {
+                        // this constant value won't be used.
+                        rzil.new_const(src.get_sort(), 0)
+                    }
                 };
                 let (mut then, mut otherwise) = (None, None);
                 if taken {
@@ -117,33 +116,33 @@ impl BranchSetToSetIte {
                 } else {
                     otherwise = Some(src);
                 }
-                self.entries.push(SetInBranchEntry {
-                    name: name.to_owned(),
-                    dst: dst.clone(),
-                    condition,
-                    then,
-                    otherwise,
-                    default,
-                });
+                self.entries.insert(
+                    name.to_string(),
+                    SetInBranchEntry {
+                        condition,
+                        then,
+                        otherwise,
+                        default,
+                    },
+                );
             }
         };
-        vars.set_var(dst)?;
         Ok(())
     }
 
-    fn drain(&mut self, rzil: &impl RzILBuilder) -> Result<Vec<Rc<Effect>>> {
-        let entries: Vec<SetInBranchEntry> = self.entries.drain(..).collect();
-        let mut set_ite = Vec::new();
+    fn drain(&mut self, rzil: &impl RzILBuilder, vars: &mut Variables) -> Result<Vec<Rc<Effect>>> {
+        let entries: Vec<(String, SetInBranchEntry)> = self.entries.drain().collect();
+        let mut set_ite_ops = Vec::new();
         self.clear();
-        for e in entries {
-            let dst = e.dst.clone();
+        for (name, e) in entries {
             let condition = e.condition.clone();
             let then = e.then.clone().unwrap_or(e.default.clone());
             let otherwise = e.otherwise.clone().unwrap_or(e.default.clone());
             let ite = rzil.new_ite(condition, then, otherwise)?;
-            set_ite.push(rzil.new_effect(Effect::Set { var: dst }));
+            let set_op = rzil.new_set(vars, &name, ite)?;
+            set_ite_ops.push(set_op);
         }
-        Ok(set_ite)
+        Ok(set_ite_ops)
     }
 }
 
@@ -497,44 +496,11 @@ impl RzILLifter {
             RzILInfo::Set { dst, src } => {
                 let name = dst;
                 let src = self.parse_pure(rzil, vars, src)?;
-                let dst = match vars.get_scope(name) {
-                    Some(Scope::Let) => {
-                        // let var is immutable
-                        return Err(RzILError::ImmutableVariable(name.to_string()));
-                    }
-                    Some(Scope::Global) => {
-                        // overwrite global(register) var
-                        let var = vars.get_var(name).unwrap();
-                        src.expect_same_sort_with(&var)?;
-                        rzil.new_var(Scope::Global, vars.get_uniq_id(name), src.clone())
-                    }
-                    Some(Scope::Local) => {
-                        // overwrite local var
-                        let sort = vars.get_var(name).unwrap().get_sort();
-                        src.get_sort().expect_same_with(sort)?;
-                        let var = rzil.new_var(Scope::Local, vars.get_uniq_id(name), src.clone());
-                        if var.is_concretized() && !self.bs_to_si.in_branch() {
-                            vars.set_var(var)?;
-                            return Err(RzILError::None);
-                        }
-                        var
-                    }
-                    None => {
-                        // declare local var
-                        let var = rzil.new_var(Scope::Local, vars.get_uniq_id(name), src.clone());
-                        if var.is_concretized() && !self.bs_to_si.in_branch() {
-                            vars.set_var(var)?;
-                            return Err(RzILError::None);
-                        }
-                        var
-                    }
-                };
-                if self.bs_to_si.in_branch() {
-                    self.bs_to_si.add_entry(rzil, vars, name, src, dst)?;
+                if self.bs_to_si.inside_branch() {
+                    self.bs_to_si.add_entry(rzil, vars, name, src)?;
                     return Err(RzILError::None);
                 }
-                vars.set_var(dst.clone())?;
-                Ok(rzil.new_effect(Effect::Set { var: dst }))
+                rzil.new_set(vars, name, src)
             }
 
             RzILInfo::Jmp { dst } => {
@@ -563,20 +529,28 @@ impl RzILLifter {
             } => {
                 let condition = self.parse_pure(rzil, vars, condition)?;
 
+                // === Branch Begin ===
                 self.bs_to_si.begin(condition.clone());
+
+                // Then
                 let then = self.parse_effect(rzil, vars, true_eff)?;
 
+                // Otherwise
                 self.bs_to_si.otherwise();
                 let otherwise = self.parse_effect(rzil, vars, false_eff)?;
 
                 self.bs_to_si.end();
+                // ==== Branch End ====
 
-                let mut args = Vec::new();
-                if !self.bs_to_si.in_branch() {
-                    args.append(&mut self.bs_to_si.drain(rzil)?);
-                }
+                let mut args = if !self.bs_to_si.inside_branch() {
+                    self.bs_to_si.drain(rzil, vars)?
+                } else {
+                    // in case of nested branches
+                    Vec::new()
+                };
                 let need_branch = !then.is_nop() || !otherwise.is_nop();
                 if need_branch {
+                    // if all child ops are opt-outed, we don't need a branch op
                     args.push(rzil.new_branch(condition, then, otherwise)?);
                 }
                 if args.is_empty() {
@@ -651,10 +625,7 @@ mod test {
     use super::RzILLifter;
     use crate::{
         registers::bind_registers,
-        rzil::{
-            ast::{Effect, PureRef},
-            builder::{RzILBuilder, RzILCache},
-        },
+        rzil::{ast::Effect, builder::RzILCache},
         variables::Variables,
     };
     /*

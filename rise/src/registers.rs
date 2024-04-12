@@ -1,6 +1,6 @@
 use crate::error::{Result, RiseError};
 use crate::map::interval_map::IntervalMap;
-use crate::rzil::ast::{PureRef, Sort};
+use crate::rzil::ast::Sort;
 use crate::rzil::builder::RzILBuilder;
 use crate::variables::Variables;
 use rzapi::structs::RegisterInfo;
@@ -71,7 +71,7 @@ fn parse_reg_info(rzapi: &mut RzApi) -> Result<Vec<RegSpec>> {
             lower,
             parent: largest.name.to_string(),
             primary,
-            reg_type: r.reg_type.clone(),
+            reg_type: r.reg_type,
         })
     }
     Ok(reg_specs)

@@ -42,7 +42,7 @@ pub enum RzILError {
     InconsistentScope(String, Scope, Scope),
 
     #[error("Currently Unable to handle Set operations with a duplicate target in a Branch.")]
-    DuplicateSetInBranch,
+    DoubleSetInBranch,
 
     #[error("No return value.")]
     None,

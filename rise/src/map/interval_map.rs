@@ -570,7 +570,7 @@ mod test {
         imap.insert(2..9, "a");
         imap.insert(4..8, "b");
         imap.insert(5..7, "c");
-        assert!(imap.get(&1) == None);
+        assert!(imap.get(&1).is_none());
         assert!(imap.get(&2) == Some(&"a"));
         assert!(imap.get(&3) == Some(&"a"));
         assert!(imap.get(&4) == Some(&"b"));
@@ -578,7 +578,7 @@ mod test {
         assert!(imap.get(&6) == Some(&"c"));
         assert!(imap.get(&7) == Some(&"b"));
         assert!(imap.get(&8) == Some(&"a"));
-        assert!(imap.get(&9) == None);
+        assert!(imap.get(&9).is_none());
     }
 
     #[test]
@@ -592,7 +592,7 @@ mod test {
         assert!(imap.get(&650) == Some(&"a"));
         assert!(imap.get(&700) == Some(&"a"));
         assert!(imap.get(&750) == Some(&"c"));
-        assert!(imap.get(&600) == None);
+        assert!(imap.get(&600).is_none());
         assert!(imap.get(&350) == Some(&"b"));
     }
 }

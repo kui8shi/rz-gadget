@@ -255,9 +255,6 @@ impl Pure {
     pub fn get_arg(&self, i: usize) -> PureRef {
         self.args[i].clone()
     }
-    pub fn iter_args(&self) -> impl Iterator<Item = &PureRef> {
-        self.args.iter()
-    }
     pub fn get_bitmask(&self) -> u64 {
         u64::MAX >> (u64::BITS as usize - self.get_size())
     }
@@ -300,16 +297,6 @@ impl Pure {
             PureCode::Var(scope, id) => Ok((scope, id)),
             other => Err(RzILError::UnexpectedCode("Var".to_string(), other)),
         }
-    }
-    pub fn set_var_scope(&mut self, scope: Scope) -> Result<()> {
-        let (_, id) = self.expect_var()?;
-        self.code = PureCode::Var(scope, id);
-        Ok(())
-    }
-    pub fn set_var_id(&mut self, id: VarId) -> Result<()> {
-        let (scope, _) = self.expect_var()?;
-        self.code = PureCode::Var(scope, id);
-        Ok(())
     }
 }
 
