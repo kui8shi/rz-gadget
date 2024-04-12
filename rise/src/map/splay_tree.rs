@@ -3,8 +3,6 @@ use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::ops::{Bound, RangeBounds};
 
-use serde_json::de;
-
 #[derive(Clone, Debug)]
 struct Node<K, V> {
     key: K,
@@ -796,17 +794,18 @@ fn dfs<K, V>(
     finished: &mut [bool],
 ) -> bool {
     visited[root] = true;
-    for child in [tree.left_of(Some(root)), tree.right_of(Some(root))] {
-        if let Some(child) = child {
-            if finished[child] {
-                continue;
-            }
-            if visited[child] && !finished[child] {
-                return true;
-            }
-            if dfs(tree, child, visited, finished) {
-                return true;
-            }
+    for child in [tree.left_of(Some(root)), tree.right_of(Some(root))]
+        .into_iter()
+        .flatten()
+    {
+        if finished[child] {
+            continue;
+        }
+        if visited[child] && !finished[child] {
+            return true;
+        }
+        if dfs(tree, child, visited, finished) {
+            return true;
         }
     }
     finished[root] = true;
