@@ -201,7 +201,7 @@ mod test {
         let id = VarId::new("test");
         assert_eq!(id.get_name(), "test");
         assert_eq!(id.get_count(), 0);
-        assert_eq!(id.get_uniq_name(), "test_0");
+        assert_eq!(id.get_uniq_name(), "test!0");
     }
 
     #[test]
@@ -214,13 +214,13 @@ mod test {
         let (_, id) = vars.get_var("a").unwrap().expect_var().unwrap();
         assert_eq!(id.get_name(), "a");
         assert_eq!(id.get_count(), 0);
-        assert_eq!(id.get_uniq_name(), "a_0");
+        assert_eq!(id.get_uniq_name(), "a!0");
 
         vars.set_var(builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a")))
             .unwrap();
         let (_, id) = vars.get_var("a").unwrap().expect_var().unwrap();
         assert_eq!(id.get_name(), "a");
         assert_eq!(id.get_count(), 1);
-        assert_eq!(id.get_uniq_name(), "a_1");
+        assert_eq!(id.get_uniq_name(), "a!1");
     }
 }

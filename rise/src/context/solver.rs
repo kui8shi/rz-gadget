@@ -87,7 +87,10 @@ pub trait Z3 {
         for ast in extra_constraint {
             self.z3_assert(ast);
         }
-        Ok(solver.get_model())
+        match solver.check() {
+            SatResult::Sat => Ok(solver.get_model()),
+            SatResult::Unsat | SatResult::Unknown => Err(RiseError::Unsat),
+        }
     }
 
     fn z3_assert(&self, ast: &z3::ast::Bool) {
@@ -265,9 +268,11 @@ mod test {
         let ctx = RiseContext::new(solver, rzil.clone());
         let ten = rzil.new_const(Sort::Bitv(64), 10);
         let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));
-        ctx.assert(rzil.new_eq(x.clone(), ten.clone()).unwrap())
+        let y = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("y"));
+        ctx.assert(rzil.new_eq(rzil.new_bvadd(x, y).unwrap(), ten).unwrap())
             .unwrap();
-        dbg!(ctx.get_model(&[]).unwrap());
-        // TODO pass this test
+        let model = ctx.get_model(&[]).unwrap();
+        assert_eq!(model.get("x!0"), Some(&10));
+        assert_eq!(model.get("y!0"), Some(&0));
     }
 }

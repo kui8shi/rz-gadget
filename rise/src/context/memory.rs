@@ -139,28 +139,27 @@ impl MemoryWrite for RiseContext {
         assert_eq!(
             val.get_size() % 8,
             0,
-            "cannot store bitvector that is not byte-sized."
+            "cannot store bitvector not byte-sized."
         );
         let (min_addr, max_addr) = if addr.is_symbolized() {
             (self.get_min(addr.clone())?, self.get_max(addr.clone())?)
         } else {
             (addr.evaluate(), addr.evaluate())
         };
-        assert!(min_addr <= max_addr);
-        let n = (val.get_size() / 8) as u64;
+        assert!(min_addr <= max_addr, "min addr exceeds max addr");
+        let n: u32 = (val.get_size() / 8).try_into().unwrap();
         for k in 0..n {
-            let k_: u32 = k.try_into().unwrap();
             let addr = self.rzil.new_bvadd(
                 addr.clone(),
-                self.rzil.new_const(Sort::Bitv(addr.get_size()), k),
+                self.rzil.new_const(Sort::Bitv(addr.get_size()), k as u64),
             )?;
-            let range = min_addr + k..max_addr + k + 1;
+            let range = min_addr + k as u64..max_addr + k as u64 + 1;
             let byte = match self.memory.endian() {
                 //extract 8 bits(a byte) from val
-                Endian::Little => self.rzil.new_extract(val.clone(), k_ + 7, k_)?,
+                Endian::Little => self.rzil.new_extract(val.clone(), k + 7, k)?,
                 Endian::Big => {
                     self.rzil
-                        .new_extract(val.clone(), u64::BITS - k_, u64::BITS - k_ - 7)?
+                        .new_extract(val.clone(), u64::BITS - k, u64::BITS - k - 7)?
                 }
             };
             let entry = MemoryEntry {
@@ -209,10 +208,10 @@ impl MemoryRead for RiseContext {
             let initial = if self.memory.is_initial_memory_zero_filled() {
                 self.rzil.new_const(Sort::Bitv(8), 0)
             } else {
-                // the format "{:#010x}" treats lower 32 bits of u64 as "0x........"
-                // (the length is 10 chars, including "0x")
                 let implicit_store = self.rzil.new_unconstrained(
                     Sort::Bitv(8),
+                    // the format "{:#010x}" treats lower 32 bits of u64 as "0x........"
+                    // (the length is 10 chars, including "0x")
                     VarId::new(format!("mem_{:#010x}", min_addr + k).as_ref()), // TODO uniq var id
                 );
                 /*

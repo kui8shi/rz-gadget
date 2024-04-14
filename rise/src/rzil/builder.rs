@@ -78,7 +78,13 @@ pub trait RzILBuilder {
         let symbolized = val.is_symbolized();
         let sort = val.get_sort();
         let eval = val.evaluate();
-        self.new_pure(PureCode::Var(scope, id), vec![val], symbolized, sort, eval)
+        self.new_pure(
+            PureCode::Var { scope, id },
+            vec![val],
+            symbolized,
+            sort,
+            eval,
+        )
     }
 
     fn new_let_var(&self, id: VarId, val: PureRef) -> PureRef {
@@ -86,7 +92,10 @@ pub trait RzILBuilder {
         let sort = val.get_sort();
         let eval = val.evaluate();
         self.new_pure(
-            PureCode::Var(Scope::Let, id),
+            PureCode::Var {
+                scope: Scope::Let,
+                id,
+            },
             vec![val], // will be unwrapped
             symbolized,
             sort,
@@ -95,7 +104,16 @@ pub trait RzILBuilder {
     }
 
     fn new_unconstrained(&self, sort: Sort, id: VarId) -> PureRef {
-        self.new_pure(PureCode::Var(Scope::Global, id), vec![], true, sort, 0)
+        self.new_pure(
+            PureCode::Var {
+                scope: Scope::Global,
+                id,
+            },
+            vec![],
+            true,
+            sort,
+            0,
+        )
     }
 
     fn convert_bool_to_bitv(&self, op: PureRef) -> Result<PureRef> {
@@ -149,6 +167,13 @@ pub trait RzILBuilder {
         }
     }
 
+    fn new_let(&self, dst: PureRef, body: PureRef) -> Result<PureRef> {
+        let symbolized = body.is_symbolized();
+        let sort = body.get_sort();
+        let eval = body.evaluate();
+        Ok(self.new_pure(PureCode::Let, vec![dst, body], symbolized, sort, eval))
+    }
+
     fn new_boolinv(&self, x: PureRef) -> Result<PureRef> {
         x.expect_bool()?;
 
@@ -163,22 +188,36 @@ pub trait RzILBuilder {
         x.expect_bool()?;
         y.expect_bool()?;
 
-        let symbolized = x.is_symbolized() | y.is_symbolized();
         let sort = Sort::Bool;
-        let eval = x.evaluate() & y.evaluate();
-
-        Ok(self.new_pure_maybe_const(PureCode::BoolAnd, vec![x, y], symbolized, sort, eval))
+        if x.is_false() || y.is_false() {
+            Ok(self.new_const(sort, 0))
+        } else if x.is_true() {
+            Ok(y)
+        } else if y.is_true() {
+            Ok(x)
+        } else {
+            let symbolized = true;
+            let eval = 0;
+            Ok(self.new_pure(PureCode::BoolAnd, vec![x, y], symbolized, sort, eval))
+        }
     }
 
     fn new_boolor(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
         x.expect_bool()?;
         y.expect_bool()?;
 
-        let symbolized = x.is_symbolized() | y.is_symbolized();
         let sort = Sort::Bool;
-        let eval = x.evaluate() | y.evaluate();
-
-        Ok(self.new_pure_maybe_const(PureCode::BoolOr, vec![x, y], symbolized, sort, eval))
+        if x.is_true() || y.is_true() {
+            Ok(self.new_const(sort, 1))
+        } else if x.is_false() {
+            Ok(y)
+        } else if y.is_false() {
+            Ok(x)
+        } else {
+            let symbolized = true;
+            let eval = 0;
+            Ok(self.new_pure_maybe_const(PureCode::BoolOr, vec![x, y], symbolized, sort, eval))
+        }
     }
 
     fn new_boolxor(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
@@ -428,7 +467,7 @@ pub trait RzILBuilder {
         } else if y.is_zero() {
             Ok(x)
         } else {
-            Ok(self.new_pure_maybe_const(PureCode::LogOr, vec![x, y], symbolized, sort, eval))
+            Ok(self.new_pure_maybe_const(PureCode::LogAnd, vec![x, y], symbolized, sort, eval))
         }
     }
 
@@ -613,7 +652,7 @@ pub trait RzILBuilder {
         } else {
             let expand = value.get_size() < sort.get_size();
             Ok(self.new_pure_maybe_const(
-                PureCode::Cast(expand),
+                PureCode::Cast { expand },
                 vec![fill_bit, value],
                 symbolized,
                 sort,
@@ -796,7 +835,7 @@ mod test {
         let (scope, id) = var.expect_var().unwrap();
         assert_eq!(scope, Scope::Let);
         assert_eq!(id.get_name(), "hoge");
-        assert_eq!(id.get_uniq_name(), "hoge_0");
+        assert_eq!(id.get_uniq_name(), "hoge!0");
     }
 
     #[test]

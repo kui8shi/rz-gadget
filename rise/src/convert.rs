@@ -28,7 +28,7 @@ impl ConvertRzIL for RiseContext {
         //if op.is_concretized()
         let size: u32 = op.get_size().try_into().unwrap();
         match op.get_code() {
-            PureCode::Var(_, id) => match op.get_sort() {
+            PureCode::Var { scope: _, id } => match op.get_sort() {
                 Sort::Bool => {
                     if op.is_concretized() {
                         Ok(Bool::from_bool(self.get_z3_ctx(), op.evaluate_bool()).into())
@@ -44,7 +44,11 @@ impl ConvertRzIL for RiseContext {
                 Sort::Bitv(_) => {
                     if op.is_concretized() {
                         Ok(BV::from_u64(self.get_z3_ctx(), op.evaluate(), size).into())
+                    } else if let Some(z3_var) = self.get_z3_trasnlation(&op) {
+                        println!("Bitv Z3 Var {} referenced.", &id.get_uniq_name());
+                        Ok(z3_var)
                     } else {
+                        println!("Bitv Z3 Var {} created.", &id.get_uniq_name());
                         let z3_var: Dynamic =
                             BV::new_const(self.get_z3_ctx(), id.get_uniq_name(), size).into();
                         self.set_z3_trasnlation(op, z3_var.clone());
@@ -204,7 +208,7 @@ impl ConvertRzIL for RiseContext {
                 let y = self.convert_bitv(op.get_arg(1))?;
                 Ok(x.bvule(&y).into())
             }
-            PureCode::Cast(expand) => {
+            PureCode::Cast { expand } => {
                 let fill_bit = op.get_arg(0);
                 let value = self.convert_bitv(op.get_arg(1))?;
                 if expand {

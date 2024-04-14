@@ -1,7 +1,7 @@
 use super::error::{Result, RzILError};
 use crate::variables::VarId;
 use std::collections::hash_map::DefaultHasher;
-use std::fmt::{Debug, Display, Write};
+use std::fmt::{Debug, Display};
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use std::rc::Rc;
@@ -81,7 +81,7 @@ impl Display for Scope {
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum PureCode {
-    Var(Scope, VarId), // (scope, id)
+    Var { scope: Scope, id: VarId }, // (scope, id)
     Ite,
     Let,
     Bool,
@@ -110,7 +110,7 @@ pub enum PureCode {
     Equal,
     Sle,
     Ule,
-    Cast(bool), // expand(true) or shrink(false)
+    Cast { expand: bool },
     Append,
     Load,
     // Float Instructions (Unimplemented yet)
@@ -270,6 +270,12 @@ impl Pure {
     pub fn is_concretized(&self) -> bool {
         !self.symbolized
     }
+    pub fn is_true(&self) -> bool {
+        self.is_bool() && self.is_concretized() && self.evaluate_bool()
+    }
+    pub fn is_false(&self) -> bool {
+        self.is_bool() && self.is_concretized() && !self.evaluate_bool()
+    }
     pub fn is_zero(&self) -> bool {
         self.is_bitv() && self.is_concretized() && self.evaluate() == 0
     }
@@ -294,7 +300,7 @@ impl Pure {
     }
     pub fn expect_var(&self) -> Result<(Scope, VarId)> {
         match self.get_code() {
-            PureCode::Var(scope, id) => Ok((scope, id)),
+            PureCode::Var { scope, id } => Ok((scope, id)),
             other => Err(RzILError::UnexpectedCode("Var".to_string(), other)),
         }
     }
@@ -303,18 +309,50 @@ impl Pure {
 impl Debug for Pure {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.get_code() {
-            PureCode::Var(scope, id) => write!(
-                f,
-                "Var({}:{})",
-                id.get_uniq_name(),
-                match scope {
-                    Scope::Global => "g",
-                    Scope::Local => "l",
-                    Scope::Let => "let",
-                }
-            ),
+            PureCode::Var { scope, id } => match scope {
+                Scope::Global => write!(f, "Var({}:g)", id.get_uniq_name()),
+                Scope::Local => write!(f, "Var({}:l)", id.get_uniq_name()),
+                Scope::Let => write!(f, "Var({}:let)", id.get_name()),
+            },
+            PureCode::Let => f
+                .debug_struct("Let")
+                .field("dst", &self.get_arg(0))
+                .field("exp", &self.get_arg(0).get_arg(0))
+                .field("body", &self.get_arg(1))
+                .finish(),
             PureCode::Bool => write!(f, "Bool({})", self.evaluate_bool()),
-            PureCode::Bitv => write!(f, "Bitv(0x{:x})", self.evaluate()),
+            PureCode::Bitv => write!(
+                f,
+                "Bitv({:#0width$x})",
+                self.evaluate(),
+                width = self.get_size() / 4 + 2
+            ),
+            PureCode::ShiftRight | PureCode::ShiftLeft => f
+                .debug_struct(&format!("{:?}", self.get_code()))
+                .field("fill_bit", &self.get_arg(0))
+                .field("value", &self.get_arg(1))
+                .field("shift", &self.get_arg(2))
+                .finish(),
+            PureCode::Cast { expand } => {
+                if expand {
+                    f.debug_struct("Cast")
+                        .field(
+                            "size",
+                            &format_args!("{} -> {}", self.get_arg(1).get_size(), self.get_size(),),
+                        )
+                        .field("fill_bit", &self.get_arg(0))
+                        .field("value", &self.get_arg(1))
+                        .finish()
+                } else {
+                    f.debug_struct("Cast")
+                        .field(
+                            "size",
+                            &format_args!("{} -> {}", self.get_arg(1).get_size(), self.get_size(),),
+                        )
+                        .field("value", &self.get_arg(1))
+                        .finish()
+                }
+            }
             _ => {
                 if self.is_concretized() {
                     if self.is_bool() {
@@ -324,10 +362,23 @@ impl Debug for Pure {
                             .finish()
                     } else {
                         f.debug_tuple(&format!("{:?}", self.get_code()))
-                            .field(&format_args!("0x{:x}", self.evaluate()))
+                            .field(&format_args!(
+                                "{:#0width$x}",
+                                self.evaluate(),
+                                width = self.get_size() / 4 + 2
+                            ))
                             .field(&self.args)
                             .finish()
                     }
+                } else if self.num_args() == 1 {
+                    f.debug_tuple(&format!("{:?}", self.get_code()))
+                        .field(&self.get_arg(0))
+                        .finish()
+                } else if self.num_args() == 2 {
+                    f.debug_tuple(&format!("{:?}", self.get_code()))
+                        .field(&self.get_arg(0))
+                        .field(&self.get_arg(1))
+                        .finish()
                 } else {
                     f.debug_tuple(&format!("{:?}", self.get_code()))
                         .field(&self.args)
@@ -419,8 +470,14 @@ mod test {
     fn pure_code_eq() {
         let id0 = VarId::new_with_count("v", 0);
         let id1 = VarId::new_with_count("v", 1);
-        let v0 = PureCode::Var(Scope::Global, id0);
-        let v1 = PureCode::Var(Scope::Global, id1);
+        let v0 = PureCode::Var {
+            scope: Scope::Global,
+            id: id0,
+        };
+        let v1 = PureCode::Var {
+            scope: Scope::Global,
+            id: id1,
+        };
         let mut state0 = DefaultHasher::new();
         let mut state1 = DefaultHasher::new();
         v0.hash(&mut state0);

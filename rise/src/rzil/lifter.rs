@@ -83,7 +83,7 @@ impl BranchSetToSetIte {
     ) -> Result<()> {
         let condition = self.connect_condition(rzil)?;
         let taken = *self.taken.first().unwrap();
-        let mut entry = self.entries.get(name);
+        let mut entry = self.entries.get_mut(name);
         if let Some(Scope::Let) = vars.get_scope(name) {
             // let var is immutable
             return Err(RzILError::ImmutableVariable(name.to_string()));
@@ -169,7 +169,7 @@ impl RzILLifter {
             bs_to_si: BranchSetToSetIte {
                 conditions: Vec::new(),
                 taken: Vec::new(),
-                entries: Vec::new(),
+                entries: HashMap::new(),
             },
             tmp_vars: HashMap::new(),
         }
@@ -208,16 +208,15 @@ impl RzILLifter {
                 rzil.new_ite(condition, x, y)
             }
             RzILInfo::Let { dst, exp, body } => {
-                // we can't convert Let to z3 expression since the c/c++ api doesn't support this.
-                // so, exp will be directly assigned to body.
+                let name = dst.to_string();
                 let exp = self.parse_pure(rzil, vars, exp)?;
-                let tmp_var = rzil.new_let_var(vars.get_uniq_id(dst), exp);
-                if self.tmp_vars.insert(dst.to_string(), tmp_var).is_some() {
-                    return Err(RzILError::ImmutableVariable(dst.to_string()));
+                let dst = rzil.new_let_var(vars.get_uniq_id(dst), exp);
+                if self.tmp_vars.insert(name.clone(), dst.clone()).is_some() {
+                    return Err(RzILError::ImmutableVariable(name));
                 }
                 let body = self.parse_pure(rzil, vars, body)?;
-                self.tmp_vars.remove(dst);
-                Ok(body)
+                self.tmp_vars.remove(&name);
+                rzil.new_let(dst, body)
             }
             RzILInfo::Bool { value } => {
                 let sort = Sort::Bool;
@@ -707,10 +706,5 @@ mod test {
         for op in ops {
             dbg!(op);
         }
-    }
-
-    #[test]
-    fn testes() {
-        dbg!(parse_op("test"));
     }
 }
