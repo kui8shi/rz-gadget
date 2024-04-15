@@ -1,4 +1,4 @@
-use crate::map::interval_map::IntervalMap;
+use super::interval_map::IntervalMap;
 use std::fmt::Debug;
 use std::ops::Range;
 use std::rc::Rc;

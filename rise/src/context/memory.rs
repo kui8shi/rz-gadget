@@ -1,16 +1,15 @@
-use super::solver::Solver;
-use super::RiseContext;
-use crate::error::Result;
-use crate::map::interval_map::IntervalMap;
-use crate::paged_map::PagedIntervalMap;
-use crate::rzil::ast::{PureRef, Sort};
-use crate::rzil::builder::RzILBuilder;
-use crate::variables::VarId;
+use super::{solver::Solver, RiseContext};
+use crate::{
+    error::Result,
+    map::{interval_map::IntervalMap, paged_map::PagedIntervalMap},
+    rzil::{
+        ast::{PureRef, Sort},
+        builder::RzILBuilder,
+    },
+    variables::VarId,
+};
 use rzapi::structs::Endian;
-use std::cell::Cell;
-use std::fmt::Debug;
-use std::ops::Range;
-use std::rc::Rc;
+use std::{cell::Cell, fmt::Debug, ops::Range, rc::Rc};
 //use bitflags::bitflags;
 
 /*
@@ -22,6 +21,8 @@ bitflags! {
 }
 */
 
+const BITS_PER_BYTE: u32 = 8;
+
 // Byte-wise memory entry of its symbolic address and content
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MemoryEntry {
@@ -29,6 +30,17 @@ pub struct MemoryEntry {
     val: PureRef,
     timestamp: i64,
 }
+
+/*
+impl PartialEq for MemoryEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.val.eq(&other.val) && self.timestamp.eq(&other.timestamp)
+    }
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(&other)
+    }
+}
+*/
 
 impl MemoryEntry {
     pub fn addr(&self) -> PureRef {
@@ -76,10 +88,7 @@ impl Memory {
     }
 
     pub fn insert(&mut self, range: Range<u64>, entry: MemoryEntry) {
-        if entry.addr.is_concretized() {
-            let mut_concrete = Rc::make_mut(&mut self.concrete);
-            mut_concrete.insert(entry.addr.evaluate()..entry.addr.evaluate() + 1, entry);
-        } else if range.start == range.end + 1 {
+        if range.start + 1 == range.end {
             let concrete = Rc::make_mut(&mut self.concrete);
             concrete.insert(range, entry);
         } else {
@@ -127,14 +136,18 @@ pub trait MemoryWrite {
 }
 
 pub trait MemoryRead {
-    fn load(&self, addr: PureRef, size: usize) -> Result<PureRef>;
+    fn load(&self, addr: PureRef, n_bytes: usize) -> Result<PureRef>;
 }
 
 impl MemoryWrite for RiseContext {
     fn store(&mut self, addr: PureRef, val: PureRef) -> Result<()> {
         assert!(
-            val.get_size() > 0,
+            0 < val.get_size(),
             "cannot store bitvector with zero width."
+        );
+        assert!(
+            val.get_size() <= 64,
+            "cannot store bitvector larger than 64 bits."
         );
         assert_eq!(
             val.get_size() % 8,
@@ -147,25 +160,27 @@ impl MemoryWrite for RiseContext {
             (addr.evaluate(), addr.evaluate())
         };
         assert!(min_addr <= max_addr, "min addr exceeds max addr");
-        let n: u32 = (val.get_size() / 8).try_into().unwrap();
-        for k in 0..n {
+        let n_bytes = (val.get_size() / BITS_PER_BYTE as usize) as u64;
+        let timestamp = self.memory.timestamp();
+        for k in 0..n_bytes {
             let addr = self.rzil.new_bvadd(
                 addr.clone(),
-                self.rzil.new_const(Sort::Bitv(addr.get_size()), k as u64),
+                self.rzil.new_const(Sort::Bitv(addr.get_size()), k),
             )?;
-            let range = min_addr + k as u64..max_addr + k as u64 + 1;
-            let byte = match self.memory.endian() {
+            let range = min_addr + k..max_addr + k + 1;
+            let byte = {
+                let k_bits: u32 = (k * BITS_PER_BYTE as u64).try_into().unwrap();
+                let (high, low) = match self.memory.endian() {
+                    Endian::Big => (k_bits + 7, k_bits),
+                    Endian::Little => (u64::BITS - k_bits - 1, u64::BITS - k_bits - 8),
+                };
                 //extract 8 bits(a byte) from val
-                Endian::Little => self.rzil.new_extract(val.clone(), k + 7, k)?,
-                Endian::Big => {
-                    self.rzil
-                        .new_extract(val.clone(), u64::BITS - k, u64::BITS - k - 7)?
-                }
+                self.rzil.new_extract(val.clone(), high, low)?
             };
             let entry = MemoryEntry {
                 addr,
                 val: byte,
-                timestamp: self.memory.timestamp(),
+                timestamp,
             };
             self.ranged_store(range, entry)?;
         }
@@ -185,19 +200,20 @@ impl MemoryRead for RiseContext {
     /// Read n bytes of memory at a certain location
     ///
     /// # Panics if n == 0
-    fn load(&self, addr: PureRef, n: usize) -> Result<PureRef> {
-        assert!(n > 0);
+    fn load(&self, addr: PureRef, n_bytes: usize) -> Result<PureRef> {
+        assert!(0 < n_bytes, "cannot load bitvector with zero width.");
         let (min_addr, max_addr) = if addr.is_symbolized() {
             (self.get_min(addr.clone())?, self.get_max(addr.clone())?)
         } else {
             (addr.evaluate(), addr.evaluate())
         };
-        assert!(min_addr <= max_addr);
+        assert!(min_addr <= max_addr, "min addr exceeds max addr");
         let offsets: Vec<u64> = match self.memory.endian() {
-            Endian::Little => (0..n as u64).collect(),
-            Endian::Big => (0..n as u64).rev().collect(),
+            Endian::Little => (0..n_bytes as u64).rev().collect(),
+            Endian::Big => (0..n_bytes as u64).collect(),
         };
         let mut loaded_value = None;
+        dbg!(&self.memory.concrete);
         for k in &offsets {
             let addr = self.rzil.new_bvadd(
                 addr.clone(),
@@ -205,6 +221,7 @@ impl MemoryRead for RiseContext {
             )?;
             let range = min_addr + k..max_addr + k + 1;
             let entries = self.memory.search(&range);
+            dbg!(&range, &entries);
             let initial = if self.memory.is_initial_memory_zero_filled() {
                 self.rzil.new_const(Sort::Bitv(8), 0)
             } else {
@@ -230,8 +247,8 @@ impl MemoryRead for RiseContext {
                 let is_target_addr = self.rzil.new_eq(e.addr(), addr.clone())?;
                 byte = self.rzil.new_ite(is_target_addr, e.val(), byte)?;
             }
-            loaded_value = if let Some(v) = loaded_value {
-                Some(self.rzil.new_append(v, byte)?)
+            loaded_value = if let Some(loaded) = loaded_value {
+                Some(self.rzil.new_append(loaded, byte)?)
             } else {
                 Some(byte)
             };

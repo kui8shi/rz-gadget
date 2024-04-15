@@ -4,7 +4,6 @@ mod engine;
 mod error;
 mod explorer;
 mod map;
-mod paged_map;
 mod registers;
 mod rzil;
 mod variables;
