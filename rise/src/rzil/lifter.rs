@@ -40,7 +40,7 @@ impl BranchSetToSetIte {
     }
 
     fn inside_branch(&self) -> bool {
-        self.conditions.len() > 0
+        !self.conditions.is_empty()
     }
 
     fn begin(&mut self, condition: PureRef) {
@@ -83,7 +83,7 @@ impl BranchSetToSetIte {
     ) -> Result<()> {
         let condition = self.connect_condition(rzil)?;
         let taken = *self.taken.first().unwrap();
-        let mut entry = self.entries.get_mut(name);
+        let entry = self.entries.get_mut(name);
         if let Some(Scope::Let) = vars.get_scope(name) {
             // let var is immutable
             return Err(RzILError::ImmutableVariable(name.to_string()));
