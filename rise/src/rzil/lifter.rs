@@ -663,6 +663,7 @@ mod test {
         parse_ops(vec![target]).pop().unwrap()
     }
 
+    // TODO quit just using dbg! and do test
     #[test]
     fn xor() {
         dbg!(parse_op("xor_eax_eax"));

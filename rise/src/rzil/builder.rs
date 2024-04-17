@@ -851,10 +851,14 @@ mod test {
     #[test]
     fn append() {
         let r = RzILCache::new();
-        let high = r.new_const(Sort::Bitv(20), 0xdead);
-        let low = r.new_const(Sort::Bitv(16), 0xbeaf);
-        let concat = r.new_append(high, low).unwrap();
-        assert_eq!(concat.get_sort(), Sort::Bitv(36));
+        let de = r.new_const(Sort::Bitv(8), 0xde);
+        let ad = r.new_const(Sort::Bitv(8), 0xad);
+        let be = r.new_const(Sort::Bitv(8), 0xbe);
+        let af = r.new_const(Sort::Bitv(8), 0xaf);
+        let concat = r
+            .new_append(de, r.new_append(ad, r.new_append(be, af).unwrap()).unwrap())
+            .unwrap();
+        assert_eq!(concat.get_sort(), Sort::Bitv(32));
         assert_eq!(concat.evaluate(), 0xdeadbeaf);
     }
 

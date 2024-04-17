@@ -171,8 +171,8 @@ impl MemoryWrite for RiseContext {
             let byte = {
                 let k_bits: u32 = (k * BITS_PER_BYTE as u64).try_into().unwrap();
                 let (high, low) = match self.memory.endian() {
-                    Endian::Big => (k_bits + 7, k_bits),
-                    Endian::Little => (u64::BITS - k_bits - 1, u64::BITS - k_bits - 8),
+                    Endian::Little => (k_bits + 7, k_bits),
+                    Endian::Big => (u64::BITS - k_bits - 1, u64::BITS - k_bits - 8),
                 };
                 //extract 8 bits(a byte) from val
                 self.rzil.new_extract(val.clone(), high, low)?
@@ -209,11 +209,10 @@ impl MemoryRead for RiseContext {
         };
         assert!(min_addr <= max_addr, "min addr exceeds max addr");
         let offsets: Vec<u64> = match self.memory.endian() {
-            Endian::Little => (0..n_bytes as u64).rev().collect(),
-            Endian::Big => (0..n_bytes as u64).collect(),
+            Endian::Little => (0..n_bytes as u64).collect(),
+            Endian::Big => (0..n_bytes as u64).rev().collect(),
         };
         let mut loaded_value = None;
-        dbg!(&self.memory.concrete);
         for k in &offsets {
             let addr = self.rzil.new_bvadd(
                 addr.clone(),
@@ -221,7 +220,6 @@ impl MemoryRead for RiseContext {
             )?;
             let range = min_addr + k..max_addr + k + 1;
             let entries = self.memory.search(&range);
-            dbg!(&range, &entries);
             let initial = if self.memory.is_initial_memory_zero_filled() {
                 self.rzil.new_const(Sort::Bitv(8), 0)
             } else {
@@ -248,7 +246,7 @@ impl MemoryRead for RiseContext {
                 byte = self.rzil.new_ite(is_target_addr, e.val(), byte)?;
             }
             loaded_value = if let Some(loaded) = loaded_value {
-                Some(self.rzil.new_append(loaded, byte)?)
+                Some(self.rzil.new_append(byte, loaded)?)
             } else {
                 Some(byte)
             };

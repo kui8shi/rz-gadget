@@ -153,8 +153,11 @@ where
         // Find the first matching stored range by its start,
         // After that, another overlapping filter is imposed on the end of ranges
         // in Overlapping::next(). (See definition of 'next' in Iterator impl of Overlapping)
-        let iter = self.binary_tree.range(..=range.end.clone());
-        Overlapping { range, iter }
+        let iter = self.binary_tree.range(range.clone());
+        Overlapping {
+            interval: Interval::new(range.clone()),
+            iter,
+        }
     }
 
     /// Returns `true` if any range in the map completely or partially
@@ -530,7 +533,7 @@ where
 ///
 /// [`overlapping`]: IntervalMap::overlapping
 pub struct Overlapping<'a, K, V> {
-    range: &'a Range<K>,
+    interval: Interval<K>,
     iter: splay_tree::Iter<'a, Interval<K>, V>,
 }
 
@@ -544,19 +547,7 @@ where
     type Item = (&'a Range<K>, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some((k, v)) = self.iter.next() {
-            if self.range.start <= k.range.end {
-                Some((&k.range, v))
-            } else {
-                // The rest of the items in the underlying iterator
-                // are past the query range. We can keep taking items
-                // from that iterator and this will remain true,
-                // so this is enough to make the iterator fused.
-                None
-            }
-        } else {
-            None
-        }
+        self.iter.next().map(|(k, v)| (&k.range, v))
     }
 }
 
