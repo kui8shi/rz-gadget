@@ -4,7 +4,7 @@ use crate::error::{Result, RiseError};
 use crate::rzil::{ast::PureRef, builder::RzILBuilder};
 use quick_cache::sync::Cache;
 use std::collections::{BinaryHeap, HashMap};
-use std::ops::Range;
+
 use std::rc::Rc;
 use std::vec;
 use z3::ast::{Bool, Dynamic};
@@ -262,7 +262,7 @@ impl Solver for RiseContext {
 
     fn check_assumptions(&self, extra_constraint: &[PureRef]) -> SatResult {
         let assumptions: Vec<Bool> = extra_constraint
-            .into_iter()
+            .iter()
             .map(|c| {
                 assert!(c.is_bool());
                 self.convert(c.clone()).unwrap().as_bool().unwrap()

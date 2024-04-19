@@ -551,7 +551,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         self.iter
             .next()
-            .filter(|(k, _)| self.interval.overlaps(&k))
+            .filter(|(k, _)| self.interval.overlaps(k))
             .map(|(k, v)| (&k.range, v))
     }
 }
