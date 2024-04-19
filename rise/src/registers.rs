@@ -27,7 +27,7 @@ impl RegSpec {
 }
 
 fn parse_reg_info(rzapi: &mut RzApi) -> Result<Vec<RegSpec>> {
-    let mut largest_regs = IntervalMap::<u64, &RegisterInfo>::new();
+    let mut largest_regs = IntervalMap::<u64, &RegisterInfo>::new(false);
     let mut reg_specs = Vec::new();
     let reg_info = match rzapi.get_analysis_registers() {
         Ok(reg_profile) => reg_profile.reg_info,

@@ -9,7 +9,7 @@ use crate::{
     variables::VarId,
 };
 use rzapi::structs::Endian;
-use std::{cell::Cell, fmt::Debug, ops::Range, rc::Rc};
+use std::{cell::Cell, fmt::Debug, ops::Range};
 //use bitflags::bitflags;
 
 /*
@@ -55,7 +55,7 @@ impl MemoryEntry {
 #[derive(Clone, Debug)]
 pub struct Memory {
     symbolic: PagedIntervalMap<MemoryEntry>,
-    concrete: Rc<IntervalMap<u64, MemoryEntry>>,
+    concrete: IntervalMap<u64, MemoryEntry>,
     timestamp: Cell<i64>,          // timestamp which increases
     implicit_timestamp: Cell<i64>, // timestamp which decreases
     endian: Endian,
@@ -70,7 +70,7 @@ impl Memory {
         Memory {
             //solver: Rc::downgrade(&solver),
             symbolic: PagedIntervalMap::<MemoryEntry>::new(),
-            concrete: Rc::new(IntervalMap::new()),
+            concrete: IntervalMap::new(true),
             timestamp: Cell::new(0),
             implicit_timestamp: Cell::new(0),
             endian,
@@ -89,8 +89,7 @@ impl Memory {
 
     pub fn insert(&mut self, range: Range<u64>, entry: MemoryEntry) {
         if range.start + 1 == range.end {
-            let concrete = Rc::make_mut(&mut self.concrete);
-            concrete.insert(range, entry);
+            self.concrete.insert(range, entry);
         } else {
             self.symbolic.insert(range, entry);
         }
@@ -112,6 +111,7 @@ impl Memory {
             .concrete
             .overlapping(range)
             .filter(|e| e.1.timestamp <= self.timestamp.get())
+            .map(|(k, v)| (k.clone(), v))
             .chain(
                 self.symbolic
                     .overlapping(range)
@@ -155,7 +155,7 @@ impl MemoryWrite for RiseContext {
             "cannot store bitvector not byte-sized."
         );
         let (min_addr, max_addr) = if addr.is_symbolized() {
-            (self.get_min(addr.clone())?, self.get_max(addr.clone())?)
+            self.get_range(addr.clone())?
         } else {
             (addr.evaluate(), addr.evaluate())
         };
@@ -203,7 +203,7 @@ impl MemoryRead for RiseContext {
     fn load(&self, addr: PureRef, n_bytes: usize) -> Result<PureRef> {
         assert!(0 < n_bytes, "cannot load bitvector with zero width.");
         let (min_addr, max_addr) = if addr.is_symbolized() {
-            (self.get_min(addr.clone())?, self.get_max(addr.clone())?)
+            self.get_range(addr.clone())?
         } else {
             (addr.evaluate(), addr.evaluate())
         };
@@ -223,11 +223,12 @@ impl MemoryRead for RiseContext {
             let initial = if self.memory.is_initial_memory_zero_filled() {
                 self.rzil.new_const(Sort::Bitv(8), 0)
             } else {
+                // TODO enable to use this
                 let implicit_store = self.rzil.new_unconstrained(
                     Sort::Bitv(8),
                     // the format "{:#010x}" treats lower 32 bits of u64 as "0x........"
                     // (the length is 10 chars, including "0x")
-                    VarId::new(format!("mem_{:#010x}", min_addr + k).as_ref()), // TODO uniq var id
+                    VarId::new(format!("mem_{:#010x}", min_addr + k).as_ref()), // TODO uniq memory id
                 );
                 /*
                 let entry = MemoryEntry {
@@ -235,15 +236,21 @@ impl MemoryRead for RiseContext {
                     val: implicit_store.clone(),
                     timestamp: self.memory.implicit_timestamp(),
                 };
-                self.ranged_store(range.clone(), entry); // TODO fix this
+                self.ranged_store(range.clone(), entry); // TODO make this immutable call
                 */
                 implicit_store
             };
             let mut byte = initial;
             for e in &entries {
-                // note: entries are placed in nested if-then-else op structure in reverse order.
                 let is_target_addr = self.rzil.new_eq(e.addr(), addr.clone())?;
-                byte = self.rzil.new_ite(is_target_addr, e.val(), byte)?;
+                // check whether is the following condition satisfiable.
+                byte = match self.check_assumptions(&[is_target_addr.clone()]) {
+                    z3::SatResult::Unsat => byte,
+                    z3::SatResult::Sat | z3::SatResult::Unknown => {
+                        // entries are placed in nested if-then-else op structure in reverse order.
+                        self.rzil.new_ite(is_target_addr, e.val(), byte)?
+                    }
+                };
             }
             loaded_value = if let Some(loaded) = loaded_value {
                 Some(self.rzil.new_append(byte, loaded)?)
@@ -263,6 +270,7 @@ mod test {
             ast::Sort,
             builder::{RzILBuilder, RzILCache},
         },
+        variables::VarId,
     };
 
     use super::{MemoryRead, MemoryWrite, RiseContext};
@@ -276,5 +284,19 @@ mod test {
         let val = rzil.new_const(Sort::Bitv(64), 0xdeadbeaf);
         ctx.store(addr.clone(), val.clone()).unwrap();
         assert_eq!(ctx.load(addr, 8).unwrap(), val);
+    }
+
+    #[test]
+    fn symbolic() {
+        let solver = Z3Solver::new();
+        let rzil = RzILCache::new();
+        let mut ctx = RiseContext::new(solver, rzil.clone());
+        let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));
+        let four = rzil.new_const(Sort::Bitv(64), 4);
+        let addr = rzil.new_bvadd(x, four).unwrap();
+        let val = rzil.new_const(Sort::Bitv(64), 0xdeadbeaf);
+        ctx.store(addr.clone(), val.clone()).unwrap();
+        let loaded = ctx.load(addr, 8).unwrap();
+        assert_eq!(loaded, val);
     }
 }

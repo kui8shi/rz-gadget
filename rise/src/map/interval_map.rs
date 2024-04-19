@@ -11,7 +11,7 @@ pub struct IntervalMap<K, V> {
 }
 impl<K, V> Default for IntervalMap<K, V> {
     fn default() -> Self {
-        Self::new()
+        Self::new(false)
     }
 }
 
@@ -57,9 +57,9 @@ where
 impl<K, V> IntervalMap<K, V> {
     /// Makes a new empty `IntervalMap`.
     #[cfg(not(feature = "const_fn"))]
-    pub fn new() -> Self {
+    pub fn new(allow_key_dup: bool) -> Self {
         IntervalMap {
-            binary_tree: splay_tree::SplayTree::new(),
+            binary_tree: splay_tree::SplayTree::new(allow_key_dup),
         }
     }
 
@@ -177,84 +177,86 @@ where
     /// # Panics
     ///
     /// Panics if range `start >= end`.
-    pub fn insert(&mut self, range: Range<K>, value: V) {
+    pub fn insert(&mut self, range: Range<K>, new_val: V) {
         assert!(range.start < range.end);
 
         // Wrap up the given range so that we can "borrow"
         // it as a wrapper reference to either its start or end.
         // See `interval.rs` for explanation of these hacks.
-        let mut interval: Interval<K> = Interval::new(range);
+        let mut new_intvl: Interval<K> = Interval::new(range);
 
-        // Is there a stored range either overlapping the start of
-        // the range to insert or immediately preceding it?
-        //
-        // If there is any such stored range, it will be the last
-        // whose start is less than or equal to the start of the range to insert,
-        // or the one before that if both of the above cases exist.
-        let mut candidates = self
-            .binary_tree
-            .range(..=interval.start.clone())
-            .rev()
-            .take(2)
-            .filter(|(stored_interval, _stored_value)| {
-                // Does the candidate range either overlap
-                // or immediately precede the range to insert?
-                // (Remember that it might actually cover the whole
-                // range to insert and then some.)
-                stored_interval.touches(&interval)
-            });
-        if let Some(mut candidate) = candidates.next() {
-            // Or the one before it if both cases described above exist.
-            if let Some(another_candidate) = candidates.next() {
-                candidate = another_candidate;
+        if !self.binary_tree.is_key_duplication_allowed() {
+            // Is there a stored range either overlapping the start of
+            // the range to insert or immediately preceding it?
+            //
+            // If there is any such stored range, it will be the last
+            // whose start is less than or equal to the start of the range to insert,
+            // or the one before that if both of the above cases exist.
+            let mut candidates = self
+                .binary_tree
+                .range(..=new_intvl.start.clone())
+                .rev()
+                .take(2)
+                .filter(|(stored_intvl, _stored_val)| {
+                    // Does the candidate range either overlap
+                    // or immediately precede the range to insert?
+                    // (Remember that it might actually cover the whole
+                    // range to insert and then some.)
+                    stored_intvl.touches(&new_intvl)
+                });
+            if let Some(mut candidate) = candidates.next() {
+                // Or the one before it if both cases described above exist.
+                if let Some(another_candidate) = candidates.next() {
+                    candidate = another_candidate;
+                }
+                let (stored_intvl, stored_val) = (candidate.0.clone(), candidate.1.clone());
+                self.adjust_touching_ranges_for_insert(
+                    stored_intvl,
+                    stored_val,
+                    &mut new_intvl,
+                    &new_val,
+                );
             }
-            let (stored_interval, stored_value) = (candidate.0.clone(), candidate.1.clone());
-            self.adjust_touching_ranges_for_insert(
-                stored_interval,
-                stored_value,
-                &mut interval,
-                &value,
-            );
-        }
-        debug_assert!(!detect_cycle(&self.binary_tree));
+            debug_assert!(!detect_cycle(&self.binary_tree));
 
-        // Are there any stored ranges whose heads overlap or immediately
-        // follow the range to insert?
-        //
-        // If there are any such stored ranges (that weren't already caught above),
-        // their starts will fall somewhere after the start of the range to insert,
-        // and on or before its end.
-        //
-        // This time around, if the latter holds, it also implies
-        // the former so we don't need to check here if they touch.
-        while let Some((stored_interval, stored_value)) = self
-            .binary_tree
-            .range((
-                Bound::Included(interval.start.clone()),
-                Bound::Included(interval.end.clone()),
-            ))
-            .next()
-        {
-            // One extra exception: if we have different values,
-            // and the stored range starts at the end of the range to insert,
-            // then we don't want to keep looping forever trying to find more!
-            //#[allow(clippy::suspicious_operation_groupings)]
-            if stored_interval.start == interval.end && *stored_value != value {
-                // `adjust_touching_ranges_for_insert` below assumes that the given range
-                // is relevant, and behaves very poorly if it is handed a range which
-                // shouldn't be touching.
-                break;
+            // Are there any stored ranges whose heads overlap or immediately
+            // follow the range to insert?
+            //
+            // If there are any such stored ranges (that weren't already caught above),
+            // their starts will fall somewhere after the start of the range to insert,
+            // and on or before its end.
+            //
+            // This time around, if the latter holds, it also implies
+            // the former so we don't need to check here if they touch.
+            while let Some((stored_intvl, stored_val)) = self
+                .binary_tree
+                .range((
+                    Bound::Included(new_intvl.start.clone()),
+                    Bound::Included(new_intvl.end.clone()),
+                ))
+                .next()
+            {
+                // One extra exception: if we have different values,
+                // and the stored range starts at the end of the range to insert,
+                // then we don't want to keep looping forever trying to find more!
+                //#[allow(clippy::suspicious_operation_groupings)]
+                if stored_intvl.start == new_intvl.end && *stored_val != new_val {
+                    // `adjust_touching_ranges_for_insert` below assumes that the given range
+                    // is relevant, and behaves very poorly if it is handed a range which
+                    // shouldn't be touching.
+                    break;
+                }
+
+                self.adjust_touching_ranges_for_insert(
+                    stored_intvl.clone(),
+                    stored_val.clone(),
+                    &mut new_intvl,
+                    &new_val,
+                );
             }
-
-            self.adjust_touching_ranges_for_insert(
-                stored_interval.clone(),
-                stored_value.clone(),
-                &mut interval,
-                &value,
-            );
         }
 
-        self.binary_tree.insert(interval, value);
+        self.binary_tree.insert(new_intvl, new_val);
     }
 
     /// Removes a range from the map, if all or any of it was present.
@@ -269,25 +271,25 @@ where
     pub fn remove(&mut self, range: Range<K>) {
         assert!(range.start < range.end);
 
-        let interval: Interval<K> = Interval::new(range);
+        let intvl: Interval<K> = Interval::new(range);
 
         // Is there a stored range overlapping the start of
         // the range to remove?
         //
         // If there is any such stored range, it will be the last
         // whose start is less than or equal to the start of the range to remove.
-        if let Some((stored_interval, stored_value)) = self
+        if let Some((stored_intvl, stored_val)) = self
             .binary_tree
-            .range(..=interval.start.clone())
+            .range(..=intvl.start.clone())
             .next_back()
-            .filter(|(stored_interval, _stored_value)| {
+            .filter(|(stored_intvl, _stored_val)| {
                 // Does the only candidate range overlap
                 // the range to insert?
-                stored_interval.overlaps(&interval)
+                stored_intvl.overlaps(&intvl)
             })
-            .map(|(stored_interval, stored_value)| (stored_interval.clone(), stored_value.clone()))
+            .map(|(stored_intvl, stored_val)| (stored_intvl.clone(), stored_val.clone()))
         {
-            self.adjust_overlapping_intervals_for_remove(stored_interval, stored_value, &interval);
+            self.adjust_overlapping_intervals_for_remove(stored_intvl, stored_val, &intvl);
         }
 
         // Are there any stored ranges whose heads overlap the range to remove?
@@ -298,55 +300,55 @@ where
         //
         // REVISIT: Possible micro-optimisation: `impl Borrow<T> for Interval<T>`
         // and use that to search here, to avoid constructing another `Interval`.
-        while let Some((stored_interval, stored_value)) = self
+        while let Some((stored_intvl, stored_val)) = self
             .binary_tree
             .range((
-                Bound::Excluded(interval.start.clone()),
-                Bound::Excluded(interval.end.clone()),
+                Bound::Excluded(intvl.start.clone()),
+                Bound::Excluded(intvl.end.clone()),
             ))
             .next()
-            .map(|(stored_interval, stored_value)| (stored_interval.clone(), stored_value.clone()))
+            .map(|(stored_intvl, stored_val)| (stored_intvl.clone(), stored_val.clone()))
         {
-            self.adjust_overlapping_intervals_for_remove(stored_interval, stored_value, &interval);
+            self.adjust_overlapping_intervals_for_remove(stored_intvl, stored_val, &intvl);
         }
     }
 
     fn adjust_touching_ranges_for_insert(
         &mut self,
-        stored_interval: Interval<K>,
-        stored_value: V,
-        new_range: &mut Interval<K>,
-        new_value: &V,
+        stored_intvl: Interval<K>,
+        stored_val: V,
+        new_intvl: &mut Interval<K>,
+        new_val: &V,
     ) {
         use std::cmp::{max, min};
-        if stored_value == *new_value {
+        if stored_val == *new_val {
             // The ranges have the same value, so we can "adopt"
             // the stored range.
             //
             // This means that no matter how big or where the stored range is,
             // we will expand the new range's bounds to subsume it,
             // and then delete the stored range.
-            new_range.start = min(&new_range.start, &stored_interval.start).clone();
-            new_range.end = max(&new_range.end, &stored_interval.end).clone();
-            self.binary_tree.remove(&stored_interval);
+            new_intvl.start = min(&new_intvl.start, &stored_intvl.start).clone();
+            new_intvl.end = max(&new_intvl.end, &stored_intvl.end).clone();
+            self.binary_tree.remove(&stored_intvl);
         } else {
             // The ranges have different values.
-            if new_range.overlaps(&stored_interval) {
+            if new_intvl.overlaps(&stored_intvl) {
                 // Delete the stored range, and then add back between
                 // 0 and 2 subranges at the ends of the range to insert.
-                self.binary_tree.remove(&stored_interval);
-                if stored_interval.start < new_range.start {
+                self.binary_tree.remove(&stored_intvl);
+                if stored_intvl.start < new_intvl.start {
                     // Insert the piece left of the range to insert.
                     self.binary_tree.insert(
-                        Interval::new(stored_interval.start.clone()..new_range.start.clone()),
-                        stored_value.clone(),
+                        Interval::new(stored_intvl.start.clone()..new_intvl.start.clone()),
+                        stored_val.clone(),
                     );
                 }
-                if stored_interval.end > new_range.end {
+                if stored_intvl.end > new_intvl.end {
                     // Insert the piece right of the range to insert.
                     self.binary_tree.insert(
-                        Interval::new(new_range.end.clone()..stored_interval.end.clone()),
-                        stored_value,
+                        Interval::new(new_intvl.end.clone()..stored_intvl.end.clone()),
+                        stored_val,
                     );
                 }
             } else {
@@ -358,24 +360,24 @@ where
     fn adjust_overlapping_intervals_for_remove(
         &mut self,
         stored: Interval<K>,
-        stored_value: V,
-        interval_to_remove: &Interval<K>,
+        stored_val: V,
+        intvl_to_remove: &Interval<K>,
     ) {
         // Delete the stored range, and then add back between
         // 0 and 2 subranges at the ends of the range to insert.
         self.binary_tree.remove(&stored);
-        if stored.start < interval_to_remove.start {
+        if stored.start < intvl_to_remove.start {
             // Insert the piece left of the range to insert.
             self.binary_tree.insert(
-                Interval::new(stored.range.start.clone()..interval_to_remove.start.clone()),
-                stored_value.clone(),
+                Interval::new(stored.range.start.clone()..intvl_to_remove.start.clone()),
+                stored_val.clone(),
             );
         }
-        if stored.range.end > interval_to_remove.end {
+        if stored.range.end > intvl_to_remove.end {
             // Insert the piece right of the range to insert.
             self.binary_tree.insert(
-                Interval::new(interval_to_remove.end.clone()..stored.range.end.clone()),
-                stored_value,
+                Interval::new(intvl_to_remove.end.clone()..stored.range.end.clone()),
+                stored_val,
             );
         }
     }
@@ -450,7 +452,7 @@ where
     V: Eq + Clone + Debug,
 {
     fn from_iter<T: IntoIterator<Item = (Range<K>, V)>>(iter: T) -> Self {
-        let mut interval_map = IntervalMap::<K, V>::new();
+        let mut interval_map = IntervalMap::<K, V>::new(true);
         interval_map.extend(iter);
         interval_map
     }
@@ -547,7 +549,10 @@ where
     type Item = (&'a Range<K>, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|(k, v)| (&k.range, v))
+        self.iter
+            .next()
+            .filter(|(k, _)| self.interval.overlaps(&k))
+            .map(|(k, v)| (&k.range, v))
     }
 }
 
@@ -557,7 +562,7 @@ mod test {
 
     #[test]
     fn insertion() {
-        let mut imap = IntervalMap::new();
+        let mut imap = IntervalMap::new(false);
         imap.insert(2..9, "a");
         imap.insert(4..8, "b");
         imap.insert(5..7, "c");
@@ -574,7 +579,7 @@ mod test {
 
     #[test]
     fn insertion_overlap() {
-        let mut imap = IntervalMap::new();
+        let mut imap = IntervalMap::new(false);
         imap.insert(640..704, "a");
         assert!(imap.get(&650) == Some(&"a"));
         imap.insert(320..384, "b");

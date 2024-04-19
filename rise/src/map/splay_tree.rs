@@ -22,7 +22,7 @@ impl<K: Ord, V> Node<K, V> {
 pub struct SplayTree<K, V> {
     array: Vec<Node<K, V>>,
     root: Option<usize>,
-    allow_duplication: bool,
+    allow_key_dup: bool,
 }
 
 impl<K: Clone, V: Clone> Clone for SplayTree<K, V> {
@@ -30,7 +30,7 @@ impl<K: Clone, V: Clone> Clone for SplayTree<K, V> {
         Self {
             array: self.array.to_vec(),
             root: self.root,
-            allow_duplication: self.allow_duplication,
+            allow_key_dup: self.allow_key_dup,
         }
     }
 }
@@ -64,15 +64,15 @@ impl<K: Debug, V: Debug> SplayTree<K, V> {
     }
 }
 impl<K, V> SplayTree<K, V> {
-    pub fn new_with_option(allow_duplication: bool) -> Self {
+    pub fn new(allow_key_dup: bool) -> Self {
         Self {
             array: Vec::new(),
             root: None,
-            allow_duplication,
+            allow_key_dup,
         }
     }
-    pub fn new() -> Self {
-        Self::new_with_option(true)
+    pub fn new_ok_dup() -> Self {
+        Self::new(true)
     }
 
     pub fn len(&self) -> usize {
@@ -83,8 +83,8 @@ impl<K, V> SplayTree<K, V> {
         self.len() == 0
     }
 
-    pub fn is_duplication_allowed(&self) -> bool {
-        self.allow_duplication
+    pub fn is_key_duplication_allowed(&self) -> bool {
+        self.allow_key_dup
     }
 
     pub fn new_node(
@@ -276,7 +276,7 @@ impl<K, V> SplayTree<K, V> {
     }
 
     fn add_value(&mut self, id: Option<usize>, value: V) {
-        if self.is_duplication_allowed() {
+        if self.is_key_duplication_allowed() {
             self.mut_at(id).unwrap().values.push(value);
         } else {
             let _ = std::mem::replace(&mut self.mut_at(id).unwrap().values[0], value);
@@ -819,7 +819,7 @@ mod test {
     use super::SplayTree;
     #[test]
     fn rotation() {
-        let mut tree = SplayTree::new();
+        let mut tree = SplayTree::new_ok_dup();
         tree.insert(100, "foo");
         tree.insert(200, "bar");
         let root = tree.root;
@@ -832,7 +832,7 @@ mod test {
 
     #[test]
     fn insertion() {
-        let mut tree = SplayTree::new();
+        let mut tree = SplayTree::new_ok_dup();
         tree.insert(100, "foo");
         tree.insert(100, "foo_foo");
         tree.insert(200, "bar");
@@ -847,7 +847,7 @@ mod test {
 
     #[test]
     fn removal() {
-        let mut tree = SplayTree::new();
+        let mut tree = SplayTree::new_ok_dup();
         tree.insert(100, "foo");
         tree.insert(200, "bar");
         assert!(tree.remove(&100) == Some(Vec::from_iter(["foo"])));
@@ -859,7 +859,7 @@ mod test {
 
     #[test]
     fn iter() {
-        let mut tree = SplayTree::new();
+        let mut tree = SplayTree::new_ok_dup();
         tree.insert(60, "foo");
         tree.insert(20, "bar");
         tree.insert(10, "a");
@@ -884,7 +884,7 @@ mod test {
 
     #[test]
     fn into_iter() {
-        let mut tree = SplayTree::new();
+        let mut tree = SplayTree::new_ok_dup();
         tree.insert(60, "foo");
         tree.insert(20, "bar");
         tree.insert(10, "a");
@@ -909,7 +909,7 @@ mod test {
 
     #[test]
     fn range() {
-        let mut tree = SplayTree::new();
+        let mut tree = SplayTree::new_ok_dup();
         tree.insert(61, "foo");
         tree.insert(21, "bar");
         tree.insert(10, "a");

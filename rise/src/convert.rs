@@ -45,10 +45,8 @@ impl ConvertRzIL for RiseContext {
                     if op.is_concretized() {
                         Ok(BV::from_u64(self.get_z3_ctx(), op.evaluate(), size).into())
                     } else if let Some(z3_var) = self.get_z3_trasnlation(&op) {
-                        println!("Bitv Z3 Var {} referenced.", &id.get_uniq_name());
                         Ok(z3_var)
                     } else {
-                        println!("Bitv Z3 Var {} created.", &id.get_uniq_name());
                         let z3_var: Dynamic =
                             BV::new_const(self.get_z3_ctx(), id.get_uniq_name(), size).into();
                         self.set_z3_trasnlation(op, z3_var.clone());

@@ -4,9 +4,10 @@ use crate::error::{Result, RiseError};
 use crate::rzil::{ast::PureRef, builder::RzILBuilder};
 use quick_cache::sync::Cache;
 use std::collections::{BinaryHeap, HashMap};
+use std::ops::Range;
 use std::rc::Rc;
 use std::vec;
-use z3::ast::Dynamic;
+use z3::ast::{Bool, Dynamic};
 use z3::SatResult;
 
 #[derive(Clone, Debug)]
@@ -82,6 +83,16 @@ pub trait Z3 {
 
     fn set_z3_trasnlation(&self, var: PureRef, z3_var: Dynamic);
 
+    fn z3_push(&self) {
+        let solver = self.get_z3_solver();
+        solver.push();
+    }
+
+    fn z3_pop(&self) {
+        let solver = self.get_z3_solver();
+        solver.pop(1);
+    }
+
     fn z3_get_model(&self, extra_constraint: &[z3::ast::Bool]) -> Result<Option<z3::Model>> {
         let solver = self.get_z3_solver();
         for ast in extra_constraint {
@@ -127,9 +138,12 @@ pub trait Solver {
         n: usize,
     ) -> Result<Vec<HashMap<String, u64>>>;
     fn evaluate(&self, target: PureRef, n: usize) -> Result<Vec<u64>>;
+    fn get_range(&self, op: PureRef) -> Result<(u64, u64)>;
     fn get_min(&self, target: PureRef) -> Result<u64>;
     fn get_max(&self, target: PureRef) -> Result<u64>;
+    //TODO SatResult is dependent on z3. cut this out.
     fn check(&self) -> SatResult;
+    fn check_assumptions(&self, extra_constraint: &[PureRef]) -> SatResult;
 }
 
 impl Solver for RiseContext {
@@ -191,9 +205,11 @@ impl Solver for RiseContext {
         let ast = self.convert(op.clone())?;
         let mut results = BinaryHeap::new();
         let mut extra_constraint = Vec::new();
+        self.z3_push();
+        // get 'n' models
         for _ in 0..n {
             if let Some(model) = self.z3_get_model(&extra_constraint)? {
-                let val = match model.get_const_interp(&ast) {
+                let val = match model.eval(&ast, true) {
                     Some(val) => get_interp(val)?,
                     None => return Err(RiseError::Z3("returned no model.".to_owned())),
                 };
@@ -207,7 +223,23 @@ impl Solver for RiseContext {
                 break;
             }
         }
-        Ok(results.into_sorted_vec())
+        // When getting models, z3 internally adds assertions to get distinct values.
+        // However, this prevents the stable behaviour from multiple 'evaluate' calls.
+        // So we recover the solver state after getting models.
+        self.z3_pop();
+        if results.is_empty() {
+            Err(RiseError::Unsat)
+        } else {
+            Ok(results.into_sorted_vec())
+        }
+    }
+
+    fn get_range(&self, op: PureRef) -> Result<(u64, u64)> {
+        let vec = self.evaluate(op, 10)?;
+        match (vec.first(), vec.last()) {
+            (Some(min), Some(max)) => Ok((*min, *max + 1)),
+            _ => Err(RiseError::Unsat),
+        }
     }
 
     fn get_min(&self, op: PureRef) -> Result<u64> {
@@ -226,6 +258,17 @@ impl Solver for RiseContext {
 
     fn check(&self) -> SatResult {
         self.get_z3_solver().check()
+    }
+
+    fn check_assumptions(&self, extra_constraint: &[PureRef]) -> SatResult {
+        let assumptions: Vec<Bool> = extra_constraint
+            .into_iter()
+            .map(|c| {
+                assert!(c.is_bool());
+                self.convert(c.clone()).unwrap().as_bool().unwrap()
+            })
+            .collect();
+        self.get_z3_solver().check_assumptions(&assumptions)
     }
 }
 

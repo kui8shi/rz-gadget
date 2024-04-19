@@ -156,6 +156,8 @@ pub trait RzILBuilder {
             } else {
                 Ok(otherwise)
             }
+        } else if then == otherwise {
+            Ok(then)
         } else {
             Ok(self.new_pure(
                 PureCode::Ite,
@@ -295,10 +297,33 @@ pub trait RzILBuilder {
             0
         };
 
+        // TODO remove this and utilize z3 power (?)
+        //  we can use 'simplify' or 'is_sat' to simplify ops.
+        let simplify_add = |x: &PureRef, y: &PureRef| {
+            if x.is_concretized()
+                && y.get_code() == PureCode::Add
+                && (y.get_arg(0).is_concretized() ^ y.get_arg(1).is_concretized())
+            {
+                let (symbolic, concrete) = if y.get_arg(0).is_symbolized() {
+                    let eval = y.get_arg(1).evaluate().wrapping_add(x.evaluate());
+                    (y.get_arg(0), self.new_const(sort, eval))
+                } else {
+                    let eval = y.get_arg(0).evaluate().wrapping_add(x.evaluate());
+                    (y.get_arg(1), self.new_const(sort, eval))
+                };
+                Some(self.new_pure(PureCode::Add, vec![symbolic, concrete], true, sort, eval))
+            } else {
+                None
+            }
+        };
         if x.is_zero() {
             Ok(y)
         } else if y.is_zero() {
             Ok(x)
+        } else if let Some(s) = simplify_add(&x, &y) {
+            Ok(s)
+        } else if let Some(s) = simplify_add(&y, &x) {
+            Ok(s)
         } else {
             Ok(self.new_pure_maybe_const(PureCode::Add, vec![x, y], symbolized, sort, eval))
         }
@@ -484,7 +509,6 @@ pub trait RzILBuilder {
         } else {
             0
         };
-
         if x.is_zero() || y.is_zero() {
             Ok(self.new_const(sort, 0))
         } else {
@@ -580,19 +604,23 @@ pub trait RzILBuilder {
 
         x.expect_same_sort_with(&y)?;
 
-        let symbolized = x.is_symbolized() | y.is_symbolized();
         let sort = Sort::Bool;
-        let eval = if !symbolized {
-            if x.evaluate() == y.evaluate() {
-                1
+        if x == y {
+            Ok(self.new_const(sort, 1))
+        } else {
+            let symbolized = x.is_symbolized() | y.is_symbolized();
+            let eval = if !symbolized {
+                if x.evaluate() == y.evaluate() {
+                    1
+                } else {
+                    0
+                }
             } else {
                 0
-            }
-        } else {
-            0
-        };
+            };
 
-        Ok(self.new_pure_maybe_const(PureCode::Equal, vec![x, y], symbolized, sort, eval))
+            Ok(self.new_pure_maybe_const(PureCode::Equal, vec![x, y], symbolized, sort, eval))
+        }
     }
 
     fn new_sle(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
