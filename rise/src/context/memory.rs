@@ -277,26 +277,36 @@ mod test {
 
     #[test]
     fn concrete() {
+        // init
         let solver = Z3Solver::new();
         let rzil = RzILCache::new();
         let mut ctx = RiseContext::new(solver, rzil.clone());
+
+        // concrete store
         let addr = rzil.new_const(Sort::Bitv(64), 0x40000);
         let val = rzil.new_const(Sort::Bitv(64), 0xdeadbeaf);
         ctx.store(addr.clone(), val.clone()).unwrap();
+
+        // load & assert
         assert_eq!(ctx.load(addr, 8).unwrap(), val);
     }
 
     #[test]
     fn symbolic() {
+        // init
         let solver = Z3Solver::new();
         let rzil = RzILCache::new();
         let mut ctx = RiseContext::new(solver, rzil.clone());
+
+        // symbolic store
         let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));
         let four = rzil.new_const(Sort::Bitv(64), 4);
         let addr = rzil.new_bvadd(x, four).unwrap();
         let val = rzil.new_const(Sort::Bitv(64), 0xdeadbeaf);
         ctx.store(addr.clone(), val.clone()).unwrap();
         let loaded = ctx.load(addr, 8).unwrap();
+
+        // load & assert
         assert_eq!(loaded, val);
     }
 }
