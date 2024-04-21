@@ -1,13 +1,13 @@
 use super::RiseContext;
 use super::{memory::MemoryWrite, solver::Solver, Status};
-use crate::convert::ConvertRzIL;
+use crate::convert::ConvertRzILToSymExp;
 use crate::error::Result;
 use crate::rzil::{ast::Effect, error::RzILError};
 use std::rc::Rc;
 
 impl Process for RiseContext {}
 
-pub trait Process: ConvertRzIL + Solver + MemoryWrite {
+pub trait Process: ConvertRzILToSymExp + Solver + MemoryWrite {
     fn process(&mut self, ops: Vec<Rc<Effect>>) -> Result<()> {
         for op in ops {
             self.process_op(op)?;

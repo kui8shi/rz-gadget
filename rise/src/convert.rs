@@ -9,7 +9,7 @@ use crate::rzil::{
 };
 use z3::ast::{Ast, Bool, Dynamic, BV};
 
-pub trait ConvertRzIL {
+pub trait ConvertRzILToSymExp {
     type Any;
     type Bool;
     type Bitv;
@@ -19,7 +19,7 @@ pub trait ConvertRzIL {
     fn convert_set(&self, var: PureRef) -> Result<Self::Any>;
 }
 
-impl ConvertRzIL for RiseContext {
+impl ConvertRzILToSymExp for RiseContext {
     type Any = Dynamic;
     type Bool = Bool;
     type Bitv = BV;
@@ -285,4 +285,3 @@ impl ConvertRzIL for RiseContext {
         Ok(z3_var)
     }
 }
-//fn effect_to_z3<'a>

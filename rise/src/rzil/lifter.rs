@@ -627,16 +627,6 @@ mod test {
         rzil::{ast::Effect, builder::RzILCache},
         variables::Variables,
     };
-    /*
-    fn init(rzapi: &mut RzApi) -> (RiseContext, Variables) {
-        let s = Z3Solver::new();
-        let r = RzILCache::new();
-        let mut ctx = RiseContext::new(s, r);
-        let mut vars = Variables::new();
-        bind_registers(rzapi, &mut vars).unwrap();
-        (ctx, vars)
-    }
-    */
 
     fn read_rzil_info(path: &str) -> RzILInfo {
         let file = fs::File::open(path).expect("unable to open file");
@@ -663,7 +653,7 @@ mod test {
         parse_ops(vec![target]).pop().unwrap()
     }
 
-    // TODO quit just using dbg! and do test
+    // TODO quit just using dbg! and do more tests
     #[test]
     fn xor() {
         dbg!(parse_op("xor_eax_eax"));

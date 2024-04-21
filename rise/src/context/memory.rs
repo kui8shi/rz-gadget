@@ -288,7 +288,8 @@ mod test {
         ctx.store(addr.clone(), val.clone()).unwrap();
 
         // load & assert
-        assert_eq!(ctx.load(addr, 8).unwrap(), val);
+        let loaded = ctx.load(addr, 8).unwrap();
+        assert_eq!(loaded, val);
     }
 
     #[test]
@@ -304,9 +305,9 @@ mod test {
         let addr = rzil.new_bvadd(x, four).unwrap();
         let val = rzil.new_const(Sort::Bitv(64), 0xdeadbeaf);
         ctx.store(addr.clone(), val.clone()).unwrap();
-        let loaded = ctx.load(addr, 8).unwrap();
 
         // load & assert
+        let loaded = ctx.load(addr, 8).unwrap();
         assert_eq!(loaded, val);
     }
 }

@@ -1,5 +1,5 @@
 use super::RiseContext;
-use crate::convert::ConvertRzIL;
+use crate::convert::ConvertRzILToSymExp;
 use crate::error::{Result, RiseError};
 use crate::rzil::{ast::PureRef, builder::RzILBuilder};
 use quick_cache::sync::Cache;
