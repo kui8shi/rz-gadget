@@ -1,25 +1,25 @@
-use crate::context::Context;
+use crate::state::{State, State};
 use crate::error::{Result, RiseError};
 
-pub struct PathExplorer<C: Context> {
-    ctx_pool: Vec<C>,
+pub struct PathExplorer {
+    ctx_pool: Vec<State>,
 }
 
-impl<C: Context> PathExplorer<C> {
+impl PathExplorer {
     pub fn new() -> Self {
         PathExplorer {
             ctx_pool: Vec::new(),
         }
     }
-    pub fn push_ctx(&mut self, ctx: C) {
+    pub fn push_ctx(&mut self, ctx: State) {
         self.ctx_pool.push(ctx)
     }
 
-    pub fn pop_ctx(&mut self) -> Result<C> {
+    pub fn pop_ctx(&mut self) -> Result<State> {
         match self.ctx_pool.pop() {
             Some(ctx) => Ok(ctx),
             None => Err(RiseError::Explorer(
-                "There is no contexts in the path explorer.".to_string(),
+                "There is no states in the path explorer.".to_string(),
             )),
         }
     }

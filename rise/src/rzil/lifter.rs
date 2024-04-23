@@ -636,7 +636,7 @@ mod test {
     fn parse_ops(target: Vec<&str>) -> Vec<Rc<Effect>> {
         let rzil = RzILCache::new();
         let mut lifter = RzILLifter::new();
-        let mut rzapi = RzApi::new(Some("test/sample")).unwrap();
+        let mut rzapi = RzApi::new(Some("test/dummy")).unwrap();
         let mut vars = Variables::new();
         bind_registers(&mut rzapi, &mut vars, &rzil).unwrap();
         let mut ret = Vec::new();

@@ -498,7 +498,7 @@ pub enum RegisterRole {
 }
 */
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum RegisterType {
     Gpr, // General purpose
@@ -541,7 +541,7 @@ pub struct RegisterInfo {
 pub struct FlagInfo {
     pub offset: u64,
     pub name: String,
-    pub realname: String,
+    //pub realname: String,
     pub size: u64,
 }
 

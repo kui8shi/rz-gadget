@@ -1,16 +1,20 @@
-use crate::context::{Context, Status};
+use crate::state::process::Process;
+use crate::state::solver::Z3Solver;
+use crate::state::{State, State, Status};
 use crate::error::Result;
 use crate::explorer::PathExplorer;
 use crate::registers;
+use crate::rzil::ast::Sort;
+use crate::rzil::builder::RzILBuilder;
 use crate::rzil::{ast::Effect, builder::RzILCache, lifter::RzILLifter};
 use crate::variables::Variables;
 use rzapi::api::RzApi;
 use rzapi::structs::FlagInfo;
 use std::collections::HashMap;
 use std::rc::Rc;
-pub struct Rise<C: Context> {
+pub struct Rise {
     api: RzApi,
-    explorer: PathExplorer<C>,
+    explorer: PathExplorer,
     lifter: RzILLifter,
     builder: RzILCache,
     vars: Variables,
@@ -49,13 +53,12 @@ pub enum Mode {
     Explore,
 }
 
-impl<C: Context> Rise<C> {
+impl Rise {
     /*
      * Panics if stream has not loaded any sources yet.
      */
-    pub fn new(path: Option<String>) -> Result<Self> {
+    pub fn new(path: Option<&str>) -> Result<Self> {
         let mut api = RzApi::new(path)?;
-        let explorer = PathExplorer::new();
         let lifter = RzILLifter::new();
         let builder = RzILCache::new();
         let mut vars = Variables::new();
@@ -66,6 +69,11 @@ impl<C: Context> Rise<C> {
         for flag in flaginfo {
             flags.insert(flag.name.clone(), flag);
         }
+        let solver = Z3Solver::new();
+        let ctx = State::new(solver, builder.clone());
+        let mut explorer = PathExplorer::new();
+        explorer.push_ctx(ctx);
+
         Ok(Rise {
             api,
             explorer,
@@ -92,23 +100,37 @@ impl<C: Context> Rise<C> {
             }
             Mode::Explore => {
                 while self.is_stopped() {
-                    match self.run(Mode::Block)? {
-                        Status::Continue => continue,
-                        Status::DirectJump(addr) => self.seek(addr),
-                        Status::SymbolicJump(addr) => break,
-                        Status::Goto(label) => {
-                            let addr = self.flags.get(&label).unwrap().offset;
-                            self.seek(addr);
-                        }
-                        Status::Branch(c, t, o) => {
-                            //let path = self.explorer.branch(c, t, o);
-                            //match path ... if terminated then break else take either branch op
+                    self.run(Mode::Block)?;
+                }
+            }
+        }
+        let status = {
+            // optional operations
+            let next_pc = match ctx.get_status() {
+                Status::Jump(addr) => addr,
+                Status::Goto(label) => {
+                    let addr = self.flags.get(&label).unwrap().offset;
+                    self.builder.new_const(Sort::Bitv(64), addr)
+                }
+                Status::Branch(c, t, o) => {
+                    //let path = self.explorer.branch(c, t, o);
+                    //match path ... if terminated then break else take either branch op
+                    if c.is_concretized() {
+                        if c.evaluate_bool() {
+                            t
+                        } else {
+                            o
                         }
                     }
                 }
+                Status::Continue => {
+                    self.api.seek()
+                    ctx.set_pc()
+                }
+                Status::Terminated => (),
             }
+            ctx.get_status()
         };
-        let status = ctx.get_status();
         self.explorer.push_ctx(ctx);
         Ok(status)
     }
@@ -134,5 +156,29 @@ impl<C: Context> Rise<C> {
 
     fn is_stopped(&self) -> bool {
         false
+    }
+
+    /*
+     *
+     * needed functions
+     *
+     * - set register symbolic/concrete value
+     * - set entry point / or blank state(?)
+     * - set options (aligned memory, zero filled memory etc..)
+     *
+     *
+     */
+}
+
+#[cfg(test)]
+mod test {
+    use crate::state::State;
+
+    use super::{Mode, Rise};
+
+    #[test]
+    fn new() {
+        let mut rise = Rise::new(Some("test/dummy")).unwrap();
+        dbg!(rise.run(Mode::Step));
     }
 }

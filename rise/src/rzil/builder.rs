@@ -4,40 +4,7 @@ use super::{
 };
 use crate::variables::{VarId, Variables};
 use quick_cache::sync::Cache;
-use std::rc::Rc;
-
-#[derive(Debug, Clone)]
-pub struct RzILCache {
-    pure_cache: Rc<Cache<u64, PureRef>>, // cache pure ops by their semantics
-}
-
-impl RzILCache {
-    pub fn new() -> Self {
-        const DEFAULT_CACHE_SIZE: usize = 100;
-        RzILCache {
-            pure_cache: Rc::new(Cache::new(DEFAULT_CACHE_SIZE)),
-        }
-    }
-}
-
-impl RzILBuilder for RzILCache {
-    fn new_pure(
-        &self,
-        code: PureCode,
-        args: Vec<PureRef>,
-        symbolized: bool,
-        sort: Sort,
-        eval: u64,
-    ) -> PureRef {
-        let op: PureRef = Pure::new(code, args, symbolized, sort, eval).into();
-        if let Some(cached) = self.pure_cache.get(&op.get_hash()) {
-            cached.clone()
-        } else {
-            self.pure_cache.insert(op.get_hash(), op.clone());
-            op
-        }
-    }
-}
+use std::{ops::Add, rc::Rc};
 
 pub trait RzILBuilder {
     // ======== required methods ========
@@ -823,6 +790,41 @@ pub trait RzILBuilder {
         key.expect_bitv()?;
         value.expect_bitv()?;
         Ok(self.new_effect(Effect::Store { key, value }))
+    }
+}
+
+// ============= RzIL builder with cache ability ================
+
+#[derive(Debug, Clone)]
+pub struct RzILCache {
+    pure_cache: Rc<Cache<u64, PureRef>>, // cache pure ops by their semantics
+}
+
+impl RzILCache {
+    pub fn new() -> Self {
+        const DEFAULT_CACHE_SIZE: usize = 100;
+        RzILCache {
+            pure_cache: Rc::new(Cache::new(DEFAULT_CACHE_SIZE)),
+        }
+    }
+}
+
+impl RzILBuilder for RzILCache {
+    fn new_pure(
+        &self,
+        code: PureCode,
+        args: Vec<PureRef>,
+        symbolized: bool,
+        sort: Sort,
+        eval: u64,
+    ) -> PureRef {
+        let op: PureRef = Pure::new(code, args, symbolized, sort, eval).into();
+        if let Some(cached) = self.pure_cache.get(&op.get_hash()) {
+            cached.clone()
+        } else {
+            self.pure_cache.insert(op.get_hash(), op.clone());
+            op
+        }
     }
 }
 

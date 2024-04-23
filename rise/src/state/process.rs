@@ -1,14 +1,26 @@
-use super::RiseContext;
 use super::{memory::MemoryWrite, solver::Solver, Status};
+use super::State;
 use crate::convert::ConvertRzILToSymExp;
 use crate::error::Result;
 use crate::rzil::{ast::Effect, error::RzILError};
 use std::rc::Rc;
 
-impl Process for RiseContext {}
+impl Process for State {
+    fn process(&mut self, ops: Vec<Rc<Effect>>) -> Result<()> {
+        for op in ops {
+            self.status = self.process_op(op)?;
+            if !matches!(self.get_status(), Status::Continue) {
+                break;
+            }
+        }
+        Ok(())
+    }
+}
 
 pub trait Process: ConvertRzILToSymExp + Solver + MemoryWrite {
-    fn process(&mut self, ops: Vec<Rc<Effect>>) -> Result<()> {
+    fn process(&mut self, ops: Vec<Rc<Effect>>) -> Result<()>;
+
+    fn process_ops(&mut self, ops: Vec<Rc<Effect>>) -> Result<()> {
         for op in ops {
             self.process_op(op)?;
         }
@@ -16,6 +28,7 @@ pub trait Process: ConvertRzILToSymExp + Solver + MemoryWrite {
     }
 
     fn process_op(&mut self, op: Rc<Effect>) -> Result<Status> {
+        dbg!(&op);
         let op = op.as_ref();
         match op {
             Effect::Nop => Ok(Status::Continue),
@@ -24,11 +37,7 @@ pub trait Process: ConvertRzILToSymExp + Solver + MemoryWrite {
                 Ok(Status::Continue)
             }
             Effect::Jmp { dst } => {
-                if dst.is_concretized() {
-                    Ok(Status::DirectJump(dst.evaluate()))
-                } else {
-                    Ok(Status::SymbolicJump(dst.clone()))
-                }
+                Ok(Status::Jump(dst.clone()))
             }
             Effect::Goto { label } => Ok(Status::Goto(label.clone())),
             Effect::Seq { args } => {

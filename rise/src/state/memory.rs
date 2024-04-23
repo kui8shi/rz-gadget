@@ -1,4 +1,4 @@
-use super::{solver::Solver, RiseContext};
+use super::{solver::Solver, State};
 use crate::{
     error::Result,
     map::{interval_map::IntervalMap, paged_map::PagedIntervalMap},
@@ -139,7 +139,7 @@ pub trait MemoryRead {
     fn load(&self, addr: PureRef, n_bytes: usize) -> Result<PureRef>;
 }
 
-impl MemoryWrite for RiseContext {
+impl MemoryWrite for State {
     fn store(&mut self, addr: PureRef, val: PureRef) -> Result<()> {
         assert!(
             0 < val.get_size(),
@@ -188,7 +188,7 @@ impl MemoryWrite for RiseContext {
     }
 }
 
-impl RiseContext {
+impl State {
     /// Write a byte of memory at ranged location
     fn ranged_store(&mut self, range: Range<u64>, entry: MemoryEntry) -> Result<()> {
         self.memory.insert(range, entry);
@@ -196,7 +196,7 @@ impl RiseContext {
     }
 }
 
-impl MemoryRead for RiseContext {
+impl MemoryRead for State {
     /// Read n bytes of memory at a certain location
     ///
     /// # Panics if n == 0
@@ -265,7 +265,7 @@ impl MemoryRead for RiseContext {
 #[cfg(test)]
 mod test {
     use crate::{
-        context::solver::Z3Solver,
+        state::solver::Z3Solver,
         rzil::{
             ast::Sort,
             builder::{RzILBuilder, RzILCache},
@@ -273,14 +273,14 @@ mod test {
         variables::VarId,
     };
 
-    use super::{MemoryRead, MemoryWrite, RiseContext};
+    use super::{MemoryRead, MemoryWrite, State};
 
     #[test]
     fn concrete() {
         // init
         let solver = Z3Solver::new();
         let rzil = RzILCache::new();
-        let mut ctx = RiseContext::new(solver, rzil.clone());
+        let mut ctx = State::new(solver, rzil.clone());
 
         // concrete store
         let addr = rzil.new_const(Sort::Bitv(64), 0x40000);
@@ -297,7 +297,7 @@ mod test {
         // init
         let solver = Z3Solver::new();
         let rzil = RzILCache::new();
-        let mut ctx = RiseContext::new(solver, rzil.clone());
+        let mut ctx = State::new(solver, rzil.clone());
 
         // symbolic store
         let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));

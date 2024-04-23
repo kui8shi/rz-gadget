@@ -71,7 +71,7 @@ fn parse_reg_info(rzapi: &mut RzApi) -> Result<Vec<RegSpec>> {
             lower,
             parent: largest.name.to_string(),
             primary,
-            reg_type: r.reg_type,
+            reg_type: r.reg_type.clone(),
         })
     }
     Ok(reg_specs)

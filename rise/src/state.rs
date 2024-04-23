@@ -15,19 +15,13 @@ use self::process::Process;
 #[derive(Clone, Debug)]
 pub enum Status {
     Continue,
-    DirectJump(u64),
-    SymbolicJump(PureRef),
+    Jump(PureRef),
     Goto(String),
     Branch(PureRef, Rc<Effect>, Rc<Effect>),
+    Terminated,
 }
 
-pub trait Context: Process {
-    fn get_pc(&self) -> u64;
-    fn set_pc(&mut self, pc: u64) -> u64;
-    fn get_status(&self) -> Status;
-}
-
-impl Context for RiseContext {
+impl State {
     fn get_pc(&self) -> u64 {
         self.pc
     }
@@ -42,7 +36,7 @@ impl Context for RiseContext {
 }
 
 #[derive(Clone, Debug)]
-pub struct RiseContext {
+pub struct State {
     pc: u64,
     memory: Memory,
     solver: Z3Solver,
@@ -50,9 +44,9 @@ pub struct RiseContext {
     status: Status,
 }
 
-impl RiseContext {
+impl State {
     pub fn new(solver: Z3Solver, rzil: RzILCache) -> Self {
-        RiseContext {
+        State {
             pc: 0,
             memory: Memory::new(Endian::Little),
             solver,
