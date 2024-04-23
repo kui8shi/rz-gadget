@@ -5,6 +5,8 @@ use crate::registers;
 use crate::rzil::{ast::Effect, builder::RzILCache, lifter::RzILLifter};
 use crate::variables::Variables;
 use rzapi::api::RzApi;
+use rzapi::structs::FlagInfo;
+use std::collections::HashMap;
 use std::rc::Rc;
 pub struct Rise<C: Context> {
     api: RzApi,
@@ -13,6 +15,7 @@ pub struct Rise<C: Context> {
     builder: RzILCache,
     vars: Variables,
     addr: u64,
+    flags: HashMap<String, FlagInfo>,
 }
 
 /*
@@ -58,6 +61,11 @@ impl<C: Context> Rise<C> {
         let mut vars = Variables::new();
         let addr = 0;
         registers::bind_registers(&mut api, &mut vars, &builder)?;
+        let flaginfo = api.get_flags()?;
+        let mut flags = HashMap::new();
+        for flag in flaginfo {
+            flags.insert(flag.name.clone(), flag);
+        }
         Ok(Rise {
             api,
             explorer,
@@ -65,6 +73,7 @@ impl<C: Context> Rise<C> {
             builder,
             vars,
             addr,
+            flags,
         })
     }
 
@@ -83,9 +92,18 @@ impl<C: Context> Rise<C> {
             }
             Mode::Explore => {
                 while self.is_stopped() {
-                    let status = self.run(Mode::Block)?;
-                    if let Status::DirectJump(addr) = status {
-                        self.seek(addr);
+                    match self.run(Mode::Block)? {
+                        Status::Continue => continue,
+                        Status::DirectJump(addr) => self.seek(addr),
+                        Status::SymbolicJump(addr) => break,
+                        Status::Goto(label) => {
+                            let addr = self.flags.get(&label).unwrap().offset;
+                            self.seek(addr);
+                        }
+                        Status::Branch(c, t, o) => {
+                            //let path = self.explorer.branch(c, t, o);
+                            //match path ... if terminated then break else take either branch op
+                        }
                     }
                 }
             }

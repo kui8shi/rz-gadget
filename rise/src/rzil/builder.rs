@@ -9,7 +9,6 @@ use std::rc::Rc;
 #[derive(Debug, Clone)]
 pub struct RzILCache {
     pure_cache: Rc<Cache<u64, PureRef>>, // cache pure ops by their semantics
-                                         //uniq_var_id: Cell<u64>,              // unique variable id
 }
 
 impl RzILCache {
