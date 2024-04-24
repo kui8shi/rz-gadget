@@ -727,7 +727,7 @@ pub trait RzILBuilder {
         Ok(self.new_effect(Effect::Jmp { dst }))
     }
 
-    fn new_set(&self, vars: &mut Variables, name: &str, src: PureRef) -> Result<Effect> {
+    fn new_set(&self, vars: &mut dyn Variables, name: &str, src: PureRef) -> Result<Effect> {
         let dst = match vars.get_scope(name) {
             Some(Scope::Let) => {
                 // let var is immutable
@@ -827,7 +827,7 @@ impl RzILBuilder for RzILCache {
 mod test {
     use crate::{
         rzil::ast::{Scope, Sort},
-        variables::{VarId, Variables},
+        variables::{VarId, VarStorage},
     };
 
     use super::{RzILBuilder, RzILCache};
@@ -889,7 +889,7 @@ mod test {
     #[test]
     fn var_identity() {
         let r = RzILCache::new();
-        let mut vars = Variables::new();
+        let mut vars = VarStorage::new();
         let zero = r.new_const(Sort::Bitv(64), 0);
 
         let id0 = vars.get_uniq_id("x");

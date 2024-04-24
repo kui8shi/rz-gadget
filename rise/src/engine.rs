@@ -1,20 +1,20 @@
 use crate::error::Result;
-use crate::explorer::PathExplorer;
+use crate::explorer::{PathExplorer, StatePool};
 use crate::registers;
 use crate::rzil::{ast::Effect, builder::RzILCache, lifter::RzILLifter};
 use crate::state::process::Process;
 use crate::state::solver::Z3Solver;
-use crate::state::{State, Status};
-use crate::variables::Variables;
+use crate::state::{State_Z3Backend, Status};
+use crate::variables::VarStorage;
 use rzapi::api::RzApi;
 use rzapi::structs::FlagInfo;
 use std::collections::HashMap;
-pub struct Rise {
+pub struct Rise<S> {
     api: RzApi,
-    explorer: PathExplorer,
+    explorer: StatePool<S>,
     lifter: RzILLifter,
     builder: RzILCache,
-    vars: Variables,
+    vars: VarStorage,
     addr: u64,
     flags: HashMap<String, FlagInfo>,
 }
@@ -50,7 +50,7 @@ pub enum Mode {
     Explore,
 }
 
-impl Rise {
+impl<S> Rise<S> {
     /*
      * Panics if stream has not loaded any sources yet.
      */
@@ -58,7 +58,7 @@ impl Rise {
         let mut api = RzApi::new(path)?;
         let lifter = RzILLifter::new();
         let builder = RzILCache::new();
-        let mut vars = Variables::new();
+        let mut vars = VarStorage::new();
         let addr = 0;
         registers::bind_registers(&mut api, &mut vars, &builder)?;
         let flaginfo = api.get_flags()?;
@@ -67,8 +67,8 @@ impl Rise {
             flags.insert(flag.name.clone(), flag);
         }
         let solver = Z3Solver::new();
-        let ctx = State::new(solver, builder.clone());
-        let mut explorer = PathExplorer::new();
+        let ctx = State_Z3Backend::new(solver, builder.clone());
+        let mut explorer = StatePool::new();
         explorer.push_ctx(ctx);
 
         Ok(Rise {
@@ -131,8 +131,6 @@ impl Rise {
 
 #[cfg(test)]
 mod test {
-    use crate::state::State;
-
     use super::{Mode, Rise};
 
     #[test]

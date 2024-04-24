@@ -4,9 +4,9 @@ use crate::rzil::{
     ast::{PureCode, PureRef, Sort},
     error::RzILError,
 };
-use crate::state::memory::MemoryRead;
+use crate::state::memory::MemoryOps;
 use crate::state::solver::Z3;
-use crate::state::State;
+use crate::state::State_Z3Backend;
 use z3::ast::{Ast, Bool, Dynamic, BV};
 
 pub trait ConvertRzILToSymExp {
@@ -19,7 +19,7 @@ pub trait ConvertRzILToSymExp {
     fn convert_set(&self, var: PureRef) -> Result<Self::Any>;
 }
 
-impl ConvertRzILToSymExp for State {
+impl ConvertRzILToSymExp for State_Z3Backend {
     type Any = Dynamic;
     type Bool = Bool;
     type Bitv = BV;

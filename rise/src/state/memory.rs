@@ -1,4 +1,4 @@
-use super::{solver::Solver, State};
+use super::{solver::Solver, State_Z3Backend};
 use crate::{
     error::Result,
     map::{interval_map::IntervalMap, paged_map::PagedIntervalMap},
@@ -131,15 +131,20 @@ impl Memory {
     //fn merge()
 }
 
-pub trait MemoryWrite {
-    fn store(&mut self, addr: PureRef, val: PureRef) -> Result<()>;
+impl State_Z3Backend {
+    /// Write a byte of memory at ranged location
+    fn ranged_store(&mut self, range: Range<u64>, entry: MemoryEntry) -> Result<()> {
+        self.memory.insert(range, entry);
+        Ok(())
+    }
 }
 
-pub trait MemoryRead {
+pub trait MemoryOps {
+    fn store(&mut self, addr: PureRef, val: PureRef) -> Result<()>;
     fn load(&self, addr: PureRef, n_bytes: usize) -> Result<PureRef>;
 }
 
-impl MemoryWrite for State {
+impl MemoryOps for State_Z3Backend {
     fn store(&mut self, addr: PureRef, val: PureRef) -> Result<()> {
         assert!(
             0 < val.get_size(),
@@ -186,17 +191,7 @@ impl MemoryWrite for State {
         }
         Ok(())
     }
-}
 
-impl State {
-    /// Write a byte of memory at ranged location
-    fn ranged_store(&mut self, range: Range<u64>, entry: MemoryEntry) -> Result<()> {
-        self.memory.insert(range, entry);
-        Ok(())
-    }
-}
-
-impl MemoryRead for State {
     /// Read n bytes of memory at a certain location
     ///
     /// # Panics if n == 0
@@ -273,14 +268,14 @@ mod test {
         variables::VarId,
     };
 
-    use super::{MemoryRead, MemoryWrite, State};
+    use super::{MemoryOps, State_Z3Backend};
 
     #[test]
     fn concrete() {
         // init
         let solver = Z3Solver::new();
         let rzil = RzILCache::new();
-        let mut ctx = State::new(solver, rzil.clone());
+        let mut ctx = State_Z3Backend::new(solver, rzil.clone());
 
         // concrete store
         let addr = rzil.new_const(Sort::Bitv(64), 0x40000);
@@ -297,7 +292,7 @@ mod test {
         // init
         let solver = Z3Solver::new();
         let rzil = RzILCache::new();
-        let mut ctx = State::new(solver, rzil.clone());
+        let mut ctx = State_Z3Backend::new(solver, rzil.clone());
 
         // symbolic store
         let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));

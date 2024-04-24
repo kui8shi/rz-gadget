@@ -1,4 +1,4 @@
-use super::State;
+use super::State_Z3Backend;
 use crate::convert::ConvertRzILToSymExp;
 use crate::error::{Result, RiseError};
 use crate::rzil::{ast::PureRef, builder::RzILBuilder};
@@ -109,7 +109,7 @@ pub trait Z3 {
     }
 }
 
-impl Z3 for State {
+impl Z3 for State_Z3Backend {
     fn get_z3_ctx(&self) -> Rc<z3::Context> {
         self.solver.get_z3_ctx()
     }
@@ -146,7 +146,7 @@ pub trait Solver {
     fn check_assumptions(&self, extra_constraint: &[PureRef]) -> SatResult;
 }
 
-impl Solver for State {
+impl Solver for State_Z3Backend {
     fn solver_name(&self) -> &'static str {
         "z3"
     }
@@ -282,7 +282,7 @@ mod test {
             ast::Sort,
             builder::{RzILBuilder, RzILCache},
         },
-        state::State,
+        state::State_Z3Backend,
         variables::VarId,
     };
 
@@ -290,7 +290,7 @@ mod test {
     fn unsat() {
         let rzil = RzILCache::new();
         let solver = Z3Solver::new();
-        let ctx = State::new(solver, rzil.clone());
+        let ctx = State_Z3Backend::new(solver, rzil.clone());
         let ten = rzil.new_const(Sort::Bitv(64), 10);
         let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));
         ctx.assert(rzil.new_eq(x.clone(), ten.clone()).unwrap())
@@ -308,7 +308,7 @@ mod test {
     fn get_model() {
         let rzil = RzILCache::new();
         let solver = Z3Solver::new();
-        let ctx = State::new(solver, rzil.clone());
+        let ctx = State_Z3Backend::new(solver, rzil.clone());
         let ten = rzil.new_const(Sort::Bitv(64), 10);
         let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));
         let y = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("y"));

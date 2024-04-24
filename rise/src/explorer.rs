@@ -1,23 +1,29 @@
 use crate::error::{Result, RiseError};
 use crate::state::State;
 
-pub struct PathExplorer {
-    ctx_pool: Vec<State>,
+pub struct StatePool<S> {
+    pool: Vec<S>,
 }
 
-impl PathExplorer {
+impl<S> StatePool<S> {
     pub fn new() -> Self {
-        PathExplorer {
-            ctx_pool: Vec::new(),
-        }
+        StatePool { pool: Vec::new() }
     }
-    pub fn push_ctx(&mut self, ctx: State) {
-        self.ctx_pool.push(ctx)
+}
+
+pub trait PathExplorer<S: State> {
+    fn push_ctx(&mut self, state: S);
+    fn pop_ctx(&mut self) -> Result<S>;
+}
+
+impl<S: State> PathExplorer<S> for StatePool<S> {
+    fn push_ctx(&mut self, state: S) {
+        self.pool.push(state)
     }
 
-    pub fn pop_ctx(&mut self) -> Result<State> {
-        match self.ctx_pool.pop() {
-            Some(ctx) => Ok(ctx),
+    fn pop_ctx(&mut self) -> Result<S> {
+        match self.pool.pop() {
+            Some(state) => Ok(state),
             None => Err(RiseError::Explorer(
                 "There is no states in the path explorer.".to_string(),
             )),

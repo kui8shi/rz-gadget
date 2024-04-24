@@ -1,28 +1,25 @@
-use super::State;
-use super::{memory::MemoryWrite, solver::Solver, Status};
+use super::{memory::MemoryOps, solver::Solver, Status};
+use super::{State, State_Z3Backend};
 use crate::convert::ConvertRzILToSymExp;
 use crate::error::Result;
+use crate::explorer::PathExplorer;
 use crate::rzil::{ast::Effect, error::RzILError};
-use std::rc::Rc;
 
-impl Process for State {
-    fn seek(&mut self, addr: u64) {
-        self.set_pc(addr);
-    }
-}
-
-pub trait Process: ConvertRzILToSymExp + Solver + MemoryWrite {
-    fn seek(&mut self, addr: u64);
-
-    fn process(&mut self, op: Effect) -> Result<Status> {
+pub trait Process<S: State>: PathExplorer<S> {
+    fn process(&mut self, state: &mut S, op: Effect) -> Result<Status> {
         self.process_op(op, 0)
     }
 
-    fn process_op(&mut self, op: Effect, depth: u32) -> Result<Status> {
+    fn process_op(&mut self, state: &mut S, op: Effect, depth: u32) -> Result<Status> {
+        let default = if depth > 0 {
+            Status::Continue
+        } else {
+            Status::LoadInst
+        };
         match op {
             Effect::Seq { mut args } => {
                 for _ in 0..args.len() {
-                    match self.process_op(args.pop().unwrap(), depth + 1)? {
+                    match self.process_op(args.pop().unwrap(), state, depth + 1)? {
                         Status::Continue => continue,
                         Status::UnconstrainedBranch {
                             branch,
@@ -38,7 +35,7 @@ pub trait Process: ConvertRzILToSymExp + Solver + MemoryWrite {
             Effect::Nop => (),
             Effect::Empty => (),
             Effect::Set { var } => {
-                self.convert_set(var.clone())?;
+                state.convert_set(var.clone())?;
             }
             Effect::Jmp { dst } => {
                 if dst.is_concretized() {
@@ -64,20 +61,25 @@ pub trait Process: ConvertRzILToSymExp + Solver + MemoryWrite {
             } => {
                 if condition.is_concretized() {
                     let next_op = if condition.evaluate_bool() {
-                        then
+                        *then
                     } else {
-                        otherwise
+                        *otherwise
                     };
-                    self.process_op(next_op, depth + 1)?;
+                    match self.process_op(next_op, depth + 1)? {
+                        Status::Continue => Ok(default),
+                        other => return Ok(other),
+                    }
+                } else {
+                    Status::UnconstrainedBranch {
+                        branch: op,
+                        following: Vec::new(),
+                    }
                 }
-                return;
             }
-            Effect::Store { key, value } => self.store(key.clone(), value.clone())?,
-        }
-        if depth > 0 {
-            Ok(Status::Continue)
-        } else {
-            Ok(Status::LoadInst)
+            Effect::Store { key, value } => {
+                state.store(key.clone(), value.clone())?;
+                Ok(default)
+            }
         }
     }
 }

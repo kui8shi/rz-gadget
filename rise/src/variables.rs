@@ -46,31 +46,45 @@ impl VarId {
 }
 
 #[derive(Clone, Debug)]
-pub struct Variables {
+pub struct VarStorage {
     scopes: HashMap<String, Scope>,
     latest_var_ids: HashMap<String, VarId>,
     vars: HashMap<VarId, PureRef>,
     reg_specs: HashMap<String, RegSpec>,
 }
 
-impl Variables {
+impl VarStorage {
     pub fn new() -> Self {
-        Variables {
+        VarStorage {
             scopes: HashMap::new(),
             latest_var_ids: HashMap::new(),
             vars: HashMap::new(),
             reg_specs: HashMap::new(),
         }
     }
+}
 
-    pub fn clear(&mut self) {
+pub trait Variables {
+    fn clear(&mut self);
+    fn clear_local(&mut self);
+    fn get_scope(&self, name: &str) -> Option<Scope>;
+    fn get_uniq_id(&self, name: &str) -> VarId;
+    fn get_var(&self, name: &str) -> Option<PureRef>;
+    fn set_var(&mut self, var: PureRef) -> Result<()>;
+    fn remove_var(&mut self, name: &str) -> Option<PureRef>;
+    fn add_register(&mut self, reg: &RegSpec);
+    fn get_reg_spec(&self, name: &str) -> Option<RegSpec>;
+}
+
+impl Variables for VarStorage {
+    fn clear(&mut self) {
         self.scopes.clear();
         self.latest_var_ids.clear();
         self.vars.clear();
         self.reg_specs.clear();
     }
 
-    pub fn partial_clear(&mut self) {
+    fn clear_local(&mut self) {
         // clear vars with a local or smaller scope
         self.scopes.retain(|_, v| *v == Scope::Global);
         // sync with scopes
@@ -81,11 +95,11 @@ impl Variables {
             .retain(|k, _| self.latest_var_ids.contains_key(k.get_name()));
     }
 
-    pub fn get_scope(&self, name: &str) -> Option<Scope> {
+    fn get_scope(&self, name: &str) -> Option<Scope> {
         self.scopes.get(name).copied()
     }
 
-    pub fn get_uniq_id(&self, name: &str) -> VarId {
+    fn get_uniq_id(&self, name: &str) -> VarId {
         if let Some(latest) = self.latest_var_ids.get(name) {
             let mut tmp = VarId::new(name);
             tmp.set_count(latest.get_count() + 1);
@@ -95,17 +109,17 @@ impl Variables {
         }
     }
 
-    pub fn get_reg_spec(&self, name: &str) -> Option<&RegSpec> {
-        self.reg_specs.get(name)
+    fn get_reg_spec(&self, name: &str) -> Option<RegSpec> {
+        self.reg_specs.get(name).clone()
     }
 
-    pub fn get_var(&self, name: &str) -> Option<PureRef> {
+    fn get_var(&self, name: &str) -> Option<PureRef> {
         self.latest_var_ids
             .get(name)
             .and_then(|id| self.vars.get(id).cloned())
     }
 
-    pub fn set_var(&mut self, var: PureRef) -> Result<()> {
+    fn set_var(&mut self, var: PureRef) -> Result<()> {
         let (scope, id) = var.expect_var()?;
         let name = id.get_name();
         if let Some(old_scope) = self.scopes.insert(name.to_string(), scope) {
@@ -128,7 +142,7 @@ impl Variables {
         Ok(())
     }
 
-    pub fn add_register(&mut self, reg: &RegSpec) {
+    fn add_register(&mut self, reg: &RegSpec) {
         self.scopes
             .insert(reg.get_name().to_string(), Scope::Global);
         self.reg_specs
@@ -144,7 +158,7 @@ impl Variables {
 
 #[cfg(test)]
 mod test {
-    use super::{VarId, Variables};
+    use super::{VarId, VarStorage};
     use crate::rzil::{
         ast::{Scope, Sort},
         builder::{RzILBuilder, RzILCache},
@@ -154,7 +168,7 @@ mod test {
     #[test]
     fn set_var() {
         let builder = RzILCache::new();
-        let mut vars = Variables::new();
+        let mut vars = VarStorage::new();
         assert_eq!(vars.get_var("a"), None); // no variables set
         let var = builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a"));
         vars.set_var(var.clone()).unwrap();
@@ -176,7 +190,7 @@ mod test {
     #[test]
     fn clear() {
         let builder = RzILCache::new();
-        let mut vars = Variables::new();
+        let mut vars = VarStorage::new();
         let false_ = builder.new_const(Sort::Bool, 0);
         vars.set_var(builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a")))
             .unwrap();
@@ -207,7 +221,7 @@ mod test {
     #[test]
     fn var_id_count() {
         let builder = RzILCache::new();
-        let mut vars = Variables::new();
+        let mut vars = VarStorage::new();
 
         vars.set_var(builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a")))
             .unwrap();

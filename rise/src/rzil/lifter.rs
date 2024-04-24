@@ -77,7 +77,7 @@ impl BranchSetToSetIte {
     fn add_entry(
         &mut self,
         rzil: &impl RzILBuilder,
-        vars: &mut Variables,
+        vars: &mut dyn Variables,
         name: &str,
         src: PureRef,
     ) -> Result<()> {
@@ -130,7 +130,7 @@ impl BranchSetToSetIte {
         Ok(())
     }
 
-    fn drain(&mut self, rzil: &impl RzILBuilder, vars: &mut Variables) -> Result<Vec<Effect>> {
+    fn drain(&mut self, rzil: &impl RzILBuilder, vars: &mut dyn Variables) -> Result<Vec<Effect>> {
         let entries: Vec<(String, SetInBranchEntry)> = self.entries.drain().collect();
         let mut set_ite_ops = Vec::new();
         self.clear();
@@ -178,7 +178,7 @@ impl RzILLifter {
     fn parse_pure(
         &mut self,
         rzil: &impl RzILBuilder,
-        vars: &mut Variables,
+        vars: &mut dyn Variables,
         op: &RzILInfo,
     ) -> Result<PureRef> {
         match op {
@@ -487,7 +487,7 @@ impl RzILLifter {
     pub fn parse_effect(
         &mut self,
         rzil: &impl RzILBuilder,
-        vars: &mut Variables,
+        vars: &mut dyn Variables,
         op: &RzILInfo,
     ) -> Result<Effect> {
         match op {
@@ -587,7 +587,7 @@ impl RzILLifter {
     fn parse_seq_arg(
         &mut self,
         rzil: &impl RzILBuilder,
-        vars: &mut Variables,
+        vars: &mut dyn Variables,
         seq_arg: &RzILInfo,
         vec: &mut Vec<Effect>,
     ) -> Result<()> {
@@ -625,7 +625,7 @@ mod test {
     use crate::{
         registers::bind_registers,
         rzil::{ast::Effect, builder::RzILCache},
-        variables::Variables,
+        variables::VarStorage,
     };
 
     fn read_rzil_info(path: &str) -> RzILInfo {
@@ -637,7 +637,7 @@ mod test {
         let rzil = RzILCache::new();
         let mut lifter = RzILLifter::new();
         let mut rzapi = RzApi::new(Some("test/dummy")).unwrap();
-        let mut vars = Variables::new();
+        let mut vars = VarStorage::new();
         bind_registers(&mut rzapi, &mut vars, &rzil).unwrap();
         let mut ret = Vec::new();
         for t in target {
