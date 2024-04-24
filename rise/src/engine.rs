@@ -1,17 +1,14 @@
-use crate::state::process::Process;
-use crate::state::solver::Z3Solver;
-use crate::state::{State, State, Status};
 use crate::error::Result;
 use crate::explorer::PathExplorer;
 use crate::registers;
-use crate::rzil::ast::Sort;
-use crate::rzil::builder::RzILBuilder;
 use crate::rzil::{ast::Effect, builder::RzILCache, lifter::RzILLifter};
+use crate::state::process::Process;
+use crate::state::solver::Z3Solver;
+use crate::state::{State, Status};
 use crate::variables::Variables;
 use rzapi::api::RzApi;
 use rzapi::structs::FlagInfo;
 use std::collections::HashMap;
-use std::rc::Rc;
 pub struct Rise {
     api: RzApi,
     explorer: PathExplorer,
@@ -87,55 +84,17 @@ impl Rise {
 
     pub fn run(&mut self, mode: Mode) -> Result<Status> {
         let mut ctx = self.explorer.pop_ctx()?;
-        let pc = ctx.get_pc();
-        match mode {
-            Mode::Step => {
-                let ops = self.read_insts(pc, 1)?;
-                ctx.process(ops)?;
-            }
-            Mode::Block => {
-                let n = self.num_insts_in_current_block()?;
-                let ops = self.read_insts(pc, n)?;
-                ctx.process(ops)?;
-            }
-            Mode::Explore => {
-                while self.is_stopped() {
-                    self.run(Mode::Block)?;
-                }
-            }
+        while let Status::LoadInst = ctx.get_status() {
+            let pc = ctx.get_pc();
+            let ops = self.read_insts(pc, 1)?;
+            ctx.process(ops)?;
         }
-        let status = {
-            // optional operations
-            let next_pc = match ctx.get_status() {
-                Status::Jump(addr) => addr,
-                Status::Goto(label) => {
-                    let addr = self.flags.get(&label).unwrap().offset;
-                    self.builder.new_const(Sort::Bitv(64), addr)
-                }
-                Status::Branch(c, t, o) => {
-                    //let path = self.explorer.branch(c, t, o);
-                    //match path ... if terminated then break else take either branch op
-                    if c.is_concretized() {
-                        if c.evaluate_bool() {
-                            t
-                        } else {
-                            o
-                        }
-                    }
-                }
-                Status::Continue => {
-                    self.api.seek()
-                    ctx.set_pc()
-                }
-                Status::Terminated => (),
-            }
-            ctx.get_status()
-        };
+        let status = ctx.get_status();
         self.explorer.push_ctx(ctx);
         Ok(status)
     }
 
-    fn read_insts(&mut self, pc: u64, n: u64) -> Result<Vec<Rc<Effect>>> {
+    fn read_insts(&mut self, pc: u64, n: u64) -> Result<Vec<Effect>> {
         let mut ops = Vec::new();
         for inst in self.api.get_n_insts(Some(n), Some(pc))? {
             ops.push(

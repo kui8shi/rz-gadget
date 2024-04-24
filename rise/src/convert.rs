@@ -1,12 +1,12 @@
-use crate::state::memory::MemoryRead;
-use crate::state::solver::Z3;
-use crate::state::State;
 use crate::error::{Result, RiseError};
 use crate::rzil::ast::Scope;
 use crate::rzil::{
     ast::{PureCode, PureRef, Sort},
     error::RzILError,
 };
+use crate::state::memory::MemoryRead;
+use crate::state::solver::Z3;
+use crate::state::State;
 use z3::ast::{Ast, Bool, Dynamic, BV};
 
 pub trait ConvertRzILToSymExp {

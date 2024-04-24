@@ -402,14 +402,14 @@ pub enum Effect {
         label: String,
     },
     Seq {
-        args: Vec<Rc<Effect>>,
+        args: Vec<Effect>,
     },
     Blk,
     Repeat,
     Branch {
         condition: PureRef,
-        then: Rc<Effect>,
-        otherwise: Rc<Effect>,
+        then: Box<Effect>,
+        otherwise: Box<Effect>,
     },
     Store {
         key: PureRef,

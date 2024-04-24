@@ -9,30 +9,22 @@ use memory::Memory;
 use solver::Z3Solver;
 
 use rzapi::structs::Endian;
-use std::rc::Rc;
 
-use self::process::Process;
 #[derive(Clone, Debug)]
 pub enum Status {
     Continue,
-    Jump(PureRef),
-    Goto(String),
-    Branch(PureRef, Rc<Effect>, Rc<Effect>),
+    LoadInst,
+    UnconstrainedJump {
+        addr: PureRef,
+    },
+    UnconstrainedBranch {
+        branch: Effect,
+        following: Vec<Effect>,
+    },
+    Goto {
+        label: String,
+    },
     Terminated,
-}
-
-impl State {
-    fn get_pc(&self) -> u64 {
-        self.pc
-    }
-    fn set_pc(&mut self, pc: u64) -> u64 {
-        let old_pc = self.pc;
-        self.pc = pc;
-        old_pc
-    }
-    fn get_status(&self) -> Status {
-        self.status.clone()
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -51,7 +43,21 @@ impl State {
             memory: Memory::new(Endian::Little),
             solver,
             rzil,
-            status: Status::Continue,
+            status: Status::LoadInst,
         }
+    }
+}
+
+impl State {
+    pub fn get_pc(&self) -> u64 {
+        self.pc
+    }
+    pub fn set_pc(&mut self, pc: u64) -> u64 {
+        let old_pc = self.pc;
+        self.pc = pc;
+        old_pc
+    }
+    pub fn get_status(&self) -> Status {
+        self.status.clone()
     }
 }

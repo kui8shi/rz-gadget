@@ -278,11 +278,11 @@ mod test {
 
     use super::{Solver, Z3Solver};
     use crate::{
-        state::State,
         rzil::{
             ast::Sort,
             builder::{RzILBuilder, RzILCache},
         },
+        state::State,
         variables::VarId,
     };
 

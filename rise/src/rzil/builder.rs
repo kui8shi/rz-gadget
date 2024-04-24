@@ -4,7 +4,7 @@ use super::{
 };
 use crate::variables::{VarId, Variables};
 use quick_cache::sync::Cache;
-use std::{ops::Add, rc::Rc};
+use std::rc::Rc;
 
 pub trait RzILBuilder {
     // ======== required methods ========
@@ -711,23 +711,23 @@ pub trait RzILBuilder {
     }
 
     // Effect
-    fn new_effect(&self, effect: Effect) -> Rc<Effect> {
-        Rc::new(effect)
+    fn new_effect(&self, effect: Effect) -> Effect {
+        effect
     }
 
-    fn new_nop(&self) -> Rc<Effect> {
+    fn new_nop(&self) -> Effect {
         self.new_effect(Effect::Nop)
     }
 
-    fn new_seq(&self, args: Vec<Rc<Effect>>) -> Rc<Effect> {
+    fn new_seq(&self, args: Vec<Effect>) -> Effect {
         self.new_effect(Effect::Seq { args })
     }
-    fn new_jmp(&self, dst: PureRef) -> Result<Rc<Effect>> {
+    fn new_jmp(&self, dst: PureRef) -> Result<Effect> {
         dst.expect_bitv()?;
         Ok(self.new_effect(Effect::Jmp { dst }))
     }
 
-    fn new_set(&self, vars: &mut Variables, name: &str, src: PureRef) -> Result<Rc<Effect>> {
+    fn new_set(&self, vars: &mut Variables, name: &str, src: PureRef) -> Result<Effect> {
         let dst = match vars.get_scope(name) {
             Some(Scope::Let) => {
                 // let var is immutable
@@ -764,12 +764,7 @@ pub trait RzILBuilder {
         Ok(self.new_effect(Effect::Set { var: dst }))
     }
 
-    fn new_branch(
-        &self,
-        condition: PureRef,
-        then: Rc<Effect>,
-        otherwise: Rc<Effect>,
-    ) -> Result<Rc<Effect>> {
+    fn new_branch(&self, condition: PureRef, then: Effect, otherwise: Effect) -> Result<Effect> {
         condition.expect_bool()?;
         if condition.is_concretized() {
             if condition.evaluate_bool() {
@@ -780,13 +775,13 @@ pub trait RzILBuilder {
         } else {
             Ok(self.new_effect(Effect::Branch {
                 condition,
-                then,
-                otherwise,
+                then: Box::new(then),
+                otherwise: Box::new(otherwise),
             }))
         }
     }
 
-    fn new_store(&self, key: PureRef, value: PureRef) -> Result<Rc<Effect>> {
+    fn new_store(&self, key: PureRef, value: PureRef) -> Result<Effect> {
         key.expect_bitv()?;
         value.expect_bitv()?;
         Ok(self.new_effect(Effect::Store { key, value }))

@@ -1,5 +1,5 @@
-use crate::state::{State, State};
 use crate::error::{Result, RiseError};
+use crate::state::State;
 
 pub struct PathExplorer {
     ctx_pool: Vec<State>,

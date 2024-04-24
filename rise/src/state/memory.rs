@@ -265,11 +265,11 @@ impl MemoryRead for State {
 #[cfg(test)]
 mod test {
     use crate::{
-        state::solver::Z3Solver,
         rzil::{
             ast::Sort,
             builder::{RzILBuilder, RzILCache},
         },
+        state::solver::Z3Solver,
         variables::VarId,
     };
 

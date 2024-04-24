@@ -6,7 +6,7 @@ use super::{
 use crate::variables::Variables;
 use bitflags::bitflags;
 use rzapi::structs::RzILInfo;
-use std::{collections::HashMap, rc::Rc};
+use std::collections::HashMap;
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -130,7 +130,7 @@ impl BranchSetToSetIte {
         Ok(())
     }
 
-    fn drain(&mut self, rzil: &impl RzILBuilder, vars: &mut Variables) -> Result<Vec<Rc<Effect>>> {
+    fn drain(&mut self, rzil: &impl RzILBuilder, vars: &mut Variables) -> Result<Vec<Effect>> {
         let entries: Vec<(String, SetInBranchEntry)> = self.entries.drain().collect();
         let mut set_ite_ops = Vec::new();
         self.clear();
@@ -489,7 +489,7 @@ impl RzILLifter {
         rzil: &impl RzILBuilder,
         vars: &mut Variables,
         op: &RzILInfo,
-    ) -> Result<Rc<Effect>> {
+    ) -> Result<Effect> {
         match op {
             RzILInfo::Nop => Ok(rzil.new_nop()),
             RzILInfo::Set { dst, src } => {
@@ -589,7 +589,7 @@ impl RzILLifter {
         rzil: &impl RzILBuilder,
         vars: &mut Variables,
         seq_arg: &RzILInfo,
-        vec: &mut Vec<Rc<Effect>>,
+        vec: &mut Vec<Effect>,
     ) -> Result<()> {
         match seq_arg {
             RzILInfo::Seq { x, y } => {
@@ -617,7 +617,7 @@ impl RzILLifter {
 
 #[cfg(test)]
 mod test {
-    use std::{fs, rc::Rc};
+    use std::fs;
 
     use rzapi::{api::RzApi, structs::RzILInfo};
 
@@ -633,7 +633,7 @@ mod test {
         serde_json::from_reader(file).expect("invalid json file")
     }
 
-    fn parse_ops(target: Vec<&str>) -> Vec<Rc<Effect>> {
+    fn parse_ops(target: Vec<&str>) -> Vec<Effect> {
         let rzil = RzILCache::new();
         let mut lifter = RzILLifter::new();
         let mut rzapi = RzApi::new(Some("test/dummy")).unwrap();
@@ -649,7 +649,7 @@ mod test {
         ret
     }
 
-    fn parse_op(target: &str) -> Rc<Effect> {
+    fn parse_op(target: &str) -> Effect {
         parse_ops(vec![target]).pop().unwrap()
     }
 

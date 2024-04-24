@@ -1,4 +1,3 @@
-mod state;
 mod convert;
 mod engine;
 mod error;
@@ -6,6 +5,7 @@ mod explorer;
 mod map;
 mod registers;
 mod rzil;
+mod state;
 mod variables;
 
 use error::Result;
