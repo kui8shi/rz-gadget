@@ -1,16 +1,15 @@
 use crate::error::Result;
 use crate::explorer::{PathExplorer, StatePool};
 use crate::registers;
-use crate::rzil::{ast::Effect, builder::RzILCache, lifter::RzILLifter};
+use crate::rzil::{builder::RzILCache, lifter::RzILLifter, Effect};
 use crate::state::process::Process;
-use crate::state::solver::Z3Solver;
-use crate::state::{State_Z3Backend, Status};
+use crate::state::{State, Status};
 use crate::variables::VarStorage;
 use rzapi::api::RzApi;
 use rzapi::structs::FlagInfo;
 use std::collections::HashMap;
 pub struct Rise<S> {
-    api: RzApi,
+    pub api: RzApi,
     explorer: StatePool<S>,
     lifter: RzILLifter,
     builder: RzILCache,
@@ -50,7 +49,7 @@ pub enum Mode {
     Explore,
 }
 
-impl<S> Rise<S> {
+impl<S: State> Rise<S> {
     /*
      * Panics if stream has not loaded any sources yet.
      */
@@ -66,8 +65,7 @@ impl<S> Rise<S> {
         for flag in flaginfo {
             flags.insert(flag.name.clone(), flag);
         }
-        let solver = Z3Solver::new();
-        let ctx = State_Z3Backend::new(solver, builder.clone());
+        let ctx = State::new(builder.clone());
         let mut explorer = StatePool::new();
         explorer.push_ctx(ctx);
 
@@ -83,15 +81,19 @@ impl<S> Rise<S> {
     }
 
     pub fn run(&mut self, mode: Mode) -> Result<Status> {
-        let mut ctx = self.explorer.pop_ctx()?;
-        while let Status::LoadInst = ctx.get_status() {
-            let pc = ctx.get_pc();
-            let ops = self.read_insts(pc, 1)?;
-            ctx.process(ops)?;
+        let mut state = self.explorer.pop_ctx()?;
+        while let Status::LoadInst = state.get_status() {
+            let pc = state.get_pc();
+            let op = self.read_inst(pc)?;
+            self.process(&mut state, op)?;
         }
-        let status = ctx.get_status();
-        self.explorer.push_ctx(ctx);
+        let status = state.get_status();
+        self.explorer.push_ctx(state);
         Ok(status)
+    }
+
+    fn read_inst(&mut self, pc: u64) -> Result<Effect> {
+        self.read_insts(pc, 1).map(|mut v| v.pop().unwrap())
     }
 
     fn read_insts(&mut self, pc: u64, n: u64) -> Result<Vec<Effect>> {
@@ -131,11 +133,13 @@ impl<S> Rise<S> {
 
 #[cfg(test)]
 mod test {
+    use crate::state::StateZ3Backend;
+
     use super::{Mode, Rise};
 
     #[test]
     fn new() {
-        let mut rise = Rise::new(Some("test/dummy")).unwrap();
+        let mut rise = Rise::<StateZ3Backend>::new(Some("test/dummy")).unwrap();
         dbg!(rise.run(Mode::Step));
     }
 }

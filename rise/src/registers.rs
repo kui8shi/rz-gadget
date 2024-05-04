@@ -1,7 +1,7 @@
 use crate::error::{Result, RiseError};
 use crate::map::interval_map::IntervalMap;
-use crate::rzil::ast::Sort;
 use crate::rzil::builder::RzILBuilder;
+use crate::rzil::Sort;
 use crate::variables::Variables;
 use rzapi::structs::RegisterInfo;
 use rzapi::{api::RzApi, structs::RegisterType};

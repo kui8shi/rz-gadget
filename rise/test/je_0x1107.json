@@ -1,0 +1,18 @@
+{
+  "opcode": "branch",
+  "condition": {
+    "opcode": "var",
+    "value": "zf"
+  },
+  "true_eff": {
+    "opcode": "jmp",
+    "dst": {
+      "opcode": "bitv",
+      "bits": "0x1107",
+      "len": 64
+    }
+  },
+  "false_eff": {
+    "opcode": "nop"
+  }
+}

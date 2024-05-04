@@ -1,9 +1,9 @@
 pub(crate) mod memory;
 pub(crate) mod process;
 pub(crate) mod solver;
-use crate::rzil::{
-    ast::{Effect, PureRef},
-    builder::{RzILBuilder, RzILCache},
+use crate::{
+    convert::ConvertRzILToSymExp,
+    rzil::{builder::RzILCache, Effect, PureRef},
 };
 use memory::Memory;
 use solver::Z3Solver;
@@ -30,7 +30,7 @@ pub enum Status {
 }
 
 #[derive(Clone, Debug)]
-pub struct State_Z3Backend {
+pub struct StateZ3Backend {
     pc: u64,
     memory: Memory,
     solver: Z3Solver,
@@ -38,32 +38,24 @@ pub struct State_Z3Backend {
     status: Status,
 }
 
-impl State_Z3Backend {
-    pub fn new(solver: Z3Solver, rzil: RzILCache) -> Self {
-        State_Z3Backend {
+pub trait State: MemoryOps + Solver + ConvertRzILToSymExp {
+    fn new(rzil: RzILCache) -> Self;
+    fn get_pc(&self) -> u64;
+    fn set_pc(&mut self, pc: u64) -> u64;
+    fn get_status(&self) -> Status;
+}
+
+impl State for StateZ3Backend {
+    fn new(rzil: RzILCache) -> Self {
+        StateZ3Backend {
             pc: 0,
             memory: Memory::new(Endian::Little),
-            solver,
+            solver: Z3Solver::new(),
             rzil,
             status: Status::LoadInst,
         }
     }
-}
 
-pub trait State: MemoryOps + Solver + RzILBuilder {
-    fn get_pc(&self) -> u64 {
-        self.pc
-    }
-    fn set_pc(&mut self, pc: u64) -> u64 {
-        let old_pc = self.pc;
-        self.pc = pc;
-        old_pc
-    }
-    fn get_status(&self) -> Status {
-        self.status.clone()
-    }
-}
-impl State for State_Z3Backend {
     fn get_pc(&self) -> u64 {
         self.pc
     }

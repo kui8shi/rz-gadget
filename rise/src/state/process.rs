@@ -1,13 +1,12 @@
-use super::{memory::MemoryOps, solver::Solver, Status};
-use super::{State, State_Z3Backend};
-use crate::convert::ConvertRzILToSymExp;
+use crate::engine::Rise;
 use crate::error::Result;
-use crate::explorer::PathExplorer;
-use crate::rzil::{ast::Effect, error::RzILError};
+use crate::rzil::{error::RzILError, Effect};
+use crate::state::{State, Status};
 
-pub trait Process<S: State>: PathExplorer<S> {
+impl<S: State> Process<S> for Rise<S> {}
+pub trait Process<S: State> {
     fn process(&mut self, state: &mut S, op: Effect) -> Result<Status> {
-        self.process_op(op, 0)
+        self.process_op(state, op, 0)
     }
 
     fn process_op(&mut self, state: &mut S, op: Effect, depth: u32) -> Result<Status> {
@@ -19,7 +18,7 @@ pub trait Process<S: State>: PathExplorer<S> {
         match op {
             Effect::Seq { mut args } => {
                 for _ in 0..args.len() {
-                    match self.process_op(args.pop().unwrap(), state, depth + 1)? {
+                    match self.process_op(state, args.pop().unwrap(), depth + 1)? {
                         Status::Continue => continue,
                         Status::UnconstrainedBranch {
                             branch,
@@ -31,29 +30,26 @@ pub trait Process<S: State>: PathExplorer<S> {
                         other => return Ok(other),
                     }
                 }
+                Ok(default)
             }
-            Effect::Nop => (),
-            Effect::Empty => (),
+            Effect::Nop | Effect::Empty => Ok(default),
             Effect::Set { var } => {
                 state.convert_set(var.clone())?;
+                Ok(default)
             }
             Effect::Jmp { dst } => {
                 if dst.is_concretized() {
-                    self.seek(dst.evaluate());
-                    return Ok(Status::LoadInst);
+                    state.set_pc(dst.evaluate());
+                    Ok(Status::LoadInst)
                 } else {
-                    return Ok(Status::UnconstrainedJump { addr: dst.clone() });
+                    Ok(Status::UnconstrainedJump { addr: dst.clone() })
                 }
             }
-            Effect::Goto { label } => {
-                return Ok(Status::Goto {
-                    label: label.clone(),
-                })
-            }
-            Effect::Blk => return Err(RzILError::UnimplementedRzILEffect("Blk".to_string()).into()),
-            Effect::Repeat => {
-                return Err(RzILError::UnimplementedRzILEffect("Repeat".to_string()).into())
-            }
+            Effect::Goto { label } => Ok(Status::Goto {
+                label: label.clone(),
+            }),
+            Effect::Blk => Err(RzILError::UnimplementedRzILEffect("Blk".to_string()).into()),
+            Effect::Repeat => Err(RzILError::UnimplementedRzILEffect("Repeat".to_string()).into()),
             Effect::Branch {
                 condition,
                 then,
@@ -65,15 +61,18 @@ pub trait Process<S: State>: PathExplorer<S> {
                     } else {
                         *otherwise
                     };
-                    match self.process_op(next_op, depth + 1)? {
+                    match self.process_op(state, next_op, depth + 1)? {
                         Status::Continue => Ok(default),
-                        other => return Ok(other),
+                        other => Ok(other),
                     }
                 } else {
+                    /*
                     Status::UnconstrainedBranch {
                         branch: op,
                         following: Vec::new(),
                     }
+                    */
+                    Ok(default)
                 }
             }
             Effect::Store { key, value } => {

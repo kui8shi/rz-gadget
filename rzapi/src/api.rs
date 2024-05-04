@@ -1,5 +1,5 @@
-use rzpipe::open_pipe;
 use rzpipe::rzpipe::RzPipe;
+use rzpipe::{open_pipe, RzPipeSpawnOptions};
 //use rzpipe::RzPipeSpawnOptions;
 use serde_json;
 use std::collections::HashMap;
@@ -69,12 +69,7 @@ impl RzApi {
         }
 
         // This means that path is `Some` or we have an open session.
-        let pipe = match open_pipe!(path.as_ref()) {
-            Ok(p) => p,
-            Err(_) => {
-                return Err(rzpipe::RzInitError::PathNotResolvableError.into());
-            }
-        };
+        let pipe = RzPipe::spawn(path.unwrap(), None)?;
 
         let mut rzapi = RzApi {
             rzp: Arc::new(Mutex::new(pipe)),

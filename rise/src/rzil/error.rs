@@ -1,4 +1,4 @@
-use super::ast::{PureCode, Scope, Sort};
+use super::{PureCode, Scope, Sort};
 use std::num::ParseIntError;
 
 pub type Result<T> = std::result::Result<T, RzILError>;
@@ -44,6 +44,6 @@ pub enum RzILError {
     #[error("Currently Unable to handle Set operations with a duplicate target in a Branch.")]
     DoubleSetInBranch,
 
-    #[error("No return value.")]
-    None,
+    #[error("Currently Unable to handle operations other than Nop, Jmp, or Goto in a Branch.")]
+    InvalidBranch,
 }

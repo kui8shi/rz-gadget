@@ -1,7 +1,7 @@
 use super::{
-    ast::{Effect, PureCode, PureRef, Scope, Sort},
     builder::RzILBuilder,
     error::{Result, RzILError},
+    Effect, PureCode, PureRef, Scope, Sort,
 };
 use crate::variables::Variables;
 use bitflags::bitflags;
@@ -18,7 +18,7 @@ bitflags! {
 }
 
 #[derive(Clone, Debug)]
-struct SetInBranchEntry {
+struct SetInBranch {
     condition: PureRef,
     then: Option<PureRef>,
     otherwise: Option<PureRef>,
@@ -29,7 +29,7 @@ struct SetInBranchEntry {
 struct BranchSetToSetIte {
     conditions: Vec<PureRef>,
     taken: Vec<bool>,
-    entries: HashMap<String, SetInBranchEntry>,
+    entries: HashMap<String, SetInBranch>,
 }
 
 impl BranchSetToSetIte {
@@ -118,7 +118,7 @@ impl BranchSetToSetIte {
                 }
                 self.entries.insert(
                     name.to_string(),
-                    SetInBranchEntry {
+                    SetInBranch {
                         condition,
                         then,
                         otherwise,
@@ -131,7 +131,7 @@ impl BranchSetToSetIte {
     }
 
     fn drain(&mut self, rzil: &impl RzILBuilder, vars: &mut dyn Variables) -> Result<Vec<Effect>> {
-        let entries: Vec<(String, SetInBranchEntry)> = self.entries.drain().collect();
+        let entries: Vec<(String, SetInBranch)> = self.entries.drain().collect();
         let mut set_ite_ops = Vec::new();
         self.clear();
         for (name, e) in entries {
@@ -139,8 +139,9 @@ impl BranchSetToSetIte {
             let then = e.then.clone().unwrap_or(e.default.clone());
             let otherwise = e.otherwise.clone().unwrap_or(e.default.clone());
             let ite = rzil.new_ite(condition, then, otherwise)?;
-            let set_op = rzil.new_set(vars, &name, ite)?;
-            set_ite_ops.push(set_op);
+            if let Some(set_op) = rzil.new_set(vars, &name, ite)? {
+                set_ite_ops.push(set_op);
+            }
         }
         Ok(set_ite_ops)
     }
@@ -490,24 +491,34 @@ impl RzILLifter {
         vars: &mut dyn Variables,
         op: &RzILInfo,
     ) -> Result<Effect> {
-        match op {
-            RzILInfo::Nop => Ok(rzil.new_nop()),
+        Ok(self.parse_effect_optional(rzil, vars, op)?.unwrap())
+    }
+
+    fn parse_effect_optional(
+        &mut self,
+        rzil: &impl RzILBuilder,
+        vars: &mut dyn Variables,
+        op: &RzILInfo,
+    ) -> Result<Option<Effect>> {
+        let effect = match op {
+            RzILInfo::Nop => Some(rzil.new_nop()),
             RzILInfo::Set { dst, src } => {
                 let name = dst;
                 let src = self.parse_pure(rzil, vars, src)?;
                 if self.bs_to_si.inside_branch() {
                     self.bs_to_si.add_entry(rzil, vars, name, src)?;
-                    return Err(RzILError::None);
+                    None
+                } else {
+                    rzil.new_set(vars, name, src)?
                 }
-                rzil.new_set(vars, name, src)
             }
 
             RzILInfo::Jmp { dst } => {
                 let dst = self.parse_pure(rzil, vars, dst)?;
-                rzil.new_jmp(dst)
+                Some(rzil.new_jmp(dst)?)
             }
 
-            RzILInfo::Goto { label } => Ok(rzil.new_effect(Effect::Goto {
+            RzILInfo::Goto { label } => Some(rzil.new_effect(Effect::Goto {
                 label: label.to_owned(),
             })),
             RzILInfo::Seq { x, y } => {
@@ -515,11 +526,12 @@ impl RzILLifter {
                 self.parse_seq_arg(rzil, vars, x, &mut args)?;
                 self.parse_seq_arg(rzil, vars, y, &mut args)?;
                 if args.is_empty() {
-                    return Ok(rzil.new_nop());
+                    Some(rzil.new_nop())
                 } else if args.len() == 1 {
-                    return Ok(args.pop().unwrap());
+                    Some(args.pop().unwrap())
+                } else {
+                    Some(rzil.new_effect(Effect::Seq { args }))
                 }
-                Ok(rzil.new_effect(Effect::Seq { args }))
             }
             RzILInfo::Branch {
                 condition,
@@ -532,11 +544,13 @@ impl RzILLifter {
                 self.bs_to_si.begin(condition.clone());
 
                 // Then
-                let then = self.parse_effect(rzil, vars, true_eff)?;
+                let then = self.parse_effect_optional(rzil, vars, true_eff)?;
+                dbg!(&then);
 
                 // Otherwise
                 self.bs_to_si.otherwise();
-                let otherwise = self.parse_effect(rzil, vars, false_eff)?;
+                let otherwise = self.parse_effect_optional(rzil, vars, false_eff)?;
+                dbg!(&otherwise);
 
                 self.bs_to_si.end();
                 // ==== Branch End ====
@@ -547,41 +561,53 @@ impl RzILLifter {
                     // in case of nested branches
                     Vec::new()
                 };
-                let need_branch = !then.is_nop() || !otherwise.is_nop();
+                let need_branch = then.is_some() || !otherwise.is_some();
                 if need_branch {
+                    let expect_control = |optional_effect: Option<Effect>| {
+                        if let Some(op) = optional_effect {
+                            if !matches!(
+                                op,
+                                Effect::Nop | Effect::Jmp { dst: _ } | Effect::Goto { label: _ }
+                            ) {
+                                Err(RzILError::DoubleSetInBranch)
+                            } else {
+                                Ok(op)
+                            }
+                        } else {
+                            Ok(rzil.new_nop())
+                        }
+                    };
+                    let then = expect_control(then)?;
+                    let otherwise = expect_control(otherwise)?;
                     // if all child ops are opt-outed, we don't need a branch op
                     args.push(rzil.new_branch(condition, then, otherwise)?);
                 }
                 if args.is_empty() {
-                    Ok(rzil.new_nop())
+                    Some(rzil.new_nop())
                 } else if args.len() == 1 {
-                    Ok(args.pop().unwrap())
+                    Some(args.pop().unwrap())
                 } else {
-                    Ok(rzil.new_seq(args))
+                    Some(rzil.new_seq(args))
                 }
             }
-            RzILInfo::Store { mem: _, key, value } => {
+            RzILInfo::Store { mem: _, key, value } | RzILInfo::Storew { mem: _, key, value } => {
                 let key = self.parse_pure(rzil, vars, key)?;
                 let value = self.parse_pure(rzil, vars, value)?;
-                rzil.new_store(key, value)
-            }
-            RzILInfo::Storew { mem: _, key, value } => {
-                let key = self.parse_pure(rzil, vars, key)?;
-                let value = self.parse_pure(rzil, vars, value)?;
-                rzil.new_store(key, value)
+                Some(rzil.new_store(key, value)?)
             }
             RzILInfo::Blk {
                 label: _,
                 data: _,
                 ctrl: _,
-            } => Err(RzILError::UnimplementedRzILEffect("Blk".to_string())),
+            } => return Err(RzILError::UnimplementedRzILEffect("Blk".to_string())),
             RzILInfo::Repeat {
                 condition: _,
                 data_eff: _,
-            } => Err(RzILError::UnimplementedRzILEffect("Repeat".to_string())), //Ok(rzil.nop()), //
-            RzILInfo::Empty => Err(RzILError::Empty),
-            _ => Err(RzILError::UnkownPure),
-        }
+            } => return Err(RzILError::UnimplementedRzILEffect("Repeat".to_string())),
+            RzILInfo::Empty => return Err(RzILError::Empty),
+            _ => return Err(RzILError::UnkownPure),
+        };
+        Ok(effect)
     }
 
     fn parse_seq_arg(
@@ -598,15 +624,16 @@ impl RzILLifter {
                 self.parse_seq_arg(rzil, vars, y, vec)?;
             }
             _ => {
-                match self.parse_effect(rzil, vars, seq_arg) {
-                    Ok(ret) => match &*ret {
+                match self.parse_effect_optional(rzil, vars, seq_arg) {
+                    Ok(Some(ret)) => match &ret {
                         Effect::Seq { args } => {
                             // later generated Seq
                             vec.extend_from_slice(args);
                         }
+                        Effect::Nop => (),
                         _ => vec.push(ret),
                     },
-                    Err(RzILError::None) => (),
+                    Ok(None) => (),
                     Err(err) => return Err(err),
                 };
             }
@@ -624,8 +651,8 @@ mod test {
     use super::RzILLifter;
     use crate::{
         registers::bind_registers,
-        rzil::{ast::Effect, builder::RzILCache},
-        variables::VarStorage,
+        rzil::{builder::RzILCache, Effect},
+        variables::{VarStorage, Variables},
     };
 
     fn read_rzil_info(path: &str) -> RzILInfo {
@@ -644,7 +671,7 @@ mod test {
             let path = format!("test/{}.json", t);
             let op_info = read_rzil_info(&path);
             ret.push(lifter.parse_effect(&rzil, &mut vars, &op_info).unwrap());
-            vars.partial_clear();
+            vars.clear_local();
         }
         ret
     }
@@ -683,6 +710,22 @@ mod test {
     fn and() {
         dbg!(parse_op("and_rsp_-0xf"));
     }
+
+    #[test]
+    fn je() {
+        dbg!(parse_op("je_0x1107"));
+    }
+
+    #[test]
+    fn branch_set_to_set_ite() {
+        dbg!(parse_op("sub_rsp_0x8"));
+    }
+    /*
+    #[test]
+    fn brach_set_to_set_ite() {
+        dbg!(parse_op("branch_set_to_set_ite"))
+    }
+    */
 
     #[test]
     fn multiple() {

@@ -1,6 +1,6 @@
 use super::{
-    ast::{Effect, Pure, PureCode, PureRef, Scope, Sort},
     error::{Result, RzILError},
+    Effect, Pure, PureCode, PureRef, Scope, Sort,
 };
 use crate::variables::{VarId, Variables};
 use quick_cache::sync::Cache;
@@ -727,7 +727,12 @@ pub trait RzILBuilder {
         Ok(self.new_effect(Effect::Jmp { dst }))
     }
 
-    fn new_set(&self, vars: &mut dyn Variables, name: &str, src: PureRef) -> Result<Effect> {
+    fn new_set(
+        &self,
+        vars: &mut dyn Variables,
+        name: &str,
+        src: PureRef,
+    ) -> Result<Option<Effect>> {
         let dst = match vars.get_scope(name) {
             Some(Scope::Let) => {
                 // let var is immutable
@@ -746,7 +751,7 @@ pub trait RzILBuilder {
                 let var = self.new_var(Scope::Local, vars.get_uniq_id(name), src.clone());
                 if var.is_concretized() {
                     vars.set_var(var)?;
-                    return Err(RzILError::None);
+                    return Ok(None);
                 }
                 var
             }
@@ -755,13 +760,13 @@ pub trait RzILBuilder {
                 let var = self.new_var(Scope::Local, vars.get_uniq_id(name), src.clone());
                 if var.is_concretized() {
                     vars.set_var(var)?;
-                    return Err(RzILError::None);
+                    return Ok(None);
                 }
                 var
             }
         };
         vars.set_var(dst.clone())?;
-        Ok(self.new_effect(Effect::Set { var: dst }))
+        Ok(Some(self.new_effect(Effect::Set { var: dst })))
     }
 
     fn new_branch(&self, condition: PureRef, then: Effect, otherwise: Effect) -> Result<Effect> {
@@ -826,8 +831,8 @@ impl RzILBuilder for RzILCache {
 #[cfg(test)]
 mod test {
     use crate::{
-        rzil::ast::{Scope, Sort},
-        variables::{VarId, VarStorage},
+        rzil::{Scope, Sort},
+        variables::{VarId, VarStorage, Variables},
     };
 
     use super::{RzILBuilder, RzILCache};

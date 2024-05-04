@@ -2,8 +2,8 @@ use crate::{registers::RegSpec, rzil::error::RzILError};
 use std::collections::HashMap;
 
 use crate::rzil::{
-    ast::{PureRef, Scope},
     error::Result,
+    {PureRef, Scope},
 };
 
 #[derive(Eq, PartialEq, Clone, Debug, Hash)]
@@ -110,7 +110,7 @@ impl Variables for VarStorage {
     }
 
     fn get_reg_spec(&self, name: &str) -> Option<RegSpec> {
-        self.reg_specs.get(name).clone()
+        self.reg_specs.get(name).cloned()
     }
 
     fn get_var(&self, name: &str) -> Option<PureRef> {
@@ -158,11 +158,11 @@ impl Variables for VarStorage {
 
 #[cfg(test)]
 mod test {
-    use super::{VarId, VarStorage};
+    use super::{VarId, VarStorage, Variables};
     use crate::rzil::{
-        ast::{Scope, Sort},
         builder::{RzILBuilder, RzILCache},
         error::RzILError,
+        {Scope, Sort},
     };
 
     #[test]
@@ -200,7 +200,7 @@ mod test {
         assert!(vars.get_scope("b").is_some());
         assert!(vars.get_var("a").is_some());
         assert!(vars.get_var("b").is_some());
-        vars.partial_clear();
+        vars.clear_local();
         assert!(vars.get_scope("a").is_some());
         assert!(vars.get_scope("b").is_none());
         assert!(vars.get_var("a").is_some());

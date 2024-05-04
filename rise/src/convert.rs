@@ -1,12 +1,8 @@
 use crate::error::{Result, RiseError};
-use crate::rzil::ast::Scope;
-use crate::rzil::{
-    ast::{PureCode, PureRef, Sort},
-    error::RzILError,
-};
+use crate::rzil::{error::RzILError, PureCode, PureRef, Scope, Sort};
 use crate::state::memory::MemoryOps;
 use crate::state::solver::Z3;
-use crate::state::State_Z3Backend;
+use crate::state::StateZ3Backend;
 use z3::ast::{Ast, Bool, Dynamic, BV};
 
 pub trait ConvertRzILToSymExp {
@@ -19,7 +15,7 @@ pub trait ConvertRzILToSymExp {
     fn convert_set(&self, var: PureRef) -> Result<Self::Any>;
 }
 
-impl ConvertRzILToSymExp for State_Z3Backend {
+impl ConvertRzILToSymExp for StateZ3Backend {
     type Any = Dynamic;
     type Bool = Bool;
     type Bitv = BV;
