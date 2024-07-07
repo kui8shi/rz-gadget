@@ -1,0 +1,194 @@
+{
+    "opcode": "seq",
+    "x": {
+        "opcode": "set",
+        "dst": "and_",
+        "src": {
+            "opcode": "&",
+            "x": {
+                "opcode": "var",
+                "value": "rsp"
+            },
+            "y": {
+                "opcode": "bitv",
+                "bits": "0xfffffffffffffff0",
+                "len": 64
+            }
+        }
+    },
+    "y": {
+        "opcode": "seq",
+        "x": {
+            "opcode": "set",
+            "dst": "rsp",
+            "src": {
+                "opcode": "var",
+                "value": "and_"
+            }
+        },
+        "y": {
+            "opcode": "seq",
+            "x": {
+                "opcode": "set",
+                "dst": "of",
+                "src": {
+                    "opcode": "bool",
+                    "value": false
+                }
+            },
+            "y": {
+                "opcode": "seq",
+                "x": {
+                    "opcode": "set",
+                    "dst": "cf",
+                    "src": {
+                        "opcode": "bool",
+                        "value": false
+                    }
+                },
+                "y": {
+                    "opcode": "seq",
+                    "x": {
+                        "opcode": "set",
+                        "dst": "_result",
+                        "src": {
+                            "opcode": "var",
+                            "value": "and_"
+                        }
+                    },
+                    "y": {
+                        "opcode": "seq",
+                        "x": {
+                            "opcode": "set",
+                            "dst": "pf",
+                            "src": {
+                                "opcode": "!",
+                                "x": {
+                                    "opcode": "lsb",
+                                    "bv": {
+                                        "opcode": "let",
+                                        "dst": "_val",
+                                        "exp": {
+                                            "opcode": "cast",
+                                            "value": {
+                                                "opcode": "var",
+                                                "value": "_result"
+                                            },
+                                            "length": 8,
+                                            "fill": {
+                                                "opcode": "bool",
+                                                "value": false
+                                            }
+                                        },
+                                        "body": {
+                                            "opcode": "let",
+                                            "dst": "_c4",
+                                            "exp": {
+                                                "opcode": "^",
+                                                "x": {
+                                                    "opcode": "var",
+                                                    "value": "_val"
+                                                },
+                                                "y": {
+                                                    "opcode": ">>",
+                                                    "x": {
+                                                        "opcode": "var",
+                                                        "value": "_val"
+                                                    },
+                                                    "y": {
+                                                        "opcode": "bitv",
+                                                        "bits": "0x4",
+                                                        "len": 8
+                                                    },
+                                                    "fill_bit": {
+                                                        "opcode": "bool",
+                                                        "value": false
+                                                    }
+                                                }
+                                            },
+                                            "body": {
+                                                "opcode": "let",
+                                                "dst": "_c2",
+                                                "exp": {
+                                                    "opcode": "^",
+                                                    "x": {
+                                                        "opcode": "var",
+                                                        "value": "_c4"
+                                                    },
+                                                    "y": {
+                                                        "opcode": ">>",
+                                                        "x": {
+                                                            "opcode": "var",
+                                                            "value": "_c4"
+                                                        },
+                                                        "y": {
+                                                            "opcode": "bitv",
+                                                            "bits": "0x2",
+                                                            "len": 8
+                                                        },
+                                                        "fill_bit": {
+                                                            "opcode": "bool",
+                                                            "value": false
+                                                        }
+                                                    }
+                                                },
+                                                "body": {
+                                                    "opcode": "^",
+                                                    "x": {
+                                                        "opcode": "var",
+                                                        "value": "_c2"
+                                                    },
+                                                    "y": {
+                                                        "opcode": ">>",
+                                                        "x": {
+                                                            "opcode": "var",
+                                                            "value": "_c2"
+                                                        },
+                                                        "y": {
+                                                            "opcode": "bitv",
+                                                            "bits": "0x1",
+                                                            "len": 8
+                                                        },
+                                                        "fill_bit": {
+                                                            "opcode": "bool",
+                                                            "value": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "y": {
+                            "opcode": "seq",
+                            "x": {
+                                "opcode": "set",
+                                "dst": "zf",
+                                "src": {
+                                    "opcode": "is_zero",
+                                    "bv": {
+                                        "opcode": "var",
+                                        "value": "_result"
+                                    }
+                                }
+                            },
+                            "y": {
+                                "opcode": "set",
+                                "dst": "sf",
+                                "src": {
+                                    "opcode": "msb",
+                                    "bv": {
+                                        "opcode": "var",
+                                        "value": "_result"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
