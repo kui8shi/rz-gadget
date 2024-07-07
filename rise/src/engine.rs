@@ -101,7 +101,7 @@ impl<S: Process> Rise<S> {
                     state.process(op)?;
                 }
             }
-            self.vars.clear_local();
+            //self.vars.clear_local();
         }
         let status = state.get_status();
         self.states.push_ctx(state);

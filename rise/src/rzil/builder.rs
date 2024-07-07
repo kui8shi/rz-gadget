@@ -743,8 +743,8 @@ pub trait RzILBuilder {
             }
             Some(Scope::Local) => {
                 // overwrite local var
-                let sort = vars.get_var(name).unwrap().get_sort();
-                src.get_sort().expect_same_with(sort)?;
+                //let sort = vars.get_var(name).unwrap().get_sort();
+                //src.get_sort().expect_same_with(sort)?;
                 let var = self.new_var(Scope::Local, vars.get_uniq_id(name), src.clone());
                 if var.is_concretized() {
                     vars.set_var(var)?;
