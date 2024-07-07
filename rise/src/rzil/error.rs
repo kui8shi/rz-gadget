@@ -29,10 +29,10 @@ pub enum RzILError {
     #[error("Effect {0} is Unimplemented.")]
     UnimplementedRzILEffect(String),
 
-    #[error("Unkown (Unimplemented or Invalid) Pure detected.")]
-    UnkownPure,
+    #[error("Unkown (Unimplemented or Invalid) Op detected.")]
+    UnkownOp,
 
-    #[error("Empty detected. Unable to continue.")]
+    #[error("No effective operations were lifted.")]
     Empty,
 
     #[error("Variable {0} is immutable but changed.")]

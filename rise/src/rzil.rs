@@ -321,8 +321,8 @@ impl Debug for Pure {
             PureCode::Let => f
                 .debug_struct("Let")
                 .field("dst", &self.get_arg(0))
-                .field("exp", &self.get_arg(0).get_arg(0))
-                .field("body", &self.get_arg(1))
+                .field("exp", &self.get_arg(1))
+                .field("body", &self.get_arg(2))
                 .finish(),
             PureCode::Bool => write!(f, "Bool({})", self.evaluate_bool()),
             PureCode::Bitv => write!(

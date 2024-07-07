@@ -271,7 +271,7 @@ mod test {
     fn concrete() {
         // init
         let rzil = RzILCache::new();
-        let mut ctx = StateZ3Backend::new(rzil.clone());
+        let mut ctx = StateZ3Backend::new(rzil.clone(), None);
 
         // concrete store
         let addr = rzil.new_const(Sort::Bitv(64), 0x40000);
@@ -287,7 +287,7 @@ mod test {
     fn symbolic() {
         // init
         let rzil = RzILCache::new();
-        let mut ctx = StateZ3Backend::new(rzil.clone());
+        let mut ctx = StateZ3Backend::new(rzil.clone(), None);
 
         // symbolic store
         let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));

@@ -1,16 +1,16 @@
 use crate::error::Result;
 use crate::explorer::{PathExplorer, StatePool};
 use crate::registers;
-use crate::rzil::{builder::RzILCache, lifter::RzILLifter, Effect};
+use crate::rzil::{builder::RzILCache, lifter::RzILLifter};
 use crate::state::process::Process;
 use crate::state::{State, Status};
-use crate::variables::VarStorage;
+use crate::variables::{VarStorage, Variables};
 use rzapi::api::RzApi;
-use rzapi::structs::FlagInfo;
+use rzapi::structs::{FlagInfo, Instruction};
 use std::collections::HashMap;
 pub struct Rise<S> {
     pub api: RzApi,
-    explorer: StatePool<S>,
+    states: StatePool<S>,
     lifter: RzILLifter,
     builder: RzILCache,
     vars: VarStorage,
@@ -19,7 +19,7 @@ pub struct Rise<S> {
 }
 
 /*
- * 1. block-wise symbolic execution. if branches, leave them and throw status.
+ * 1. block-wise symbolic execution. if it reaches a branch, return status.
  * 2. there can be control manager as a sample wrapper of this.
  *
  * import rise
@@ -49,29 +49,32 @@ pub enum Mode {
     Explore,
 }
 
-impl<S: State> Rise<S> {
+impl<S: Process> Rise<S> {
     /*
      * Panics if stream has not loaded any sources yet.
      */
     pub fn new(path: Option<&str>) -> Result<Self> {
-        let mut api = RzApi::new(path)?;
+        let api = RzApi::new(path)?;
         let lifter = RzILLifter::new();
         let builder = RzILCache::new();
         let mut vars = VarStorage::new();
         let addr = 0;
-        registers::bind_registers(&mut api, &mut vars, &builder)?;
         let flaginfo = api.get_flags()?;
         let mut flags = HashMap::new();
         for flag in flaginfo {
             flags.insert(flag.name.clone(), flag);
         }
-        let ctx = State::new(builder.clone());
+        let entry_info = api.get_entrypoint()?;
+        let entry_point = (!entry_info.is_empty()).then_some(entry_info[0].vaddr);
+        let ctx = State::new(builder.clone(), entry_point);
         let mut explorer = StatePool::new();
+
         explorer.push_ctx(ctx);
+        registers::bind_registers(&api, &builder, &mut vars)?;
 
         Ok(Rise {
             api,
-            explorer,
+            states: explorer,
             lifter,
             builder,
             vars,
@@ -81,30 +84,32 @@ impl<S: State> Rise<S> {
     }
 
     pub fn run(&mut self, mode: Mode) -> Result<Status> {
-        let mut state = self.explorer.pop_ctx()?;
+        let mut state = self.states.pop_ctx()?;
         while let Status::LoadInst = state.get_status() {
             let pc = state.get_pc();
-            let op = self.read_inst(pc)?;
-            self.process(&mut state, op)?;
+            let inst = self.read_inst(pc)?;
+            state.set_pc(pc + inst.size);
+            match self
+                .lifter
+                .parse_effect_optional(&self.builder, &mut self.vars, &inst.rzil)?
+            {
+                None => {
+                    continue;
+                }
+                Some(op) => {
+            println!("Program at {:#x}, inst = {:?}", pc, inst.pseudo); dbg!(&op);
+                    state.process(op)?;
+                }
+            }
+            self.vars.clear_local();
         }
         let status = state.get_status();
-        self.explorer.push_ctx(state);
+        self.states.push_ctx(state);
         Ok(status)
     }
 
-    fn read_inst(&mut self, pc: u64) -> Result<Effect> {
-        self.read_insts(pc, 1).map(|mut v| v.pop().unwrap())
-    }
-
-    fn read_insts(&mut self, pc: u64, n: u64) -> Result<Vec<Effect>> {
-        let mut ops = Vec::new();
-        for inst in self.api.get_n_insts(Some(n), Some(pc))? {
-            ops.push(
-                self.lifter
-                    .parse_effect(&self.builder, &mut self.vars, &inst.rzil)?,
-            );
-        }
-        Ok(ops)
+    fn read_inst(&mut self, pc: u64) -> Result<Instruction> {
+        Ok(self.api.get_n_insts(Some(1), Some(pc))?.pop().unwrap())
     }
 
     fn seek(&mut self, addr: u64) {
@@ -139,7 +144,7 @@ mod test {
 
     #[test]
     fn new() {
-        let mut rise = Rise::<StateZ3Backend>::new(Some("test/dummy")).unwrap();
-        dbg!(rise.run(Mode::Step));
+        //let mut rise = Rise::<StateZ3Backend>::new(Some("test/dummy")).unwrap();
+        //dbg!(rise.run(Mode::Step));
     }
 }

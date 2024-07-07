@@ -26,7 +26,7 @@ impl RegSpec {
     }
 }
 
-fn parse_reg_info(rzapi: &mut RzApi) -> Result<Vec<RegSpec>> {
+fn parse_reg_info(rzapi: &RzApi) -> Result<Vec<RegSpec>> {
     let mut largest_regs = IntervalMap::<u64, &RegisterInfo>::new(false);
     let mut reg_specs = Vec::new();
     let reg_info = match rzapi.get_analysis_registers() {
@@ -78,9 +78,9 @@ fn parse_reg_info(rzapi: &mut RzApi) -> Result<Vec<RegSpec>> {
 }
 
 pub fn bind_registers(
-    rzapi: &mut RzApi,
-    vars: &mut dyn Variables,
+    rzapi: &RzApi,
     rzil: &impl RzILBuilder,
+    vars: &mut dyn Variables,
 ) -> Result<()> {
     let reg_specs = parse_reg_info(rzapi)?;
     for r in reg_specs.iter() {

@@ -91,7 +91,7 @@ impl<V> PagedIntervalMap<V> {
     }
 
     fn contains_page(&self, key: &u64) -> bool {
-        self.pages.get(key).is_some()
+        self.pages.contains_key(key)
     }
 
     fn contains(&self, key: &u64) -> bool {

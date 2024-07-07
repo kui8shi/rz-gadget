@@ -211,13 +211,13 @@ impl RzILLifter {
             RzILInfo::Let { dst, exp, body } => {
                 let name = dst.to_string();
                 let exp = self.parse_pure(rzil, vars, exp)?;
-                let dst = rzil.new_let_var(vars.get_uniq_id(dst), exp);
+                let dst = rzil.new_let_var(vars.get_uniq_id(dst), exp.clone());
                 if self.tmp_vars.insert(name.clone(), dst.clone()).is_some() {
                     return Err(RzILError::ImmutableVariable(name));
                 }
                 let body = self.parse_pure(rzil, vars, body)?;
                 self.tmp_vars.remove(&name);
-                rzil.new_let(dst, body)
+                rzil.new_let(dst, exp, body)
             }
             RzILInfo::Bool { value } => {
                 let sort = Sort::Bool;
@@ -481,7 +481,7 @@ impl RzILLifter {
                 f: _,
                 n: _,
             } => Err(RzILError::UnimplementedRzILPure(PureCode::Fcompound)),
-            _ => Err(RzILError::UnkownPure),
+            _ => Err(RzILError::UnkownOp),
         }
     }
 
@@ -494,7 +494,7 @@ impl RzILLifter {
         Ok(self.parse_effect_optional(rzil, vars, op)?.unwrap())
     }
 
-    fn parse_effect_optional(
+    pub fn parse_effect_optional(
         &mut self,
         rzil: &impl RzILBuilder,
         vars: &mut dyn Variables,
@@ -561,7 +561,7 @@ impl RzILLifter {
                     // in case of nested branches
                     Vec::new()
                 };
-                let need_branch = then.is_some() || !otherwise.is_some();
+                let need_branch = then.is_some() || otherwise.is_none();
                 if need_branch {
                     let expect_control = |optional_effect: Option<Effect>| {
                         if let Some(op) = optional_effect {
@@ -604,8 +604,8 @@ impl RzILLifter {
                 condition: _,
                 data_eff: _,
             } => return Err(RzILError::UnimplementedRzILEffect("Repeat".to_string())),
-            RzILInfo::Empty => return Err(RzILError::Empty),
-            _ => return Err(RzILError::UnkownPure),
+            RzILInfo::Empty => return Ok(Some(Effect::Empty)),
+            _ => return Err(RzILError::UnkownOp),
         };
         Ok(effect)
     }
@@ -663,9 +663,9 @@ mod test {
     fn parse_ops(target: Vec<&str>) -> Vec<Effect> {
         let rzil = RzILCache::new();
         let mut lifter = RzILLifter::new();
-        let mut rzapi = RzApi::new(Some("test/dummy")).unwrap();
+        let rzapi = RzApi::new(Some("test/dummy")).unwrap();
         let mut vars = VarStorage::new();
-        bind_registers(&mut rzapi, &mut vars, &rzil).unwrap();
+        bind_registers(&rzapi, &rzil, &mut vars).unwrap();
         let mut ret = Vec::new();
         for t in target {
             let path = format!("test/{}.json", t);
@@ -708,7 +708,7 @@ mod test {
 
     #[test]
     fn and() {
-        dbg!(parse_op("and_rsp_-0xf"));
+        dbg!(parse_op("and_rsp_-0x10"));
     }
 
     #[test]

@@ -1,27 +1,24 @@
 pub(crate) mod memory;
 pub(crate) mod process;
 pub(crate) mod solver;
-use crate::{
-    convert::ConvertRzILToSymExp,
-    rzil::{builder::RzILCache, Effect, PureRef},
-};
+use crate::rzil::{builder::RzILCache, Effect, PureRef};
 use memory::Memory;
 use solver::Z3Solver;
 
 use rzapi::structs::Endian;
 
-use self::{memory::MemoryOps, solver::Solver};
-
 #[derive(Clone, Debug)]
 pub enum Status {
-    Continue,
+    LoadOp,
     LoadInst,
     UnconstrainedJump {
         addr: PureRef,
     },
     UnconstrainedBranch {
-        branch: Effect,
-        following: Vec<Effect>,
+        condition: PureRef,
+        then: Box<Effect>,
+        otherwise: Box<Effect>,
+        post_dominant: Vec<Effect>,
     },
     Goto {
         label: String,
@@ -38,17 +35,17 @@ pub struct StateZ3Backend {
     status: Status,
 }
 
-pub trait State: MemoryOps + Solver + ConvertRzILToSymExp {
-    fn new(rzil: RzILCache) -> Self;
+pub trait State {
+    fn new(rzil: RzILCache, pc: Option<u64>) -> Self;
     fn get_pc(&self) -> u64;
     fn set_pc(&mut self, pc: u64) -> u64;
     fn get_status(&self) -> Status;
 }
 
 impl State for StateZ3Backend {
-    fn new(rzil: RzILCache) -> Self {
+    fn new(rzil: RzILCache, pc: Option<u64>) -> Self {
         StateZ3Backend {
-            pc: 0,
+            pc: pc.unwrap_or(0),
             memory: Memory::new(Endian::Little),
             solver: Z3Solver::new(),
             rzil,

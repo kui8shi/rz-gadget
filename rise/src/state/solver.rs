@@ -49,6 +49,10 @@ impl Z3Solver {
     pub(self) fn set_z3_trasnlation(&self, var: PureRef, z3_var: Dynamic) {
         self.translate.insert(var, z3_var)
     }
+
+    pub(self) fn unset_z3_trasnlation(&self, var: PureRef) {
+        self.translate.remove(&var);
+    }
 }
 
 fn get_interp(val: z3::ast::Dynamic) -> Result<u64> {
@@ -82,6 +86,8 @@ pub trait Z3 {
     fn get_z3_trasnlation(&self, var: &PureRef) -> Option<Dynamic>;
 
     fn set_z3_trasnlation(&self, var: PureRef, z3_var: Dynamic);
+
+    fn unset_z3_trasnlation(&self, var: PureRef);
 
     fn z3_push(&self) {
         let solver = self.get_z3_solver();
@@ -125,11 +131,15 @@ impl Z3 for StateZ3Backend {
     fn set_z3_trasnlation(&self, var: PureRef, z3_var: Dynamic) {
         self.solver.set_z3_trasnlation(var, z3_var)
     }
+
+    fn unset_z3_trasnlation(&self, var: PureRef) {
+        self.solver.unset_z3_trasnlation(var)
+    }
 }
 
 pub trait Solver {
     fn solver_name(&self) -> &'static str;
-    fn assert(&self, constriant: PureRef) -> Result<()>;
+    fn assign(&self, lhs: PureRef, rhs: PureRef) -> Result<()>;
     fn assert_n(&self, constraints: Vec<PureRef>) -> Result<()>;
     fn get_model(&self, extra_constraint: &[PureRef]) -> Result<HashMap<String, u64>>;
     fn get_models(
@@ -151,9 +161,10 @@ impl Solver for StateZ3Backend {
         "z3"
     }
 
-    fn assert(&self, constraint: PureRef) -> Result<()> {
-        self.assert_n(vec![constraint])
+    fn assign(&self, lhs: PureRef, rhs: PureRef) -> Result<()> {
+        self.assert_n(vec![self.rzil.new_eq(lhs, rhs)?])
     }
+    
     fn assert_n(&self, constraints: Vec<PureRef>) -> Result<()> {
         //TODO test
         for op in constraints {
@@ -276,7 +287,7 @@ impl Solver for StateZ3Backend {
 mod test {
     use z3::SatResult;
 
-    use super::{Solver, Z3Solver};
+    use super::Solver;
     use crate::{
         rzil::{
             builder::{RzILBuilder, RzILCache},
@@ -289,16 +300,13 @@ mod test {
     #[test]
     fn unsat() {
         let rzil = RzILCache::new();
-        let solver = Z3Solver::new();
-        let ctx = StateZ3Backend::new(rzil.clone());
+        let ctx = StateZ3Backend::new(rzil.clone(), None);
         let ten = rzil.new_const(Sort::Bitv(64), 10);
         let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));
-        ctx.assert(rzil.new_eq(x.clone(), ten.clone()).unwrap())
-            .unwrap();
+        ctx.assign(x.clone(), ten.clone()).unwrap();
         assert_eq!(ctx.check(), SatResult::Sat);
-        ctx.assert(
-            rzil.new_boolinv(rzil.new_eq(x.clone(), ten.clone()).unwrap())
-                .unwrap(),
+        ctx.assert_n(
+            vec![rzil.new_boolinv(rzil.new_eq(x.clone(), ten.clone()).unwrap()).unwrap()]
         )
         .unwrap();
         assert_eq!(ctx.check(), SatResult::Unsat);
@@ -307,13 +315,11 @@ mod test {
     #[test]
     fn get_model() {
         let rzil = RzILCache::new();
-        let solver = Z3Solver::new();
-        let ctx = StateZ3Backend::new(rzil.clone());
+        let ctx = StateZ3Backend::new(rzil.clone(), None);
         let ten = rzil.new_const(Sort::Bitv(64), 10);
         let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));
         let y = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("y"));
-        ctx.assert(rzil.new_eq(rzil.new_bvadd(x, y).unwrap(), ten).unwrap())
-            .unwrap();
+        ctx.assign(rzil.new_bvadd(x, y).unwrap(), ten).unwrap();
         let model = ctx.get_model(&[]).unwrap();
         assert_eq!(model.get("x!0"), Some(&10));
         assert_eq!(model.get("y!0"), Some(&0));

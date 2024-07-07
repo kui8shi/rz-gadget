@@ -1,84 +1,79 @@
-use crate::engine::Rise;
+use std::collections::VecDeque;
+
+use super::memory::MemoryOps;
+use super::solver::Solver;
+use super::{State, StateZ3Backend};
+use crate::convert::ConvertRzILToSymExp;
 use crate::error::Result;
 use crate::rzil::{error::RzILError, Effect};
-use crate::state::{State, Status};
+use crate::state::Status;
 
-impl<S: State> Process<S> for Rise<S> {}
-pub trait Process<S: State> {
-    fn process(&mut self, state: &mut S, op: Effect) -> Result<Status> {
-        self.process_op(state, op, 0)
-    }
+impl Process for StateZ3Backend {}
 
-    fn process_op(&mut self, state: &mut S, op: Effect, depth: u32) -> Result<Status> {
-        let default = if depth > 0 {
-            Status::Continue
-        } else {
-            Status::LoadInst
-        };
-        match op {
-            Effect::Seq { mut args } => {
-                for _ in 0..args.len() {
-                    match self.process_op(state, args.pop().unwrap(), depth + 1)? {
-                        Status::Continue => continue,
-                        Status::UnconstrainedBranch {
-                            branch,
-                            mut following,
-                        } => {
-                            following.extend(args);
-                            return Ok(Status::UnconstrainedBranch { branch, following });
-                        }
-                        other => return Ok(other),
-                    }
+pub trait Process: State + MemoryOps + Solver + ConvertRzILToSymExp {
+    fn process(&mut self, root: Effect) -> Result<Status> {
+        let mut worklist = VecDeque::from([root]);
+        let mut status = Status::LoadOp;
+        while let Some(op) = worklist.pop_front() {
+            match op {
+                Effect::Seq { args } => {
+                    worklist.append(&mut args.into());
                 }
-                Ok(default)
-            }
-            Effect::Nop | Effect::Empty => Ok(default),
-            Effect::Set { var } => {
-                state.convert_set(var.clone())?;
-                Ok(default)
-            }
-            Effect::Jmp { dst } => {
-                if dst.is_concretized() {
-                    state.set_pc(dst.evaluate());
-                    Ok(Status::LoadInst)
-                } else {
-                    Ok(Status::UnconstrainedJump { addr: dst.clone() })
+                Effect::Nop | Effect::Empty => {}
+                Effect::Set { var } => {
+                    let rhs = var.get_arg(0);
+                    let lhs = var;
+                    self.assign(lhs, rhs)?;
                 }
-            }
-            Effect::Goto { label } => Ok(Status::Goto {
-                label: label.clone(),
-            }),
-            Effect::Blk => Err(RzILError::UnimplementedRzILEffect("Blk".to_string()).into()),
-            Effect::Repeat => Err(RzILError::UnimplementedRzILEffect("Repeat".to_string()).into()),
-            Effect::Branch {
-                condition,
-                then,
-                otherwise,
-            } => {
-                if condition.is_concretized() {
-                    let next_op = if condition.evaluate_bool() {
-                        *then
+                Effect::Jmp { dst } => {
+                    if dst.is_concretized() {
+                        self.set_pc(dst.evaluate());
+                        status = Status::LoadInst;
                     } else {
-                        *otherwise
-                    };
-                    match self.process_op(state, next_op, depth + 1)? {
-                        Status::Continue => Ok(default),
-                        other => Ok(other),
+                        status = Status::UnconstrainedJump { addr: dst }
                     }
-                } else {
-                    /*
-                    Status::UnconstrainedBranch {
-                        branch: op,
-                        following: Vec::new(),
-                    }
-                    */
-                    Ok(default)
+                    break;
                 }
-            }
-            Effect::Store { key, value } => {
-                state.store(key.clone(), value.clone())?;
-                Ok(default)
+                Effect::Goto { label } => {
+                    status = Status::Goto {
+                        label,
+                    };
+                    break;
+                }
+                Effect::Blk => {
+                    return Err(RzILError::UnimplementedRzILEffect("Blk".to_string()).into())
+                }
+                Effect::Repeat => {
+                    return Err(RzILError::UnimplementedRzILEffect("Repeat".to_string()).into())
+                }
+                Effect::Branch {
+                    condition,
+                    then,
+                    otherwise,
+                } => {
+                    if condition.is_concretized() {
+                        let next_op = if condition.evaluate_bool() {
+                            *then
+                        } else {
+                            *otherwise
+                        };
+                        worklist.push_back(next_op);
+                    } else {
+                        status = Status::UnconstrainedBranch {
+                            condition,
+                            then,
+                            otherwise,
+                            post_dominant: worklist.into(),
+                        };
+                        break;
+                    }
+                }
+                Effect::Store { key, value } => self.store(key, value)?,
             }
         }
+        if let Status::LoadOp = status {
+            status = Status::LoadInst;
+        }
+        Ok(status)
     }
 }

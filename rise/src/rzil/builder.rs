@@ -62,7 +62,7 @@ pub trait RzILBuilder {
                 scope: Scope::Let,
                 id,
             },
-            vec![val], // will be unwrapped
+            vec![],
             symbolized,
             sort,
             eval,
@@ -135,11 +135,11 @@ pub trait RzILBuilder {
         }
     }
 
-    fn new_let(&self, dst: PureRef, body: PureRef) -> Result<PureRef> {
+    fn new_let(&self, dst: PureRef, exp: PureRef, body: PureRef) -> Result<PureRef> {
         let symbolized = body.is_symbolized();
         let sort = body.get_sort();
         let eval = body.evaluate();
-        Ok(self.new_pure(PureCode::Let, vec![dst, body], symbolized, sort, eval))
+        Ok(self.new_pure(PureCode::Let, vec![dst, exp, body], symbolized, sort, eval))
     }
 
     fn new_boolinv(&self, x: PureRef) -> Result<PureRef> {
@@ -565,9 +565,6 @@ pub trait RzILBuilder {
     }
 
     fn new_eq(&self, x: PureRef, y: PureRef) -> Result<PureRef> {
-        x.expect_bitv()?;
-        y.expect_bitv()?;
-
         x.expect_same_sort_with(&y)?;
 
         let sort = Sort::Bool;
@@ -860,7 +857,7 @@ mod test {
     fn let_var() {
         let r = RzILCache::new();
         let val = r.new_const(Sort::Bitv(64), 0xdeadbeaf);
-        let var = r.new_let_var(VarId::new("hoge"), val.clone());
+        let var = r.new_pure_var(VarId::new("hoge"), val.clone());
         let (scope, id) = var.expect_var().unwrap();
         assert_eq!(scope, Scope::Let);
         assert_eq!(id.get_name(), "hoge");

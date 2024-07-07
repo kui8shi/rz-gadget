@@ -1,5 +1,5 @@
 use crate::error::{Result, RiseError};
-use crate::rzil::{error::RzILError, PureCode, PureRef, Scope, Sort};
+use crate::rzil::{error::RzILError, PureCode, PureRef, Sort};
 use crate::state::memory::MemoryOps;
 use crate::state::solver::Z3;
 use crate::state::StateZ3Backend;
@@ -12,7 +12,6 @@ pub trait ConvertRzILToSymExp {
     fn convert(&self, op: PureRef) -> Result<Self::Any>;
     fn convert_bool(&self, op: PureRef) -> Result<Self::Bool>;
     fn convert_bitv(&self, op: PureRef) -> Result<Self::Bitv>;
-    fn convert_set(&self, var: PureRef) -> Result<Self::Any>;
 }
 
 impl ConvertRzILToSymExp for StateZ3Backend {
@@ -57,10 +56,12 @@ impl ConvertRzILToSymExp for StateZ3Backend {
                 Ok(condition.ite(&then, &else_))
             }
             PureCode::Let => {
-                let var = self.convert(op.get_arg(0))?;
+                let var = op.get_arg(0);
                 let binding = self.convert(op.get_arg(1))?;
+                self.set_z3_trasnlation(var.clone(), binding.clone());
                 let body = self.convert(op.get_arg(2))?;
-                Ok(body.substitute(&[(&var, &binding)]))
+                self.unset_z3_trasnlation(var);
+                Ok(body)
             }
             PureCode::Bool => Ok(Bool::from_bool(self.get_z3_ctx(), op.evaluate_bool()).into()),
             PureCode::BoolInv => {
@@ -89,15 +90,15 @@ impl ConvertRzILToSymExp for StateZ3Backend {
             PureCode::Bitv => Ok(BV::from_u64(self.get_z3_ctx(), op.evaluate(), size).into()),
             PureCode::Msb => {
                 let bv = self.convert_bitv(op.get_arg(0))?;
-                Ok(bv.extract(size - 1, size - 1).into())
+                Ok(self.bit_to_bool(bv.extract(bv.get_size() - 1, bv.get_size() - 1)).into())
             }
             PureCode::Lsb => {
                 let bv = self.convert_bitv(op.get_arg(0))?;
-                Ok(bv.extract(0, 0).into())
+                Ok(self.bit_to_bool(bv.extract(0, 0)).into())
             }
             PureCode::IsZero => {
                 let bv = self.convert_bitv(op.get_arg(0))?;
-                let zero = BV::from_u64(self.get_z3_ctx(), 0, size);
+                let zero = BV::from_u64(self.get_z3_ctx(), 0, bv.get_size());
                 Ok(bv._eq(&zero).into())
             }
             PureCode::Neg => {
@@ -188,8 +189,8 @@ impl ConvertRzILToSymExp for StateZ3Backend {
                 }
             }
             PureCode::Equal => {
-                let x = self.convert_bitv(op.get_arg(0))?;
-                let y = self.convert_bitv(op.get_arg(1))?;
+                let x = self.convert(op.get_arg(0))?;
+                let y = self.convert(op.get_arg(1))?;
                 Ok(x._eq(&y).into())
             }
             PureCode::Sle => {
@@ -242,9 +243,10 @@ impl ConvertRzILToSymExp for StateZ3Backend {
         if !op.is_bool() {
             return Err(RzILError::UnexpectedSort(Sort::Bool, op.get_sort()).into());
         }
-        if let Some(ast) = self.convert(op)?.as_bool() {
+        if let Some(ast) = self.convert(op.clone())?.as_bool() {
             Ok(ast)
         } else {
+            println!("{:?}",&op);
             Err(RiseError::RzILToZ3(
                 "Bool rzil was somehow converted to non-bool z3 ast".to_string(),
             ))
@@ -262,22 +264,12 @@ impl ConvertRzILToSymExp for StateZ3Backend {
             ))
         }
     }
+}
 
-    fn convert_set(&self, var: PureRef) -> Result<Self::Any> {
-        let (scope, id) = var.expect_var()?;
-        debug_assert!(var.num_args() == 1);
-        debug_assert!(self.get_z3_trasnlation(&var).is_none());
-        if scope == Scope::Let {
-            return Err(RzILError::ImmutableVariable(id.get_name().to_string()).into());
-        }
-        let sort = match var.get_sort() {
-            Sort::Bool => z3::Sort::bool(self.get_z3_ctx()),
-            Sort::Bitv(size) => z3::Sort::bitvector(self.get_z3_ctx(), size as u32),
-        };
-        let func_decl = z3::FuncDecl::new(self.get_z3_ctx(), id.get_uniq_name(), &[], &sort);
-        let val = self.convert(var.get_arg(0))?;
-        let z3_var = func_decl.apply(&[&val]);
-        self.set_z3_trasnlation(var, z3_var.clone());
-        Ok(z3_var)
+impl StateZ3Backend {
+    fn bit_to_bool(&self, bit: BV) -> Bool {
+        debug_assert!(bit.get_size() == 1);
+        let one = BV::from_u64(self.get_z3_ctx(), 1, 1);
+        bit._eq(&one)
     }
 }
