@@ -25,6 +25,7 @@ serde = "*"
 serde_json = "*"
 serde_derive = "*"
 thiserror = "1.0.57"
+quick_cache = "0.6.0"
 
 [dependencies.rzpipe]
 git = "https://github.com/rizinorg/rz-pipe"

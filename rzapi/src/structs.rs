@@ -1,7 +1,9 @@
 //! Provides structures for JSON encoding and decoding
 use std::boxed::Box;
+use serde::Deserialize;
+use serde_json;
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(tag = "opcode", rename_all = "snake_case")]
 pub enum RzILInfo {
     // RzILInfoOpPure
@@ -346,7 +348,15 @@ pub enum RzILInfo {
 pub type RzILVMRegValue = serde_json::Value;
 pub type RzILVMStatus = std::collections::HashMap<String, RzILVMRegValue>;
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
+pub struct DisassembledFunction {
+    pub name: String,
+    pub size: u64,
+    pub addr: u64,
+    pub ops: Vec<Disassembly>,
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Disassembly {
     pub offset: u64,
     pub esil: String,
@@ -363,9 +373,13 @@ pub struct Disassembly {
     pub reloc: bool,
     pub type_num: u64,
     pub type2_num: u64,
+    #[serde(default)]
+    pub flags: Vec<String>,
+    #[serde(default)]
+    pub xrefs_to: Vec<XRefTo>,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Instruction {
     pub opcode: String,
     pub disasm: String,
@@ -384,8 +398,8 @@ pub struct Instruction {
     pub addr: u64,
     pub bytes: String,
     pub size: u64,
-    #[serde(rename = "type")]
-    pub inst_type: String,
+    #[serde(rename = "type", default)]
+    pub inst_type: InstructionType,
     pub esilcost: u64,
     pub scale: u64,
     pub refptr: u64,
@@ -396,23 +410,113 @@ pub struct Instruction {
     pub family: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CrossRef {
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum InstructionType {
+    Io,
+    Acmp,
+    Add,
+    Sync,
+    And,
+    Call,
+    Ccall,
+    Cjmp,
+    Mjmp,
+    Cmp,
+    Cret,
+    Ill,
+    Jmp,
+    Lea,
+    Leave,
+    Load,
+    New,
+    Mod,
+    Cmov,
+    Mov,
+    Cast,
+    Mul,
+    Div,
+    Nop,
+    Not,
+    #[default]
+    Null,
+    Or,
+    Pop,
+    Push,
+    Rep,
+    Ret,
+    Rol,
+    Ror,
+    Sal,
+    Sar,
+    Shl,
+    Shr,
+    Store,
+    Sub,
+    Swi,
+    Cswi,
+    Switch,
+    Trap,
+    Ucall,
+    Rcall,
+    Icall,
+    Ircall,
+    Uccall,
+    Ucjmp,
+    Ujmp,
+    Rjmp,
+    Ijmp,
+    Irjmp,
+    Unk,
+    Upush,
+    Rpush,
+    Xchg,
+    Xor,
+    Case,
+    Cpl,
+    Crypto,
+    Simd,
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct XRef {
     pub from: u64,
     pub to: u64,
     #[serde(rename = "type")]
-    pub ref_type: String,
+    pub xref_type: XRefType,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Storage {
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct XRefTo {
+    pub addr: u64,
     #[serde(rename = "type")]
-    pub storage_type: String,
-    pub reg: String,
-    pub stack_off: i64,
+    pub xref_type: XRefType,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum XRefType {
+    #[default]
+    Null,
+    Code,
+    Call,
+    Data,
+    String,
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+#[serde(tag="type")]
+pub enum Storage {
+    #[serde(rename = "reg")]
+    Reg { reg: String },
+    #[serde(rename = "stack")]
+    Stack { 
+        #[serde(rename = "stack")]
+        offset: i64
+    },
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct Variable {
     pub name: String,
     pub arg: bool,
@@ -421,7 +525,7 @@ pub struct Variable {
     pub storage: Storage,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct FunctionInfo {
     pub offset: u64,
     pub name: String,
@@ -443,10 +547,14 @@ pub struct FunctionInfo {
     pub signature: String,
     pub minbound: u64,
     pub maxbound: u64,
-    pub callrefs: Vec<CrossRef>,
-    pub datarefs: Vec<CrossRef>,
-    pub callxrefs: Vec<CrossRef>,
-    pub dataxrefs: Vec<CrossRef>,
+    #[serde(default)]
+    pub callrefs: Vec<XRef>,
+    #[serde(default)]
+    pub datarefs: Vec<XRef>,
+    #[serde(default)]
+    pub codexrefs: Vec<XRef>,
+    #[serde(default)]
+    pub dataxrefs: Vec<XRef>,
     pub indegree: u64,
     pub outdegree: u64,
     pub nlocals: u64,
@@ -455,14 +563,14 @@ pub struct FunctionInfo {
     pub regvars: Vec<Variable>,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct RegisterProfile {
     pub alias_info: Vec<AliasInfo>,
     pub reg_info: Vec<RegisterInfo>,
 }
 
 /*
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum RegisterRole {
     PC, // program counter
@@ -498,7 +606,7 @@ pub enum RegisterRole {
 }
 */
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum RegisterType {
     Gpr, // General purpose
@@ -519,14 +627,14 @@ pub enum RegisterType {
     Any,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct AliasInfo {
     pub reg: String,
     pub role: u64,
     pub role_str: String,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct RegisterInfo {
     pub name: String,
     pub offset: u64,
@@ -537,7 +645,7 @@ pub struct RegisterInfo {
     pub type_id: u64,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct FlagInfo {
     pub offset: u64,
     pub name: String,
@@ -545,13 +653,13 @@ pub struct FlagInfo {
     pub size: u64,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Information {
     pub core: CoreInfo,
     pub bin: BinInfo,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CoreInfo {
     pub file: String,
     pub size: u64,
@@ -559,7 +667,7 @@ pub struct CoreInfo {
     pub format: String,
 }
 
-#[derive(Debug, Copy, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Copy, Default, Clone, Serialize, Deserialize)]
 #[serde(rename = "endian")]
 pub enum Endian {
     #[serde(rename = "BE")]
@@ -569,7 +677,7 @@ pub enum Endian {
     Little,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct BinInfo {
     pub arch: String,
     pub bits: usize,
@@ -582,9 +690,10 @@ pub struct BinInfo {
     pub nx: bool,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct SectionInfo {
-    pub flags: String,
+    #[serde(default)]
+    pub flags: Vec<String>,
     pub name: String,
     pub perm: String,
     pub paddr: u64,
@@ -593,7 +702,7 @@ pub struct SectionInfo {
     pub vsize: u64,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct StringInfo {
     pub length: u64,
     pub ordinal: u64,
@@ -606,13 +715,14 @@ pub struct StringInfo {
     pub str_type: String,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct VarInfo {
+    #[serde(default)]
     pub stack: Vec<Variable>,
     pub reg: Vec<Variable>,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CallingConvention {
     pub name: String,
     pub ret: String,
@@ -621,7 +731,7 @@ pub struct CallingConvention {
     //pub fargs: Vec<String>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 // Taken from ELF Spec
 pub enum SymbolType {
@@ -639,19 +749,21 @@ pub enum SymbolType {
     HiProc,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct SymbolInfo {
-    pub demname: String,
-    pub flagname: String,
     pub name: String,
-    pub paddr: u64,
+    pub flagname: String,
+    pub realname: String,
+    pub ordinal: u64,
+    pub bind: BindType,
     pub size: u64,
     #[serde(rename = "type")]
     pub symbol_type: SymbolType,
-    pub vaddr: u64,
+    pub is_imported: bool,
+    pub lib: String,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 // Taken from ELF Spec
 pub enum BindType {
@@ -665,17 +777,16 @@ pub enum BindType {
     Hiproc,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ImportInfo {
-    pub bind: BindType,
-    pub name: String,
     pub ordinal: u64,
-    pub plt: u64,
+    pub bind: BindType,
     #[serde(rename = "type")]
     pub import_type: SymbolType,
+    pub name: String,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ExportInfo {
     pub demname: String,
     pub flagname: String,
@@ -687,22 +798,23 @@ pub struct ExportInfo {
     pub vaddr: u64,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct RelocInfo {
     pub is_ifunc: bool,
-    pub name: String,
+    pub name: Option<String>,
     pub paddr: u64,
     #[serde(rename = "type")]
     pub reloc_type: String,
     pub vaddr: u64,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EntryInfo {
     pub vaddr: u64,
     pub paddr: u64,
     pub baddr: u64,
     pub laddr: u64,
     pub haddr: u64,
+    #[serde(rename = "type")]
     pub etype: String,
 }

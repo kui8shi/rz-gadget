@@ -5,7 +5,7 @@ extern crate serde_json;
 use rzapi::api::RzApi;
 fn main() {
     let path = "/bin/ls";
-    let mut rz = RzApi::new(Some(path)).expect("Failed to spawn rz");
+    let rz = RzApi::new(Some(path)).expect("Failed to spawn rz");
     rz.analyze_all();
     println!("{:#?}", rz.get_analysis_registers());
     println!("{:#?}", rz.get_info());

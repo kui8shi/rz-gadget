@@ -1,8 +1,9 @@
 use rzpipe::rzpipe::RzPipe;
-use rzpipe::{open_pipe, RzPipeSpawnOptions};
+//use rzpipe::{open_pipe, RzPipeSpawnOptions};
 //use rzpipe::RzPipeSpawnOptions;
+use quick_cache::sync::Cache;
 use serde_json;
-use std::collections::HashMap;
+use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
 use crate::structs::*;
@@ -14,7 +15,7 @@ pub struct RzApi {
     //pub permissions: HashMap<u64, Permission>,
     pub info: Information,
     do_cache: bool,
-    cache: HashMap<String, String>,
+    cache: Rc<Cache<String, String>>,
 }
 
 #[allow(dead_code)]
@@ -75,7 +76,7 @@ impl RzApi {
             rzp: Arc::new(Mutex::new(pipe)),
             info: Information::default(),
             do_cache: false,
-            cache: HashMap::new(),
+            cache: Rc::new(Cache::new(1000)),
         };
         rzapi.info = rzapi.get_info()?;
         rzapi.set_option("analysis.esil", "false")?;
@@ -92,24 +93,24 @@ impl RzApi {
             rzp: Arc::new(Mutex::new(pipe)),
             info: Information::default(),
             do_cache: false,
-            cache: HashMap::new(),
+            cache: Rc::new(Cache::new(1000)),
         }
     }
 
-    pub fn set_option(&mut self, key: &str, value: &str) -> Result<String> {
+    pub fn set_option(&self, key: &str, value: &str) -> Result<String> {
         self.cmd(format!("e {}={}", key, value).as_str())
     }
 
-    pub fn cmd(&mut self, cmd: &str) -> Result<String> {
+    pub fn cmd(&self, cmd: &str) -> Result<String> {
         Ok(self.rzp.lock().unwrap().cmd(cmd)?)
     }
 
-    pub fn cmdj<T: serde::de::DeserializeOwned>(&mut self, cmd: &str) -> Result<T> {
+    pub fn cmdj<T: serde::de::DeserializeOwned>(&self, cmd: &str) -> Result<T> {
         serde_json::from_value(self.rzp.lock().unwrap().cmdj(cmd)?)
             .map_err(|e| RzError::Json(std::any::type_name::<T>().to_string(), e.to_string()))
     }
 
-    pub fn ccmd(&mut self, cmd: &str) -> Result<String> {
+    pub fn ccmd(&self, cmd: &str) -> Result<String> {
         if self.do_cache {
             if let Some(result) = self.cache.get(cmd) {
                 Ok(result.to_owned())
@@ -122,27 +123,33 @@ impl RzApi {
             self.cmd(cmd)
         }
     }
-    pub fn close(&mut self) {
+    pub fn close(&self) {
         let _r = self.cmd("q!");
     }
 
-    pub fn function<T: AsRef<str>>(&mut self, func: T) -> Result<FunctionInfo> {
+    pub fn disassemble_function<T: AsRef<str>>(&self, func: T) -> Result<DisassembledFunction> {
         let func_name = func.as_ref();
         let cmd = format!("pdfj @ {}", func_name);
         self.cmdj(&cmd)
     }
 
-    pub fn disassemble_n_bytes(&mut self, n: u64, offset: Option<u64>) -> Result<Vec<Disassembly>> {
-        self.cmdj(&format!(
+    pub fn disassemble_n_bytes(&self, n: u64, offset: Option<u64>) -> Result<Vec<Option<Disassembly>>> {
+        let result: Vec<serde_json::Value> = serde_json::from_str(&self.cmd(&format!(
             "pDj {} @ {}",
             n,
             offset
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| "".to_owned())
-        ))
+        ))?).map_err(|e| RzError::Json("Vec<Value>".to_string(), e.to_string()))?;
+        let mut ret = Vec::new();
+        for disas_json in result {
+            let disas: Option<Disassembly> = serde_json::from_value(disas_json).ok();
+            ret.push(disas);
+        }
+        Ok(ret)
     }
 
-    pub fn disassemble_n_insts(&mut self, n: u64, offset: Option<u64>) -> Result<Vec<Disassembly>> {
+    pub fn disassemble_n_insts(&self, n: u64, offset: Option<u64>) -> Result<Vec<Disassembly>> {
         self.cmdj(&format!(
             "pdj {} @ {}",
             n,
@@ -152,7 +159,7 @@ impl RzApi {
         ))
     }
 
-    pub fn get_address(&mut self, symbol: &str) -> Result<u64> {
+    pub fn get_address(&self, symbol: &str) -> Result<u64> {
         for prefix in &["", "sym.", "sym.imp.", "sym.unk."] {
             let cmd = format!("%v {}{}", prefix, symbol);
             let val = self.cmd(&cmd).unwrap_or_default();
@@ -164,9 +171,9 @@ impl RzApi {
         Err(RzError::Other(format!("symbol {} was not found", symbol)))
     }
 
-    // get 'n' (or 16) instructions at 'offset' (or current position if offset in
+    // get 'n' (or 16) instructions at 'offset' (or current position if offset is
     // `None`)
-    pub fn get_n_insts(&mut self, n: Option<u64>, offset: Option<u64>) -> Result<Vec<Instruction>> {
+    pub fn get_n_insts(&self, n: Option<u64>, offset: Option<u64>) -> Result<Vec<Instruction>> {
         let n = n.unwrap_or(16);
         let mut cmd = format!("aoj {}", n);
         if let Some(o) = offset {
@@ -176,24 +183,24 @@ impl RzApi {
     }
 
     // get registers of the architecture to be analyzed
-    pub fn get_analysis_registers(&mut self) -> Result<RegisterProfile> {
+    pub fn get_analysis_registers(&self) -> Result<RegisterProfile> {
         self.cmdj("arpj")
     }
 
     // get registers of the architecture of the cpu running
-    pub fn get_cpu_registers(&mut self) -> Result<RegisterProfile> {
+    pub fn get_cpu_registers(&self) -> Result<RegisterProfile> {
         self.cmdj("drpj")
     }
 
-    pub fn get_flags(&mut self) -> Result<Vec<FlagInfo>> {
+    pub fn get_flags(&self) -> Result<Vec<FlagInfo>> {
         self.cmdj("flj")
     }
 
-    pub fn get_info(&mut self) -> Result<Information> {
+    pub fn get_info(&self) -> Result<Information> {
         self.cmdj("ij")
     }
 
-    pub fn get_shellcode(&mut self, cmd: &str) -> Result<Vec<u8>> {
+    pub fn get_shellcode(&self, cmd: &str) -> Result<Vec<u8>> {
         let result = self.cmd(&format!("gr;gi exec;gc cmd={};g", cmd))?;
         Ok(hex_decode(&result))
     }
@@ -228,11 +235,11 @@ impl RzApi {
     xtensa        a6    a3    a4    a5    a8    a9    -
     */
 
-    pub fn get_cc(&mut self, location: u64) -> Result<Vec<CallingConvention>> {
-        self.cmdj(&format!("afcrj {}", location))
+    pub fn get_cc(&self, location: u64) -> Result<CallingConvention> {
+        self.cmdj(&format!("afcrj @ {}", location))
     }
 
-    pub fn get_syscall_cc(&mut self) -> Result<CallingConvention> {
+    pub fn get_syscall_cc(&self) -> Result<CallingConvention> {
         match (self.info.bin.arch.as_str(), self.info.bin.bits) {
             ("x86", 32) => Ok(CallingConvention {
                 name: "x86syscall".to_owned(),
@@ -340,19 +347,19 @@ impl RzApi {
         }
     }
 
-    pub fn get_variables(&mut self, location: u64) -> Result<VarInfo> {
-        self.cmdj(&format!("afvj @ {}", location))
+    pub fn get_variables(&self, location: u64) -> Result<VarInfo> {
+        self.cmdj(&format!("afvlj @ {}", location))
     }
 
-    pub fn get_functions(&mut self) -> Result<Vec<FunctionInfo>> {
+    pub fn get_functions(&self) -> Result<Vec<FunctionInfo>> {
         self.cmdj("aflj")
     }
 
-    pub fn get_sections(&mut self) -> Result<Vec<SectionInfo>> {
+    pub fn get_sections(&self) -> Result<Vec<SectionInfo>> {
         self.cmdj("iSj")
     }
 
-    pub fn get_strings(&mut self, data_only: bool) -> Result<Vec<StringInfo>> {
+    pub fn get_strings(&self, data_only: bool) -> Result<Vec<StringInfo>> {
         if data_only {
             self.cmdj("izj")
         } else {
@@ -360,100 +367,370 @@ impl RzApi {
         }
     }
 
-    pub fn get_imports(&mut self) -> Result<Vec<ImportInfo>> {
+    pub fn get_imports(&self) -> Result<Vec<ImportInfo>> {
         self.cmdj("iij")
     }
 
-    pub fn get_exports(&mut self) -> Result<Vec<ExportInfo>> {
-        self.cmdj("iej")
+    pub fn get_exports(&self) -> Result<Vec<SymbolInfo>> {
+        self.cmdj("iEj")
     }
 
-    pub fn get_symbols(&mut self) -> Result<Vec<SymbolInfo>> {
+    pub fn get_symbols(&self) -> Result<Vec<SymbolInfo>> {
         self.cmdj("isj")
     }
 
-    pub fn get_relocs(&mut self) -> Result<Vec<RelocInfo>> {
+    pub fn get_relocs(&self) -> Result<Vec<RelocInfo>> {
         self.cmdj("irj")
     }
 
-    pub fn get_entrypoint(&mut self) -> Result<Vec<EntryInfo>> {
+    pub fn get_entrypoint(&self) -> Result<Vec<EntryInfo>> {
         self.cmdj("iej")
     }
 
-    pub fn get_libraries(&mut self) -> Result<Vec<String>> {
+    pub fn get_libraries(&self) -> Result<Vec<String>> {
         self.cmdj("ilj")
     }
 
-    pub fn seek(&mut self, addr: u64) {
+    pub fn seek(&self, addr: u64) {
         let _r = self.cmd(format!("s {}", addr).as_str());
     }
 
     // Send a raw command and recv output
-    pub fn raw(&mut self, cmd: String) -> Result<String> {
+    pub fn raw(&self, cmd: String) -> Result<String> {
         self.cmd(&cmd)
     }
 
-    pub fn analyze_n_insts(&mut self, n: u64, offset: Option<u64>) -> Result<Vec<Instruction>> {
-        self.set_option("analysis.esil", "true")?;
-        let ret = self.cmdj(&format!(
-            "aoj {} @ {}",
-            n,
-            offset
-                .map(|x| x.to_string())
-                .unwrap_or_else(|| "".to_owned())
-        ))?;
-        self.set_option("analysis.esil", "false")?;
-        Ok(ret)
-    }
-
     /// All Analysis
-    pub fn analyze_all(&mut self) {
+    pub fn analyze_all(&self) {
         let _r = self.cmd("aa");
     }
 
     /// Analyze and auto-name functions
-    pub fn analyze_and_autoname(&mut self) {
-        let _r = self.cmd("aaa");
+    pub fn analyze_and_autoname(&self) {
+        let _r = self.cmd("aaa").unwrap();
     }
 
     /// Analyze function calls
-    pub fn analyze_function_calls(&mut self) {
-        let _r = self.cmd("aac");
+    pub fn analyze_function_calls(&self) {
+        let _r = self.cmd("aac").unwrap();
     }
 
     /// Analyze data references
-    pub fn analyze_data_references(&mut self) {
-        let _r = self.cmd("aad");
+    pub fn analyze_data_references(&self) {
+        let _r = self.cmd("aad").unwrap();
     }
 
     /// Analyze references esil
-    pub fn analyze_references_esil(&mut self) {
-        let _r = self.cmd("aae");
+    pub fn analyze_references_esil(&self) {
+        let _r = self.cmd("aae").unwrap();
     }
 
     /// Find and analyze function preludes
-    pub fn analyze_function_preludes(&mut self) {
-        let _r = self.cmd("aap");
+    pub fn analyze_function_preludes(&self) {
+        let _r = self.cmd("aap").unwrap();
     }
 
     /// Analyze instruction references
-    pub fn analyze_function_references(&mut self) {
-        let _r = self.cmd("aar");
+    pub fn analyze_function_references(&self) {
+        let _r = self.cmd("aar").unwrap();
     }
 
     /// Analyze symbols
-    pub fn analyze_symbols(&mut self) {
-        let _r = self.cmd("aas");
+    pub fn analyze_symbols(&self) {
+        let _r = self.cmd("aas").unwrap();
     }
 
     /// Analyze consecutive functions in section
-    pub fn analyze_consecutive_functions(&mut self) {
-        let _r = self.cmd("aat");
+    pub fn analyze_consecutive_functions(&self) {
+        let _r = self.cmd("aat").unwrap();
     }
 
     // Get RzILVM status
-    pub fn get_rzil_vm_status(&mut self) -> Result<RzILVMStatus> {
+    pub fn get_rzil_vm_status(&self) -> Result<RzILVMStatus> {
         self.cmd("aezi")?;
         self.cmdj("aezvj")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Helper function to create a test RzApi instance
+    fn create_test_rzapi() -> RzApi {
+        RzApi::new(Some("test/dummy")).unwrap()
+    }
+
+    #[test]
+    fn test_set_option() {
+        let api = create_test_rzapi();
+        let result = api.set_option("analysis.esil", "false");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_cmd() {
+        let api = create_test_rzapi();
+        let result = api.cmd("i");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_cmdj() {
+        let api = create_test_rzapi();
+        let result: Result<serde_json::Value> = api.cmdj("ij");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_ccmd() {
+        let api = create_test_rzapi();
+        let result = api.ccmd("i");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_function() {
+        let api = create_test_rzapi();
+        api.analyze_all();
+        let result = api.disassemble_function("main");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_disassemble_n_bytes() {
+        let api = create_test_rzapi();
+        let result = api.disassemble_n_bytes(16, Some(0x1044));
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_disassemble_n_insts() {
+        let api = create_test_rzapi();
+        let result = api.disassemble_n_insts(5, Some(0x1044));
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_address() {
+        let api = create_test_rzapi();
+        let result = api.get_address("main");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_n_insts() {
+        let api = create_test_rzapi();
+        let result = api.get_n_insts(Some(5), Some(0x1044)).unwrap();
+        //assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_analysis_registers() {
+        let api = create_test_rzapi();
+        let result = api.get_analysis_registers();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_cpu_registers() {
+        let api = create_test_rzapi();
+        let result = api.get_cpu_registers();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_flags() {
+        let api = create_test_rzapi();
+        let result = api.get_flags();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_info() {
+        let api = create_test_rzapi();
+        let result = api.get_info();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_shellcode() {
+        let api = create_test_rzapi();
+        let result = api.get_shellcode("nop");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_cc() {
+        let api = create_test_rzapi();
+        api.analyze_all();
+        let result = api.get_cc(0x1044);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_syscall_cc() {
+        let api = create_test_rzapi();
+        let result = api.get_syscall_cc();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_variables() {
+        let api = create_test_rzapi();
+        api.analyze_all();
+        let result = api.get_variables(0x1044);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_functions() {
+        let api = create_test_rzapi();
+        api.analyze_all();
+        let result = api.get_functions();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_sections() {
+        let api = create_test_rzapi();
+        let result = api.get_sections();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_strings() {
+        let api = create_test_rzapi();
+        let result = api.get_strings(true);
+        assert!(result.is_ok());
+        let result = api.get_strings(false);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_imports() {
+        let api = create_test_rzapi();
+        let result = api.get_imports();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_exports() {
+        let api = create_test_rzapi();
+        let result = api.get_exports();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_symbols() {
+        let api = create_test_rzapi();
+        let result = api.get_symbols();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_relocs() {
+        let api = create_test_rzapi();
+        let result = api.get_relocs();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_entrypoint() {
+        let api = create_test_rzapi();
+        let result = api.get_entrypoint();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_libraries() {
+        let api = create_test_rzapi();
+        let result = api.get_libraries();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_seek() {
+        let api = create_test_rzapi();
+        api.seek(0x1044);
+        // Since seek doesn't return a result, we just ensure it doesn't panic
+    }
+
+    #[test]
+    fn test_raw() {
+        let api = create_test_rzapi();
+        let result = api.raw("i".to_string());
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_analyze_all() {
+        let api = create_test_rzapi();
+        api.analyze_all();
+        // Since analyze_all doesn't return a result, we just ensure it doesn't panic
+    }
+
+    #[test]
+    fn test_analyze_and_autoname() {
+        let api = create_test_rzapi();
+        api.analyze_and_autoname();
+        // Since analyze_and_autoname doesn't return a result, we just ensure it doesn't panic
+    }
+
+    #[test]
+    fn test_analyze_function_calls() {
+        let api = create_test_rzapi();
+        api.analyze_function_calls();
+        // Since analyze_function_calls doesn't return a result, we just ensure it doesn't panic
+    }
+
+    #[test]
+    fn test_analyze_data_references() {
+        let api = create_test_rzapi();
+        api.analyze_data_references();
+        // Since analyze_data_references doesn't return a result, we just ensure it doesn't panic
+    }
+
+    #[test]
+    fn test_analyze_references_esil() {
+        let api = create_test_rzapi();
+        api.analyze_references_esil();
+        // Since analyze_references_esil doesn't return a result, we just ensure it doesn't panic
+    }
+
+    #[test]
+    fn test_analyze_function_preludes() {
+        let api = create_test_rzapi();
+        api.analyze_function_preludes();
+        // Since analyze_function_preludes doesn't return a result, we just ensure it doesn't panic
+    }
+
+    #[test]
+    fn test_analyze_function_references() {
+        let api = create_test_rzapi();
+        api.analyze_function_references();
+        // Since analyze_function_references doesn't return a result, we just ensure it doesn't panic
+    }
+
+    #[test]
+    fn test_analyze_symbols() {
+        let api = create_test_rzapi();
+        api.analyze_symbols();
+        // Since analyze_symbols doesn't return a result, we just ensure it doesn't panic
+    }
+
+    #[test]
+    fn test_analyze_consecutive_functions() {
+        let api = create_test_rzapi();
+        api.analyze_all();
+        api.analyze_consecutive_functions();
+        // Since analyze_consecutive_functions doesn't return a result, we just ensure it doesn't panic
+    }
+
+    #[test]
+    fn test_get_rzil_vm_status() {
+        let api = create_test_rzapi();
+        let result = api.get_rzil_vm_status();
+        assert!(result.is_ok());
     }
 }
