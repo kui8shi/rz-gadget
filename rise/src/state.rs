@@ -40,6 +40,7 @@ pub trait State {
     fn get_pc(&self) -> u64;
     fn set_pc(&mut self, pc: u64) -> u64;
     fn get_status(&self) -> Status;
+    fn set_status(&mut self, status: Status);
 }
 
 impl State for StateZ3Backend {
@@ -63,5 +64,8 @@ impl State for StateZ3Backend {
     }
     fn get_status(&self) -> Status {
         self.status.clone()
+    }
+    fn set_status(&mut self, status: Status) {
+        self.status = status
     }
 }

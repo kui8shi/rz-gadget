@@ -11,7 +11,7 @@ use crate::state::Status;
 impl Process for StateZ3Backend {}
 
 pub trait Process: State + MemoryOps + Solver + ConvertRzILToSymExp {
-    fn process(&mut self, root: Effect) -> Result<Status> {
+    fn process(&mut self, root: Effect) -> Result<()> {
         let mut worklist = VecDeque::from([root]);
         let mut status = Status::LoadOp;
         while let Some(op) = worklist.pop_front() {
@@ -74,6 +74,7 @@ pub trait Process: State + MemoryOps + Solver + ConvertRzILToSymExp {
         if let Status::LoadOp = status {
             status = Status::LoadInst;
         }
-        Ok(status)
+        self.set_status(status);
+        Ok(())
     }
 }

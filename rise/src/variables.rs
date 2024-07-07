@@ -1,5 +1,5 @@
 use crate::{registers::RegSpec, rzil::error::RzILError};
-use std::collections::HashMap;
+use std::{borrow::BorrowMut, collections::HashMap};
 
 use crate::rzil::{
     error::Result,
@@ -73,6 +73,7 @@ pub trait Variables {
     fn set_var(&mut self, var: PureRef) -> Result<()>;
     fn remove_var(&mut self, name: &str) -> Option<PureRef>;
     fn add_register(&mut self, reg: &RegSpec);
+    fn concretize_register(&mut self, name: &str, val: u64);
     fn get_reg_spec(&self, name: &str) -> Option<RegSpec>;
 }
 
@@ -147,6 +148,12 @@ impl Variables for VarStorage {
             .insert(reg.get_name().to_string(), Scope::Global);
         self.reg_specs
             .insert(reg.get_name().to_string(), reg.clone());
+    }
+
+    fn concretize_register(&mut self, name: &str, val: u64) {
+        assert!(self.reg_specs.get(name).is_some());
+        let reg = self.get_var(name).unwrap();
+        reg.concretize(val)
     }
 
     fn remove_var(&mut self, name: &str) -> Option<PureRef> {

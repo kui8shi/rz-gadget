@@ -4,6 +4,7 @@ pub(crate) mod lifter;
 
 use crate::variables::VarId;
 use error::{Result, RzILError};
+use std::cell::Cell;
 use std::collections::hash_map::DefaultHasher;
 use std::fmt::{Debug, Display};
 use std::hash::{Hash, Hasher};
@@ -206,9 +207,9 @@ impl Hash for PureRef {
         for arg in &self.pure.args {
             arg.hash.hash(state);
         }
-        self.pure.symbolized.hash(state);
         self.pure.sort.hash(state);
-        self.pure.eval.hash(state);
+        self.pure.symbolized.get().hash(state);
+        self.pure.eval.get().hash(state);
     }
 }
 
@@ -216,9 +217,9 @@ impl Hash for PureRef {
 pub struct Pure {
     code: PureCode,
     args: Vec<PureRef>,
-    symbolized: bool,
     sort: Sort,
-    eval: u64, // if symbolized, it has 0.
+    symbolized: Cell<bool>,
+    eval: Cell<u64>, // if symbolized, it has 0.
 }
 
 impl Pure {
@@ -232,14 +233,14 @@ impl Pure {
         Pure {
             code,
             args,
-            symbolized,
             sort,
-            eval,
+            symbolized: Cell::new(symbolized),
+            eval: Cell::new(eval),
         }
     }
 
     pub fn evaluate(&self) -> u64 {
-        self.eval
+        self.eval.get()
     }
     pub fn evaluate_bool(&self) -> bool {
         self.evaluate() != 0
@@ -269,10 +270,10 @@ impl Pure {
         self.get_sort().is_bool()
     }
     pub fn is_symbolized(&self) -> bool {
-        self.symbolized
+        self.symbolized.get()
     }
     pub fn is_concretized(&self) -> bool {
-        !self.symbolized
+        !self.symbolized.get()
     }
     pub fn is_true(&self) -> bool {
         self.is_bool() && self.is_concretized() && self.evaluate_bool()
@@ -283,9 +284,9 @@ impl Pure {
     pub fn is_zero(&self) -> bool {
         self.is_bitv() && self.is_concretized() && self.evaluate() == 0
     }
-    pub fn concretize(&mut self, eval: u64) {
-        self.symbolized = false;
-        self.eval = eval;
+    pub fn concretize(&self, eval: u64) {
+        self.symbolized.set(false);
+        self.eval.set(eval);
     }
     pub fn expect_bool(&self) -> Result<()> {
         if !self.is_bool() {
@@ -435,7 +436,7 @@ impl Debug for Effect {
                 .field("src", &var.get_arg(0))
                 .finish(),
             Effect::Jmp { dst } => f.debug_struct("Jmp").field("dst", &dst).finish(),
-            Effect::Goto { label } => f.debug_struct("Jmp").field("label", &label).finish(),
+            Effect::Goto { label } => f.debug_struct("Goto").field("label", &label).finish(),
             Effect::Seq { args } => f.debug_struct("Seq").field("args", &args).finish(),
             Effect::Branch {
                 condition,

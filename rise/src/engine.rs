@@ -124,6 +124,10 @@ impl<S: Process> Rise<S> {
         false
     }
 
+    pub fn set_register(&mut self, name: &str, val: u64) {
+        self.vars.concretize_register(name, val)
+    }
+
     /*
      *
      * needed functions

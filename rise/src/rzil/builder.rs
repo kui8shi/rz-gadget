@@ -448,7 +448,7 @@ pub trait RzILBuilder {
         let symbolized = x.is_symbolized() | y.is_symbolized();
         let sort = Sort::Bitv(x.get_size());
         let eval = if !symbolized {
-            x.evaluate() | y.evaluate()
+            x.evaluate() & y.evaluate()
         } else {
             0
         };
@@ -471,7 +471,7 @@ pub trait RzILBuilder {
         let symbolized = x.is_symbolized() | y.is_symbolized();
         let sort = Sort::Bitv(x.get_size());
         let eval = if !symbolized {
-            x.evaluate() & y.evaluate()
+            x.evaluate() | y.evaluate()
         } else {
             0
         };
@@ -857,7 +857,7 @@ mod test {
     fn let_var() {
         let r = RzILCache::new();
         let val = r.new_const(Sort::Bitv(64), 0xdeadbeaf);
-        let var = r.new_pure_var(VarId::new("hoge"), val.clone());
+        let var = r.new_let_var(VarId::new("hoge"), val.clone());
         let (scope, id) = var.expect_var().unwrap();
         assert_eq!(scope, Scope::Let);
         assert_eq!(id.get_name(), "hoge");
