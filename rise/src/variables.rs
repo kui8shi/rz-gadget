@@ -1,5 +1,5 @@
 use crate::{registers::RegSpec, rzil::error::RzILError};
-use std::{borrow::BorrowMut, collections::HashMap};
+use std::collections::HashMap;
 
 use crate::rzil::{
     error::Result,
@@ -174,7 +174,7 @@ mod test {
 
     #[test]
     fn set_var() {
-        let builder = RzILCache::new();
+        let builder = RzILBuilder::new();
         let mut vars = VarStorage::new();
         assert_eq!(vars.get_var("a"), None); // no variables set
         let var = builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a"));
@@ -196,7 +196,7 @@ mod test {
 
     #[test]
     fn clear() {
-        let builder = RzILCache::new();
+        let builder = RzILBuilder::new();
         let mut vars = VarStorage::new();
         let false_ = builder.new_const(Sort::Bool, 0);
         vars.set_var(builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a")))
@@ -227,7 +227,7 @@ mod test {
 
     #[test]
     fn var_id_count() {
-        let builder = RzILCache::new();
+        let builder = RzILBuilder::new();
         let mut vars = VarStorage::new();
 
         vars.set_var(builder.new_unconstrained(Sort::Bool, vars.get_uniq_id("a")))

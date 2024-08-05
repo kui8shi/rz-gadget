@@ -5,6 +5,8 @@ members = [
 exclude = [
 ]
 
+resolver = "2"
+
 [profile.release]
 lto = true
 opt-level = 2
@@ -13,6 +15,6 @@ opt-level = 2
 lto = false
 opt-level = 0
 
-[patch.crates-io]
-z3 = { git = "https://github.com/ez2take/z3.rs.git"}
+#[patch.crates-io]
+#z3 = { git = "https://github.com/kui8shi/z3.rs.git"}
 #z3 = { path = "../../src/z3.rs" }

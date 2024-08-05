@@ -149,7 +149,10 @@ where
 
     /// Gets an iterator over all the stored ranges that are
     /// either partially or completely overlapped by the given range.
-    pub fn overlapping<'a>(&'a self, range: &'a Range<K>) -> Overlapping<K, V> {
+    pub fn overlapping<'a, 'b>(&'a self, range: &'b Range<K>) -> Overlapping<K, V>
+    where
+        'a: 'b,
+    {
         // Find the first matching stored range by its start,
         // After that, another overlapping filter is imposed on the end of ranges
         // in Overlapping::next(). (See definition of 'next' in Iterator impl of Overlapping)

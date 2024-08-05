@@ -12,7 +12,7 @@ pub struct Rise<S> {
     pub api: RzApi,
     states: StatePool<S>,
     lifter: RzILLifter,
-    builder: RzILCache,
+    cache: RzILCache,
     vars: VarStorage,
     addr: u64,
     flags: HashMap<String, FlagInfo>,
@@ -56,7 +56,7 @@ impl<S: Process> Rise<S> {
     pub fn new(path: Option<&str>) -> Result<Self> {
         let api = RzApi::new(path)?;
         let lifter = RzILLifter::new();
-        let builder = RzILCache::new();
+        let cache = RzILCache::new();
         let mut vars = VarStorage::new();
         let addr = 0;
         let flaginfo = api.get_flags()?;
@@ -66,45 +66,47 @@ impl<S: Process> Rise<S> {
         }
         let entry_info = api.get_entrypoint()?;
         let entry_point = (!entry_info.is_empty()).then_some(entry_info[0].vaddr);
-        let ctx = State::new(builder.clone(), entry_point);
+        let state = State::new(cache.clone().into(), entry_point);
         let mut explorer = StatePool::new();
 
-        explorer.push_ctx(ctx);
-        registers::bind_registers(&api, &builder, &mut vars)?;
+        explorer.push_state(state);
+        registers::bind_registers(&api, &cache.clone().into(), &mut vars)?;
 
         Ok(Rise {
             api,
             states: explorer,
             lifter,
-            builder,
+            cache,
             vars,
             addr,
             flags,
         })
     }
 
-    pub fn run(&mut self, mode: Mode) -> Result<Status> {
-        let mut state = self.states.pop_ctx()?;
+    pub fn run(&mut self, _mode: Mode) -> Result<Status> {
+        let mut state = self.states.pop_state()?;
         while let Status::LoadInst = state.get_status() {
             let pc = state.get_pc();
             let inst = self.read_inst(pc)?;
             state.set_pc(pc + inst.size);
-            match self
-                .lifter
-                .parse_effect_optional(&self.builder, &mut self.vars, &inst.rzil)?
-            {
+            match self.lifter.parse_effect_optional(
+                &self.cache.clone().into(),
+                &mut self.vars,
+                &inst.rzil,
+            )? {
                 None => {
                     continue;
                 }
                 Some(op) => {
-            println!("Program at {:#x}, inst = {:?}", pc, inst.pseudo); dbg!(&op);
+                    println!("Program at {:#x}, inst = {:?}", pc, inst.pseudo);
+                    dbg!(&op);
                     state.process(op)?;
                 }
             }
             //self.vars.clear_local();
         }
         let status = state.get_status();
-        self.states.push_ctx(state);
+        self.states.push_state(state);
         Ok(status)
     }
 

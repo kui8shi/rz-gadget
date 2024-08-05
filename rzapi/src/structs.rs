@@ -1,6 +1,5 @@
 //! Provides structures for JSON encoding and decoding
 use std::boxed::Box;
-use serde::Deserialize;
 use serde_json;
 
 #[derive(PartialEq, Eq, Debug, Clone, Default, Serialize, Deserialize)]

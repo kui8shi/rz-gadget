@@ -77,11 +77,7 @@ fn parse_reg_info(rzapi: &RzApi) -> Result<Vec<RegSpec>> {
     Ok(reg_specs)
 }
 
-pub fn bind_registers(
-    rzapi: &RzApi,
-    rzil: &impl RzILBuilder,
-    vars: &mut dyn Variables,
-) -> Result<()> {
+pub fn bind_registers(rzapi: &RzApi, rzil: &RzILBuilder, vars: &mut dyn Variables) -> Result<()> {
     let reg_specs = parse_reg_info(rzapi)?;
     for r in reg_specs.iter() {
         vars.add_register(r);

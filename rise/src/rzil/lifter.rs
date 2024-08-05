@@ -58,7 +58,7 @@ impl BranchSetToSetIte {
         self.conditions.pop();
     }
 
-    fn connect_condition(&self, rzil: &impl RzILBuilder) -> Result<PureRef> {
+    fn connect_condition(&self, rzil: &RzILBuilder) -> Result<PureRef> {
         let len = self.conditions.len();
         let mut x = self.conditions.last().unwrap().clone();
         for i in (0..len - 1).rev() {
@@ -76,7 +76,7 @@ impl BranchSetToSetIte {
 
     fn add_entry(
         &mut self,
-        rzil: &impl RzILBuilder,
+        rzil: &RzILBuilder,
         vars: &mut dyn Variables,
         name: &str,
         src: PureRef,
@@ -130,7 +130,7 @@ impl BranchSetToSetIte {
         Ok(())
     }
 
-    fn drain(&mut self, rzil: &impl RzILBuilder, vars: &mut dyn Variables) -> Result<Vec<Effect>> {
+    fn drain(&mut self, rzil: &RzILBuilder, vars: &mut dyn Variables) -> Result<Vec<Effect>> {
         let entries: Vec<(String, SetInBranch)> = self.entries.drain().collect();
         let mut set_ite_ops = Vec::new();
         self.clear();
@@ -178,7 +178,7 @@ impl RzILLifter {
 
     fn parse_pure(
         &mut self,
-        rzil: &impl RzILBuilder,
+        rzil: &RzILBuilder,
         vars: &mut dyn Variables,
         op: &RzILInfo,
     ) -> Result<PureRef> {
@@ -487,7 +487,7 @@ impl RzILLifter {
 
     pub fn parse_effect(
         &mut self,
-        rzil: &impl RzILBuilder,
+        rzil: &RzILBuilder,
         vars: &mut dyn Variables,
         op: &RzILInfo,
     ) -> Result<Effect> {
@@ -496,7 +496,7 @@ impl RzILLifter {
 
     pub fn parse_effect_optional(
         &mut self,
-        rzil: &impl RzILBuilder,
+        rzil: &RzILBuilder,
         vars: &mut dyn Variables,
         op: &RzILInfo,
     ) -> Result<Option<Effect>> {
@@ -612,7 +612,7 @@ impl RzILLifter {
 
     fn parse_seq_arg(
         &mut self,
-        rzil: &impl RzILBuilder,
+        rzil: &RzILBuilder,
         vars: &mut dyn Variables,
         seq_arg: &RzILInfo,
         vec: &mut Vec<Effect>,
@@ -651,7 +651,7 @@ mod test {
     use super::RzILLifter;
     use crate::{
         registers::bind_registers,
-        rzil::{builder::RzILCache, Effect},
+        rzil::{builder::RzILBuilder, Effect},
         variables::{VarStorage, Variables},
     };
 
@@ -661,7 +661,7 @@ mod test {
     }
 
     fn parse_ops(target: Vec<&str>) -> Vec<Effect> {
-        let rzil = RzILCache::new();
+        let rzil = RzILBuilder::new();
         let mut lifter = RzILLifter::new();
         let rzapi = RzApi::new(Some("test/dummy")).unwrap();
         let mut vars = VarStorage::new();

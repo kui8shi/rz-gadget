@@ -1,7 +1,7 @@
 pub(crate) mod memory;
 pub(crate) mod process;
 pub(crate) mod solver;
-use crate::rzil::{builder::RzILCache, Effect, PureRef};
+use crate::rzil::{builder::RzILBuilder, Effect, PureRef};
 use memory::Memory;
 use solver::Z3Solver;
 
@@ -27,28 +27,28 @@ pub enum Status {
 }
 
 #[derive(Clone, Debug)]
-pub struct StateZ3Backend {
+pub struct StateZ3Backend<S> {
     pc: u64,
     memory: Memory,
-    solver: Z3Solver,
-    rzil: RzILCache,
+    rzil: RzILBuilder,
     status: Status,
+    pub(crate) z3: S,
 }
 
 pub trait State {
-    fn new(rzil: RzILCache, pc: Option<u64>) -> Self;
+    fn new(rzil: RzILBuilder, pc: Option<u64>) -> Self;
     fn get_pc(&self) -> u64;
     fn set_pc(&mut self, pc: u64) -> u64;
     fn get_status(&self) -> Status;
     fn set_status(&mut self, status: Status);
 }
 
-impl State for StateZ3Backend {
-    fn new(rzil: RzILCache, pc: Option<u64>) -> Self {
+impl<S: Z3Solver> State for StateZ3Backend<S> {
+    fn new(rzil: RzILBuilder, pc: Option<u64>) -> Self {
         StateZ3Backend {
             pc: pc.unwrap_or(0),
             memory: Memory::new(Endian::Little),
-            solver: Z3Solver::new(),
+            z3: Z3Solver::new(),
             rzil,
             status: Status::LoadInst,
         }

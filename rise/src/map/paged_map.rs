@@ -102,10 +102,13 @@ impl<V> PagedIntervalMap<V> {
     }
     /// Get a page iterator over all the stored ranges that are
     /// either partially or completely overlapped by the given range.
-    fn overlapping_page<'a>(
+    fn overlapping_page<'a, 'b>(
         &'a self,
-        range: &'a Range<u64>,
-    ) -> impl Iterator<Item = (Range<u64>, &IntervalMap<u64, V>)> {
+        range: &'b Range<u64>,
+    ) -> impl Iterator<Item = (Range<u64>, &'a IntervalMap<u64, V>)> + 'b
+    where
+        'a: 'b,
+    {
         self.pages.iter().filter_map(|(k, v)| {
             Self::page_overlaps(k, range).then_some((Self::to_page_range(k), v))
         })
@@ -113,10 +116,13 @@ impl<V> PagedIntervalMap<V> {
 
     /// Get an entry iterator over all the stored ranges that are
     /// either partially or completely overlapped by the given range.
-    pub fn overlapping<'a>(
+    pub fn overlapping<'a, 'b>(
         &'a self,
-        range: &'a Range<u64>,
-    ) -> impl Iterator<Item = (Range<u64>, &V)> {
+        range: &'b Range<u64>,
+    ) -> impl Iterator<Item = (Range<u64>, &'a V)> + 'b
+    where
+        'a: 'b,
+    {
         self.pages
             .iter()
             .filter(|(k, _)| Self::page_overlaps(k, range))

@@ -1,8 +1,11 @@
-use super::{solver::Solver, StateZ3Backend};
+use super::{
+    solver::{Solver, Z3},
+    StateZ3Backend,
+};
 use crate::{
     error::Result,
     map::{interval_map::IntervalMap, paged_map::PagedIntervalMap},
-    rzil::{builder::RzILBuilder, PureRef, Sort},
+    rzil::{PureRef, Sort},
     variables::VarId,
 };
 use rzapi::structs::Endian;
@@ -103,7 +106,7 @@ impl Memory {
     }
 
     /// Collect all admissible memory entries of given address ranges
-    pub fn search<'a>(&'a self, range: &'a Range<u64>) -> Vec<&MemoryEntry> {
+    pub fn search(&self, range: &Range<u64>) -> Vec<&MemoryEntry> {
         let mut ret: Vec<&MemoryEntry> = self
             .concrete
             .overlapping(range)
@@ -128,7 +131,7 @@ impl Memory {
     //fn merge()
 }
 
-impl StateZ3Backend {
+impl<S> StateZ3Backend<S> {
     /// Write a byte of memory at ranged location
     fn ranged_store(&mut self, range: Range<u64>, entry: MemoryEntry) -> Result<()> {
         self.memory.insert(range, entry);
@@ -137,11 +140,13 @@ impl StateZ3Backend {
 }
 
 pub trait MemoryOps {
+    const MIN_ADDR: u64 = 0x4000;
+    const MAX_ADDR: u64 = 0x80000000 - 1;
     fn store(&mut self, addr: PureRef, val: PureRef) -> Result<()>;
     fn load(&self, addr: PureRef, n_bytes: usize) -> Result<PureRef>;
 }
 
-impl MemoryOps for StateZ3Backend {
+impl<'ctx> MemoryOps for StateZ3Backend<Z3<'ctx>> {
     fn store(&mut self, addr: PureRef, val: PureRef) -> Result<()> {
         assert!(
             0 < val.get_size(),
@@ -169,7 +174,9 @@ impl MemoryOps for StateZ3Backend {
                 addr.clone(),
                 self.rzil.new_const(Sort::Bitv(addr.get_size()), k),
             )?;
-            let range = min_addr + k..max_addr + k + 1;
+            let min_ = min_addr.saturating_add(k).max(Self::MIN_ADDR);
+            let max_ = max_addr.saturating_add(k + 1).min(Self::MAX_ADDR);
+            let range = min_..max_;
             let byte = {
                 let k_bits: u32 = (k * BITS_PER_BYTE as u64).try_into().unwrap();
                 let (high, low) = match self.memory.endian() {
@@ -186,6 +193,7 @@ impl MemoryOps for StateZ3Backend {
             };
             self.ranged_store(range, entry)?;
         }
+        dbg!(&self.memory);
         Ok(())
     }
 
@@ -257,11 +265,8 @@ impl MemoryOps for StateZ3Backend {
 #[cfg(test)]
 mod test {
     use crate::{
-        rzil::{
-            builder::{RzILBuilder, RzILCache},
-            Sort,
-        },
-        state::State,
+        rzil::{builder::RzILBuilder, Sort},
+        state::{solver::Z3, State},
         variables::VarId,
     };
 
@@ -270,8 +275,8 @@ mod test {
     #[test]
     fn concrete() {
         // init
-        let rzil = RzILCache::new();
-        let mut ctx = StateZ3Backend::new(rzil.clone(), None);
+        let rzil = RzILBuilder::new();
+        let mut ctx = StateZ3Backend::<Z3>::new(rzil.clone(), None);
 
         // concrete store
         let addr = rzil.new_const(Sort::Bitv(64), 0x40000);
@@ -286,8 +291,8 @@ mod test {
     #[test]
     fn symbolic() {
         // init
-        let rzil = RzILCache::new();
-        let mut ctx = StateZ3Backend::new(rzil.clone(), None);
+        let rzil = RzILBuilder::new();
+        let mut ctx = StateZ3Backend::<Z3>::new(rzil.clone(), None);
 
         // symbolic store
         let x = rzil.new_unconstrained(Sort::Bitv(64), VarId::new("x"));

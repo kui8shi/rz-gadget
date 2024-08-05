@@ -12,16 +12,16 @@ impl<S> StatePool<S> {
 }
 
 pub trait PathExplorer<S: State> {
-    fn push_ctx(&mut self, state: S);
-    fn pop_ctx(&mut self) -> Result<S>;
+    fn push_state(&mut self, state: S);
+    fn pop_state(&mut self) -> Result<S>;
 }
 
 impl<S: State> PathExplorer<S> for StatePool<S> {
-    fn push_ctx(&mut self, state: S) {
+    fn push_state(&mut self, state: S) {
         self.pool.push(state)
     }
 
-    fn pop_ctx(&mut self) -> Result<S> {
+    fn pop_state(&mut self) -> Result<S> {
         match self.pool.pop() {
             Some(state) => Ok(state),
             None => Err(RiseError::Explorer(

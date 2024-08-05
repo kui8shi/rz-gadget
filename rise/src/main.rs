@@ -10,8 +10,9 @@ mod variables;
 
 use engine::Rise;
 use error::Result;
+use state::solver::Z3;
 fn main() -> Result<()> {
-    let mut rise = Rise::<state::StateZ3Backend>::new(Some("/bin/ls"))?;
+    let mut rise = Rise::<state::StateZ3Backend<Z3>>::new(Some("/bin/ls"))?;
     //rise.set_register("rsp", 0x00007fffffffdbd0);
     rise.run(engine::Mode::Block)?;
     Ok(())

@@ -1,14 +1,14 @@
 use std::collections::VecDeque;
 
 use super::memory::MemoryOps;
-use super::solver::Solver;
+use super::solver::{Solver, Z3};
 use super::{State, StateZ3Backend};
 use crate::convert::ConvertRzILToSymExp;
 use crate::error::Result;
 use crate::rzil::{error::RzILError, Effect};
 use crate::state::Status;
 
-impl Process for StateZ3Backend {}
+impl<'ctx> Process for StateZ3Backend<Z3<'ctx>> {}
 
 pub trait Process: State + MemoryOps + Solver + ConvertRzILToSymExp {
     fn process(&mut self, root: Effect) -> Result<()> {
@@ -35,9 +35,7 @@ pub trait Process: State + MemoryOps + Solver + ConvertRzILToSymExp {
                     break;
                 }
                 Effect::Goto { label } => {
-                    status = Status::Goto {
-                        label,
-                    };
+                    status = Status::Goto { label };
                     break;
                 }
                 Effect::Blk => {
