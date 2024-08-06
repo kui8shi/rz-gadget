@@ -100,10 +100,8 @@ pub trait Solver {
         extra_constraint: &[PureRef],
         n: usize,
     ) -> Result<Vec<HashMap<String, u64>>>;
-    fn evaluate(&self, target: PureRef, n: usize) -> Result<Vec<u64>>;
-    fn get_range(&self, op: PureRef) -> Result<(u64, u64)>;
-    fn get_min(&self, target: PureRef) -> Result<u64>;
-    fn get_max(&self, target: PureRef) -> Result<u64>;
+    fn evaluate(&self, target: PureRef, n: usize, extra_constraints: &[PureRef]) -> Result<Vec<u64>>;
+    fn get_range(&self, op: PureRef, extra_constraint: &[PureRef]) -> Result<(u64, u64)>;
     //TODO SatResult is dependent on z3. cut this out.
     fn check(&self) -> SatResult;
     fn check_assumptions(&self, extra_constraint: &[PureRef]) -> SatResult;
@@ -162,14 +160,14 @@ impl<'ctx> Solver for StateZ3Backend<Z3<'ctx>> {
 
     // extract up to 'n' models of 'op' from current state.
     // returned vector has distinct and sorted values.
-    fn evaluate(&self, op: PureRef, n: usize) -> Result<Vec<u64>> {
+    fn evaluate(&self, op: PureRef, n: usize, extra_constraints: &[PureRef]) -> Result<Vec<u64>> {
         let ast = self.convert(op.clone())?;
         let mut results = BinaryHeap::new();
-        let mut extra_constraint = Vec::new();
+        let mut extra_constraints: Vec<Bool<'ctx>> = extra_constraints.iter().map(|ex_c| self.convert_bool(ex_c.clone()).unwrap()).collect();
         self.z3.z3_push();
         // get 'n' models
         for _ in 0..n {
-            if let Some(model) = self.z3_get_model(&extra_constraint)? {
+            if let Some(model) = self.z3_get_model(&extra_constraints)? {
                 let val = match model.eval(&ast, true) {
                     Some(val) => get_interp(val)?,
                     None => return Err(RiseError::Z3("returned no model.".to_owned())),
@@ -178,7 +176,7 @@ impl<'ctx> Solver for StateZ3Backend<Z3<'ctx>> {
                 let val = self.rzil.new_const(op.get_sort(), val);
                 let eq = self.rzil.new_eq(op.clone(), val)?;
                 let ex_c = self.rzil.new_boolinv(eq)?;
-                extra_constraint.push(self.convert_bool(ex_c)?);
+                extra_constraints.push(self.convert_bool(ex_c)?);
             } else {
                 // model not found (unsat)
                 break;
@@ -195,25 +193,11 @@ impl<'ctx> Solver for StateZ3Backend<Z3<'ctx>> {
         }
     }
 
-    fn get_range(&self, op: PureRef) -> Result<(u64, u64)> {
-        let vec = self.evaluate(op, 10)?;
+    fn get_range(&self, op: PureRef, extra_constraints: &[PureRef]) -> Result<(u64, u64)> {
+        let vec = self.evaluate(op, 10, extra_constraints)?;
         match (vec.first(), vec.last()) {
             (Some(min), Some(max)) => Ok((*min, *max + 1)),
             _ => Err(RiseError::Unsat),
-        }
-    }
-
-    fn get_min(&self, op: PureRef) -> Result<u64> {
-        match self.evaluate(op, 10)?.first() {
-            Some(val) => Ok(*val),
-            None => Err(RiseError::Unsat),
-        }
-    }
-
-    fn get_max(&self, op: PureRef) -> Result<u64> {
-        match self.evaluate(op, 10)?.last() {
-            Some(val) => Ok(*val),
-            None => Err(RiseError::Unsat),
         }
     }
 

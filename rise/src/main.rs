@@ -13,7 +13,7 @@ use error::Result;
 use state::solver::Z3;
 fn main() -> Result<()> {
     let mut rise = Rise::<state::StateZ3Backend<Z3>>::new(Some("/bin/ls"))?;
-    //rise.set_register("rsp", 0x00007fffffffdbd0);
+    //rise.set_register("rsp", 0x11000);
     rise.run(engine::Mode::Block)?;
     Ok(())
 }

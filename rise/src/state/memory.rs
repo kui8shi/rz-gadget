@@ -140,8 +140,8 @@ impl<S> StateZ3Backend<S> {
 }
 
 pub trait MemoryOps {
-    const MIN_ADDR: u64 = 0x4000;
-    const MAX_ADDR: u64 = 0x80000000 - 1;
+    const MIN_ADDR: u64 = 1 << 16;
+    const MAX_ADDR: u64 = 1 << 48 - 1;
     fn store(&mut self, addr: PureRef, val: PureRef) -> Result<()>;
     fn load(&self, addr: PureRef, n_bytes: usize) -> Result<PureRef>;
 }
@@ -162,10 +162,13 @@ impl<'ctx> MemoryOps for StateZ3Backend<Z3<'ctx>> {
             "cannot store bitvector not byte-sized."
         );
         let (min_addr, max_addr) = if addr.is_symbolized() {
-            self.get_range(addr.clone())?
+            let addr_greater_than = self.rzil.new_ule(self.rzil.new_const(addr.get_sort(), Self::MIN_ADDR), addr.clone())?;
+            let addr_less_than = self.rzil.new_ule(addr.clone(), self.rzil.new_const(addr.get_sort(), Self::MAX_ADDR))?;
+            self.get_range(addr.clone(), &[addr_greater_than, addr_less_than])?
         } else {
             (addr.evaluate(), addr.evaluate())
         };
+        dbg!(&addr, &(min_addr..max_addr));
         assert!(min_addr <= max_addr, "min addr exceeds max addr");
         let n_bytes = (val.get_size() / BITS_PER_BYTE as usize) as u64;
         let timestamp = self.memory.timestamp();
@@ -174,9 +177,10 @@ impl<'ctx> MemoryOps for StateZ3Backend<Z3<'ctx>> {
                 addr.clone(),
                 self.rzil.new_const(Sort::Bitv(addr.get_size()), k),
             )?;
-            let min_ = min_addr.saturating_add(k).max(Self::MIN_ADDR);
-            let max_ = max_addr.saturating_add(k + 1).min(Self::MAX_ADDR);
+            let min_ = min_addr.max(Self::MIN_ADDR).min(Self::MAX_ADDR - n_bytes).saturating_add(k);
+            let max_ = max_addr.max(Self::MIN_ADDR).min(Self::MAX_ADDR - n_bytes).saturating_add(k+1);
             let range = min_..max_;
+            dbg!(&range);
             let byte = {
                 let k_bits: u32 = (k * BITS_PER_BYTE as u64).try_into().unwrap();
                 let (high, low) = match self.memory.endian() {
@@ -203,10 +207,13 @@ impl<'ctx> MemoryOps for StateZ3Backend<Z3<'ctx>> {
     fn load(&self, addr: PureRef, n_bytes: usize) -> Result<PureRef> {
         assert!(0 < n_bytes, "cannot load bitvector with zero width.");
         let (min_addr, max_addr) = if addr.is_symbolized() {
-            self.get_range(addr.clone())?
+            let addr_greater_than = self.rzil.new_ule(self.rzil.new_const(addr.get_sort(), Self::MIN_ADDR), addr.clone())?;
+            let addr_less_than = self.rzil.new_ule(addr.clone(), self.rzil.new_const(addr.get_sort(), Self::MAX_ADDR))?;
+            self.get_range(addr.clone(), &[addr_greater_than, addr_less_than])?
         } else {
             (addr.evaluate(), addr.evaluate())
         };
+        dbg!(&addr, &(min_addr..max_addr));
         assert!(min_addr <= max_addr, "min addr exceeds max addr");
         let offsets: Vec<u64> = match self.memory.endian() {
             Endian::Little => (0..n_bytes as u64).collect(),
@@ -218,17 +225,19 @@ impl<'ctx> MemoryOps for StateZ3Backend<Z3<'ctx>> {
                 addr.clone(),
                 self.rzil.new_const(Sort::Bitv(addr.get_size()), *k),
             )?;
-            let range = min_addr + k..max_addr + k + 1;
+            let min_ = min_addr.max(Self::MIN_ADDR).min(Self::MAX_ADDR - n_bytes as u64).saturating_add(*k);
+            let max_ = max_addr.max(Self::MIN_ADDR).min(Self::MAX_ADDR - n_bytes as u64).saturating_add(*k+1);
+            let range = min_..max_;
             let entries = self.memory.search(&range);
             let initial = if self.memory.is_initial_memory_zero_filled() {
                 self.rzil.new_const(Sort::Bitv(8), 0)
             } else {
-                // TODO enable to use this
+                // TODO: enable to use this
                 let implicit_store = self.rzil.new_unconstrained(
                     Sort::Bitv(8),
-                    // the format "{:#010x}" treats lower 32 bits of u64 as "0x........"
-                    // (the length is 10 chars, including "0x")
-                    VarId::new(format!("mem_{:#010x}", min_addr + k).as_ref()), // TODO uniq memory id
+                    // the format "{:#018x}" treats 64 bits of u64 as "0x........"
+                    // (the length is 18 chars, including "0x")
+                    VarId::new(format!("mem_{:#018x}", min_addr + k).as_ref()), // TODO uniq memory id
                 );
                 /*
                 let entry = MemoryEntry {
@@ -258,6 +267,7 @@ impl<'ctx> MemoryOps for StateZ3Backend<Z3<'ctx>> {
                 Some(byte)
             };
         }
+        dbg!(&loaded_value);
         Ok(loaded_value.unwrap())
     }
 }

@@ -151,6 +151,7 @@ where
     ///
     /// Panics if range `start >= end`.
     pub fn insert(&mut self, range: Range<u64>, value: V) {
+        // TODO: delte this meaningless range filter
         let range = range.start..u64::min(range.end, range.start + Self::MAX_RANGE_SIZE);
         let mut page_start = range.start & !(Self::PAGE_SIZE - 1);
         while range.end > page_start {
